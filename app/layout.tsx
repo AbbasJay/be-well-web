@@ -1,5 +1,5 @@
 import "./globals.css";
-import SideNav from "@/components/SideNav";
+import SideNav from "components/SideNav";
 import { ReactNode } from "react";
 
 export const metadata = {
