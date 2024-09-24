@@ -1,10 +1,12 @@
-import { Button } from "components/ui/button";
+import { redirect } from "next/navigation";
 
 export default function Home() {
-  return (
-    <>
-      <h1 className="text-2xl font-bold mb-4">Welcome to the Home Page</h1>
-      <Button>Click me</Button>
-    </>
-  );
+  // Check if user is logged in (you'll need to implement this logic)
+  const isLoggedIn = false; // Replace with actual auth check
+
+  if (!isLoggedIn) {
+    redirect("/auth");
+  }
+
+  return <main>{/* Your main app content */}</main>;
 }

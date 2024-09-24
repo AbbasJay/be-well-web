@@ -1,6 +1,3 @@
-import { drizzle } from "drizzle-orm/vercel-postgres";
-import { sql } from "@vercel/postgres";
-
 import {
   pgTable,
   serial,
@@ -15,7 +12,6 @@ export const UsersTable = pgTable(
     id: serial("id").primaryKey(),
     name: text("name").notNull(),
     email: text("email").notNull(),
-    image: text("image").notNull(),
     createdAt: timestamp("createdAt").defaultNow().notNull(),
   },
   (users) => {
@@ -24,3 +20,5 @@ export const UsersTable = pgTable(
     };
   }
 );
+
+export type User = typeof UsersTable.$inferInsert;
