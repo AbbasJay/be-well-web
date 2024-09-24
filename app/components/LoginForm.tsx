@@ -1,11 +1,13 @@
 "use client";
 
 import { useState, FormEvent } from "react";
+import { useRouter } from "next/navigation";
 
 export default function LoginForm() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
+  const router = useRouter();
 
   async function handleSubmit(e: FormEvent) {
     e.preventDefault();
@@ -16,12 +18,17 @@ export default function LoginForm() {
         body: JSON.stringify({ email, password }),
       });
       if (!response.ok) {
-        throw new Error("Failed to login");
+        const errorData = await response.json();
+        throw new Error(errorData.error || "Failed to login");
       }
-      // Handle successful login (e.g., redirect to dashboard)
-      console.log("Login successful");
+      // Handle successful login
+      router.push("/dashboard");
     } catch (err) {
-      setError(err.message);
+      if (err instanceof Error) {
+        setError(err.message);
+      } else {
+        setError("An unknown error occurred");
+      }
     }
   }
 

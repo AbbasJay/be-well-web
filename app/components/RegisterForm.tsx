@@ -6,6 +6,7 @@ import { useRouter } from "next/navigation";
 export default function RegisterForm() {
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
+  const [password, setPassword] = useState(""); // Add this line
   const [error, setError] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const router = useRouter();
@@ -19,7 +20,7 @@ export default function RegisterForm() {
       const response = await fetch("/api/register", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ name, email }),
+        body: JSON.stringify({ name, email, password }), // Include password
       });
 
       if (!response.ok) {
@@ -66,6 +67,14 @@ export default function RegisterForm() {
         placeholder="Email"
         value={email}
         onChange={(e) => setEmail(e.target.value)}
+        required
+        className="w-full p-2 border rounded"
+      />
+      <input
+        type="password"
+        placeholder="Password"
+        value={password}
+        onChange={(e) => setPassword(e.target.value)}
         required
         className="w-full p-2 border rounded"
       />

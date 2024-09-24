@@ -25,3 +25,17 @@ export async function getUserById(id: number) {
     throw error;
   }
 }
+
+export async function getUserByEmail(email: string) {
+  try {
+    const [user] = await db
+      .select()
+      .from(UsersTable)
+      .where(eq(UsersTable.email, email))
+      .limit(1);
+    return user;
+  } catch (error) {
+    console.error("Error getting user by email:", error);
+    throw error;
+  }
+}

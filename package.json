@@ -6,12 +6,14 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "next lint"
+    "lint": "next lint",
+    "migrate": "drizzle-kit push"
   },
   "dependencies": {
     "@next/env": "^14.2.8",
     "@radix-ui/react-slot": "^1.1.0",
     "@vercel/postgres": "^0.10.0",
+    "bcryptjs": "^2.4.3",
     "class-variance-authority": "^0.7.0",
     "drizzle-orm": "^0.33.0",
     "jose": "^5.9.3",
@@ -23,6 +25,7 @@
     "tailwind-merge": "^2.5.2"
   },
   "devDependencies": {
+    "@types/bcryptjs": "^2.4.6",
     "@types/jsonwebtoken": "^9.0.7",
     "@types/node": "^20",
     "@types/react": "^18",
