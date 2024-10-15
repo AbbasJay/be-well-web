@@ -2,6 +2,7 @@
 
 import { useState, FormEvent } from "react";
 import { useRouter } from "next/navigation";
+import { useAuth } from "../contexts/AuthContext";
 
 export default function RegisterForm() {
   const [name, setName] = useState("");
@@ -10,6 +11,7 @@ export default function RegisterForm() {
   const [error, setError] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const router = useRouter();
+  const { setIsLoggedIn } = useAuth();
 
   async function handleSubmit(e: FormEvent) {
     e.preventDefault();
@@ -20,7 +22,7 @@ export default function RegisterForm() {
       const response = await fetch("/api/register", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ name, email, password }), // Include password
+        body: JSON.stringify({ name, email, password }),
       });
 
       if (!response.ok) {
@@ -28,17 +30,8 @@ export default function RegisterForm() {
         throw new Error(errorData.error || "Failed to register");
       }
 
-      const responseData = await response.json();
-      console.log("Registration response:", responseData);
-      console.log("Response headers:", response.headers);
-
-      // Check if the cookie is set
-      const cookies = document.cookie;
-      console.log("Cookies after registration:", cookies);
-
-      console.log("Registration successful");
-      // Redirect to dashboard
-      router.push("/dashboard");
+      setIsLoggedIn(true);
+      router.push("/");
     } catch (err: unknown) {
       if (err instanceof Error) {
         setError(err.message);

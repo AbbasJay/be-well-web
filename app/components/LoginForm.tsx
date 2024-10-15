@@ -2,12 +2,14 @@
 
 import { useState, FormEvent } from "react";
 import { useRouter } from "next/navigation";
+import { useAuth } from "../contexts/AuthContext";
 
 export default function LoginForm() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const router = useRouter();
+  const { setIsLoggedIn } = useAuth();
 
   async function handleSubmit(e: FormEvent) {
     e.preventDefault();
@@ -21,8 +23,8 @@ export default function LoginForm() {
         const errorData = await response.json();
         throw new Error(errorData.error || "Failed to login");
       }
-      // Handle successful login
-      router.push("/dashboard");
+      setIsLoggedIn(true);
+      router.push("/");
     } catch (err) {
       if (err instanceof Error) {
         setError(err.message);

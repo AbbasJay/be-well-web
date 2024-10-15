@@ -12,7 +12,7 @@ export async function POST(request: Request) {
     const body = await request.json();
     const { email, password } = body;
 
-    console.log("Login attempt for email:", email); // Add this line
+    console.log("Login attempt for email:", email);
 
     if (!email || !password) {
       return NextResponse.json(
@@ -27,7 +27,7 @@ export async function POST(request: Request) {
       .where(eq(UsersTable.email, email))
       .limit(1);
 
-    console.log("User found:", user); // Add this line
+    console.log("User found:", user);
 
     if (!user) {
       return NextResponse.json({ error: "User not found" }, { status: 404 });
@@ -35,7 +35,7 @@ export async function POST(request: Request) {
 
     const passwordMatch = await bcrypt.compare(password, user.password);
 
-    console.log("Password match:", passwordMatch); // Add this line
+    console.log("Password match:", passwordMatch);
 
     if (!passwordMatch) {
       return NextResponse.json(
@@ -50,6 +50,8 @@ export async function POST(request: Request) {
       .setProtectedHeader({ alg: "HS256" })
       .setExpirationTime("1h")
       .sign(secret);
+
+    console.log("Generated token:", token); // Debug log
 
     // Set the JWT as an HTTP-only cookie
     const response = NextResponse.json(
