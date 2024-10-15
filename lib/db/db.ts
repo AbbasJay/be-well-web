@@ -8,3 +8,7 @@ export const db = drizzle(sql, { schema });
 export const getUsers = async () => {
   return db.select().from(schema.UsersTable);
 };
+
+export const getBusinesses = async () => {
+  return db.select().from(schema.BusinessesTable);
+};

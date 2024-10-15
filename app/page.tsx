@@ -1,14 +1,27 @@
+import { BusinessForm } from "@/components/forms/business-form/business-form";
 import { getUserFromToken } from "@/lib/auth";
+import { Business } from "@/lib/db/schema";
 import { cookies } from "next/headers";
+
+interface User {
+  name: string;
+  email: string;
+}
 
 export default async function Home() {
   const cookieStore = cookies();
   const token = cookieStore.get("token")?.value;
 
-  let user = null;
+  let user: User | null = null;
   if (token) {
     user = await getUserFromToken(token);
   }
+
+ 
+ 
+// const handleSubmit = (data: Business) => {
+//   console.log(data);
+// };
 
   return (
     <main>
@@ -21,6 +34,10 @@ export default async function Home() {
       ) : (
         <p>Loading user information...</p>
       )}
+
+      <BusinessForm  />
+
+   
     </main>
   );
 }

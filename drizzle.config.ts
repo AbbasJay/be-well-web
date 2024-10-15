@@ -5,7 +5,7 @@ import { defineConfig } from "drizzle-kit";
 import { resolve } from "path";
 
 export default defineConfig({
-  schema: resolve("./lib/db/schema.ts"), // Adjust this path
+  schema: 'lib/db/schema.ts',
   dialect: "postgresql",
   dbCredentials: {
     url: process.env.POSTGRES_URL || "",

@@ -1,8 +1,8 @@
-import { User } from "lib/db/schema";
-import { createUser } from "lib/db/users";
 import { NextResponse } from "next/server";
 import * as jose from "jose";
 import bcrypt from "bcryptjs";
+import { User } from "@/lib/db/schema";
+import { createUser } from "@/lib/db/users";
 
 const JWT_SECRET = process.env.JWT_SECRET!;
 
