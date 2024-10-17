@@ -127,9 +127,7 @@ export const BusinessForm: React.FC = () => {
         </SelectContent>
       </Select>
 
-      <Button type="submit" className="w-full">
-        Submit
-      </Button>
+      <Button type="submit">Submit</Button>
     </form>
   );
 };

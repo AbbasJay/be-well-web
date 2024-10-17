@@ -1,39 +1,33 @@
 "use client";
 
-import { useAuth } from "./contexts/AuthContext";
-import SideNav from "../components/SideNav";
-import { useEffect, useState } from "react";
+import { ReactNode, useState } from "react";
+import SideNav from "@/components/SideNav";
+import Header from "@/components/Header";
 
-export default function ClientLayout({
-  children,
-}: {
-  children: React.ReactNode;
-}) {
-  const { isLoggedIn, checkAuth } = useAuth();
-  const [isLoading, setIsLoading] = useState(true);
+interface ClientLayoutProps {
+  children: ReactNode;
+}
 
-  useEffect(() => {
-    const init = async () => {
-      await checkAuth();
-      setIsLoading(false);
-    };
-    init();
-  }, [checkAuth]);
-
-  if (isLoading) {
-    return <div>Loading...</div>; // Or a more sophisticated loading indicator
-  }
+export default function ClientLayout({ children }: ClientLayoutProps) {
+  const [isNavOpen, setIsNavOpen] = useState(false);
 
   return (
     <div className="flex">
-      {isLoggedIn ? (
-        <>
-          <SideNav />
-          <div className="flex-1 p-4">{children}</div>
-        </>
-      ) : (
-        <div className="flex-1">{children}</div>
-      )}
+      <SideNav isOpen={isNavOpen} setIsOpen={setIsNavOpen} />
+      <div className="flex flex-col flex-grow">
+        <Header
+          toggleNav={() => setIsNavOpen(!isNavOpen)}
+          isNavOpen={isNavOpen}
+        />
+        <main
+          className={`flex-grow transition-all duration-300 p-4 ${
+            isNavOpen ? "ml-64" : "ml-0"
+          }`}
+          style={{ marginTop: "76px" }} // Adjusted to 84px to match the header height
+        >
+          {children}
+        </main>
+      </div>
     </div>
   );
 }

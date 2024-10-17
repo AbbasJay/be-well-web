@@ -69,6 +69,7 @@ export default function BusinessDetailsPage({
 
   return (
     <div>
+      <h1 className="text-3xl font-bold mb-4">{business.name}</h1>
       <Card className="w-full mb-4">
         <CardHeader>
           <CardTitle>{business.name}</CardTitle>
