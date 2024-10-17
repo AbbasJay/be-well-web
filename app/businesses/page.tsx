@@ -69,8 +69,8 @@ export default function BusinessesPage() {
                   </p>
                 </CardContent>
               </div>
-              <CardFooter>
-                <Button className="w-full">
+              <CardFooter className="items-end">
+                <Button>
                   <Link href={`/businesses/${business.id}`}>View Details</Link>
                 </Button>
               </CardFooter>
