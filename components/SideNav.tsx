@@ -26,6 +26,14 @@ const SideNav = () => {
           </Link>
         </li>
         <li>
+          <Link
+            href="/businesses"
+            className="block hover:bg-gray-200 p-2 rounded"
+          >
+            My Businesses
+          </Link>
+        </li>
+        <li>
           <Link href="/about" className="block hover:bg-gray-200 p-2 rounded">
             About
           </Link>
