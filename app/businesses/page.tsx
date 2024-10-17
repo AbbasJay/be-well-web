@@ -1,7 +1,7 @@
-import { getUserFromToken } from "@/lib/auth";
-import { getBusinessesByUserId } from "@/lib/db/businesses";
-import { cookies } from "next/headers";
-import Link from "next/link";
+"use client";
+
+import { useEffect, useState } from "react";
+import { Business } from "@/lib/db/schema";
 import {
   Card,
   CardContent,
@@ -11,44 +11,66 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import Link from "next/link";
 
-export default async function BusinessesPage() {
-  const cookieStore = cookies();
-  const token = cookieStore.get("token")?.value;
+export default function BusinessesPage() {
+  const [businesses, setBusinesses] = useState<Business[]>([]);
+  const [loading, setLoading] = useState(true);
 
-  if (!token) {
-    return <div>Please log in to view your businesses.</div>;
-  }
+  const fetchBusinesses = async () => {
+    try {
+      const response = await fetch("/api/businesses");
+      if (!response.ok) {
+        throw new Error("Failed to fetch businesses");
+      }
+      const data = await response.json();
+      setBusinesses(data);
+    } catch (error) {
+      console.error("Error fetching businesses:", error);
+    } finally {
+      setLoading(false);
+    }
+  };
 
-  const user = await getUserFromToken(token);
-  if (!user) {
-    return <div>User not found.</div>;
-  }
+  useEffect(() => {
+    fetchBusinesses();
+  }, []);
 
-  const businesses = await getBusinessesByUserId(user.id);
+  if (loading) return <div>Loading...</div>;
 
   return (
-    <div className="container mx-auto px-4">
-      <h1 className="text-3xl font-bold mb-6">My Businesses</h1>
+    <>
+      <div className="flex justify-between items-center mb-4">
+        <h1 className="text-3xl font-bold">My Businesses</h1>
+        <Button asChild>
+          <Link href="/businesses/new">Register New Business</Link>
+        </Button>
+      </div>
       {businesses.length === 0 ? (
         <p>You haven&apos;t registered any businesses yet.</p>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {businesses.map((business) => (
-            <Card key={business.id}>
-              <CardHeader>
-                <CardTitle>{business.name}</CardTitle>
-                <CardDescription>{business.type}</CardDescription>
-              </CardHeader>
-              <CardContent>
-                <p className="text-sm text-gray-600 mb-2">{business.address}</p>
-                <p className="text-sm text-gray-600 mb-2">
-                  {business.phoneNumber}
-                </p>
-                <p className="text-sm text-gray-600">{business.description}</p>
-              </CardContent>
+            <Card key={business.id} className="grid">
+              <div>
+                <CardHeader>
+                  <CardTitle>{business.name}</CardTitle>
+                  <CardDescription>{business.type}</CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <p className="text-sm text-gray-600 mb-2">
+                    {business.address}
+                  </p>
+                  <p className="text-sm text-gray-600 mb-2">
+                    {business.phoneNumber}
+                  </p>
+                  <p className="text-sm text-gray-600">
+                    {business.description}
+                  </p>
+                </CardContent>
+              </div>
               <CardFooter>
-                <Button asChild>
+                <Button className="w-full">
                   <Link href={`/businesses/${business.id}`}>View Details</Link>
                 </Button>
               </CardFooter>
@@ -56,11 +78,6 @@ export default async function BusinessesPage() {
           ))}
         </div>
       )}
-      <div className="mt-8">
-        <Button asChild>
-          <Link href="/businesses/new">Register New Business</Link>
-        </Button>
-      </div>
-    </div>
+    </>
   );
 }

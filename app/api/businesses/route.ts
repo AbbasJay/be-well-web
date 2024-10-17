@@ -3,6 +3,7 @@ import { db } from "@/lib/db/db";
 import { BusinessesTable, Business } from "@/lib/db/schema";
 import { getUserFromToken } from "@/lib/auth";
 import { cookies } from "next/headers";
+import { eq } from "drizzle-orm";
 
 export async function POST(req: Request) {
   try {
@@ -38,6 +39,36 @@ export async function POST(req: Request) {
         error: "Failed to add business",
         details: error instanceof Error ? error.message : "Unknown error",
       },
+      { status: 500 }
+    );
+  }
+}
+
+export async function GET() {
+  try {
+    const cookieStore = cookies();
+    const token = cookieStore.get("token")?.value;
+
+    if (!token) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+
+    const user = await getUserFromToken(token);
+    if (!user) {
+      return NextResponse.json({ error: "User not found" }, { status: 404 });
+    }
+
+    const businesses = await db
+      .select()
+      .from(BusinessesTable)
+      .where(eq(BusinessesTable.userId, user.id))
+      .execute();
+
+    return NextResponse.json(businesses, { status: 200 });
+  } catch (error) {
+    console.error("Error fetching businesses:", error);
+    return NextResponse.json(
+      { error: "Failed to fetch businesses" },
       { status: 500 }
     );
   }

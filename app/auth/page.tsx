@@ -1,29 +1,22 @@
 "use client";
 
-import { useState, useEffect } from "react";
-import { useRouter } from "next/navigation";
+import { useState } from "react";
 import LoginForm from "../components/LoginForm";
 import RegisterForm from "../components/RegisterForm";
 
 export default function AuthPage() {
   const [isLogin, setIsLogin] = useState(true);
-  const router = useRouter();
-
-  useEffect(() => {
-    // Check if user is already logged in
-    const token = document.cookie.includes("token=");
-    if (token) {
-      router.push("/");
-    }
-  }, [router]);
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
       <div className="max-w-md w-full space-y-8">
         <div>
-          <h2 className="mt-6 text-center text-3xl font-extrabold text-gray-900">
-            {isLogin ? "Log in to your account" : "Create a new account"}
-          </h2>
+          <h1 className="mt-6 text-center text-3xl font-extrabold text-gray-900">
+            Welcome to Our App
+          </h1>
+          <p className="mt-2 text-center text-sm text-gray-600">
+            {isLogin ? "Please log in to continue" : "Create a new account"}
+          </p>
         </div>
         {isLogin ? <LoginForm /> : <RegisterForm />}
         <div className="text-center">
@@ -33,7 +26,7 @@ export default function AuthPage() {
           >
             {isLogin
               ? "Need an account? Register"
-              : "Already have an account? Log in"}
+              : "Already have an account? Login"}
           </button>
         </div>
       </div>

@@ -1,37 +1,36 @@
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
+import { cookies } from "next/headers";
+import * as jose from "jose";
 
-export async function middleware(request: NextRequest) {
-  const token = request.cookies.get("token")?.value;
+const JWT_SECRET = process.env.JWT_SECRET!;
 
-  if (!token && !request.nextUrl.pathname.startsWith("/auth")) {
-    return NextResponse.redirect(new URL("/auth", request.url));
-  }
+export async function middleware(req: NextRequest) {
+  const { pathname } = req.nextUrl;
 
-  if (token) {
-    try {
-      const response = await fetch(`${request.nextUrl.origin}/api/check-auth`, {
-        headers: {
-          Cookie: `token=${token}`,
-        },
-      });
-      const data = await response.json();
+  // Only run this middleware on the /auth page
+  if (pathname === "/auth") {
+    const cookieStore = cookies();
+    const token = cookieStore.get("token")?.value;
 
-      if (
-        !data.isAuthenticated &&
-        !request.nextUrl.pathname.startsWith("/auth")
-      ) {
-        return NextResponse.redirect(new URL("/auth", request.url));
+    if (token) {
+      try {
+        const secret = new TextEncoder().encode(JWT_SECRET);
+        await jose.jwtVerify(token, secret);
+
+        // If the token is valid, redirect to the homepage
+        return NextResponse.redirect(new URL("/", req.url));
+      } catch (error) {
+        console.error("Error verifying token:", error);
+        // If token verification fails, allow access to the /auth page
       }
-    } catch (error) {
-      console.error("Error in middleware:", error);
-      return NextResponse.redirect(new URL("/auth", request.url));
     }
   }
 
+  // Continue to the requested page if not redirecting
   return NextResponse.next();
 }
 
 export const config = {
-  matcher: ["/((?!api|_next/static|_next/image|favicon.ico).*)"],
+  matcher: ["/auth"], // Apply middleware only to the /auth page
 };
