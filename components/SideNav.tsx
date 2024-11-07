@@ -8,8 +8,12 @@ interface SideNavProps {
 }
 
 const SideNav = ({ isOpen }: SideNavProps) => {
-  const { setIsLoggedIn } = useAuth();
+  const { isLoggedIn, setIsLoggedIn } = useAuth();
   const router = useRouter();
+
+  if (!isLoggedIn) {
+    return null;
+  }
 
   const handleLogout = async () => {
     const response = await fetch("/api/logout", {

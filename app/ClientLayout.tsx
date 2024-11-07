@@ -20,10 +20,10 @@ export default function ClientLayout({ children }: ClientLayoutProps) {
           isNavOpen={isNavOpen}
         />
         <main
-          className={`flex-grow transition-all duration-300 p-4 ${
+          className={`flex-grow transition-all duration-300 ${
             isNavOpen ? "ml-64" : "ml-0"
           }`}
-          style={{ marginTop: "76px" }} // Adjusted to 84px to match the header height
+          style={{ marginTop: "76px" }}
         >
           {children}
         </main>
