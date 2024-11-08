@@ -14,16 +14,24 @@ import { Business } from "@/lib/db/schema";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 
-export const BusinessForm: React.FC = () => {
+type BusinessFormProps = {
+  initialData?: Partial<Business>;
+  onSubmit: (businessData: Partial<Business>) => Promise<void>;
+};
+
+export const BusinessForm: React.FC<BusinessFormProps> = ({
+  initialData,
+  onSubmit,
+}) => {
   const router = useRouter();
   const [formData, setFormData] = useState<Partial<Business>>({
-    name: "",
-    address: "",
-    phoneNumber: "",
-    description: "",
-    hours: "",
-    email: "",
-    type: "",
+    name: initialData?.name || "",
+    address: initialData?.address || "",
+    phoneNumber: initialData?.phoneNumber || "",
+    description: initialData?.description || "",
+    hours: initialData?.hours || "",
+    email: initialData?.email || "",
+    type: initialData?.type || "",
   });
 
   const handleChange = (
@@ -45,27 +53,8 @@ export const BusinessForm: React.FC = () => {
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    try {
-      const token = localStorage.getItem("token");
-      const response = await fetch("/api/businesses", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
-        body: JSON.stringify(formData),
-      });
 
-      if (response.ok) {
-        console.log("Business added successfully");
-        router.push("/businesses");
-      } else {
-        const errorData = await response.json();
-        console.error("Failed to add business:", errorData.error);
-      }
-    } catch (error) {
-      console.error("An error occurred:", error);
-    }
+    await onSubmit(formData);
   };
 
   return (

@@ -94,3 +94,73 @@ export async function GET(
     );
   }
 }
+
+export async function PUT(
+  req: Request,
+  { params }: { params: { id: string } }
+) {
+  try {
+    const cookieStore = cookies();
+    const token = cookieStore.get("token")?.value;
+
+    if (!token) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+
+    const user = await getUserFromToken(token);
+    if (!user) {
+      return NextResponse.json({ error: "User not found" }, { status: 404 });
+    }
+
+    // validate id
+    const businessId = parseInt(params.id);
+    if (isNaN(businessId)) {
+      return NextResponse.json({ error: "Invalid business ID" }, { status: 400 });
+    }
+
+    // check existence
+    const existingBusiness = await db
+      .select()
+      .from(BusinessesTable)
+      .where(
+        and(
+          eq(BusinessesTable.id, businessId),
+          eq(BusinessesTable.userId, user.id)
+        )
+      )
+      .execute();
+
+    if (!existingBusiness.length) {
+      return NextResponse.json(
+        { error: "Business not found or not authorized" },
+        { status: 404 }
+      );
+    }
+
+    // patse request body
+    const body: Partial<Business> = await req.json();
+
+    // TODO HERE: validation
+
+    // update db
+    await db
+      .update(BusinessesTable)
+      .set(body)
+      .where(eq(BusinessesTable.id, businessId))
+      .execute();
+
+    return NextResponse.json(
+      { message: "Business updated successfully" },
+      { status: 200 }
+    );
+  } catch (error) {
+    console.error("Error updating business:", error);
+    return NextResponse.json(
+      {
+        error: "Failed to update business",
+        details: error instanceof Error ? error.message : "Unknown error",
+      },
+      { status: 500 }
+    );
+  }
+}
