@@ -11,7 +11,6 @@ import {
   SelectTrigger,
 } from "@/components/ui/select";
 import { Business } from "@/lib/db/schema";
-import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 
 type BusinessFormProps = {
@@ -23,7 +22,6 @@ export const BusinessForm: React.FC<BusinessFormProps> = ({
   initialData,
   onSubmit,
 }) => {
-  const router = useRouter();
   const [formData, setFormData] = useState<Partial<Business>>({
     name: initialData?.name || "",
     address: initialData?.address || "",
