@@ -1,5 +1,7 @@
 "use client";
 
+import { PencilIcon } from "lucide-react";
+
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { Business } from "@/lib/db/schema";
@@ -100,6 +102,12 @@ export default function BusinessDetailsPage({
       <div className="flex gap-2">
         <Button asChild>
           <Link href="/businesses">Back to Businesses</Link>
+        </Button>
+
+        <Button variant="outline" size="icon">
+          <Link href={`/businesses/${params.id}/edit`}>
+            <PencilIcon />
+          </Link>
         </Button>
 
         <Button variant="destructive" onClick={handleDelete}>
