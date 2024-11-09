@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { db } from "@/lib/db/db";
-import { BusinessesTable } from "@/lib/db/schema";
+import { Business, BusinessesTable } from "@/lib/db/schema";
 import { getUserFromToken } from "@/lib/auth";
 import { cookies } from "next/headers";
 import { eq, and } from "drizzle-orm";
@@ -115,7 +115,10 @@ export async function PUT(
     // validate id
     const businessId = parseInt(params.id);
     if (isNaN(businessId)) {
-      return NextResponse.json({ error: "Invalid business ID" }, { status: 400 });
+      return NextResponse.json(
+        { error: "Invalid business ID" },
+        { status: 400 }
+      );
     }
 
     // check existence
