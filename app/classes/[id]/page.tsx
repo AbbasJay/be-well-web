@@ -20,11 +20,7 @@ import {
 } from "@/components/ui/dialog";
 import { ClassForm } from "@/components/forms/class-form";
 
-export default function ClassesPage({
-  params,
-}: {
-  params: { id: string; data: any };
-}) {
+export default function ClassesPage({ params }: { params: { id: string } }) {
   const [classes, setClasses] = useState<Class[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedClass, setSelectedClass] = useState<Class | null>(null);
