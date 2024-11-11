@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect, useRef } from "react";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import {
@@ -12,16 +12,24 @@ import {
 } from "@/components/ui/select";
 import { Business } from "@/lib/db/schema";
 import { Button } from "@/components/ui/button";
+import { useLoadScript, Libraries } from "@react-google-maps/api";
 
 type BusinessFormProps = {
   initialData?: Partial<Business>;
   onSubmit: (businessData: Partial<Business>) => Promise<void>;
 };
 
+const libraries: Libraries = ["places"];
+
 export const BusinessForm: React.FC<BusinessFormProps> = ({
   initialData,
   onSubmit,
 }) => {
+  const { isLoaded, loadError } = useLoadScript({
+    googleMapsApiKey: process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY || "",
+    libraries,
+  });
+
   const [formData, setFormData] = useState<Partial<Business>>({
     name: initialData?.name || "",
     address: initialData?.address || "",
@@ -30,7 +38,40 @@ export const BusinessForm: React.FC<BusinessFormProps> = ({
     hours: initialData?.hours || "",
     email: initialData?.email || "",
     type: initialData?.type || "",
+    country: initialData?.country || "",
+    zipCode: initialData?.zipCode || "",
+    city: initialData?.city || "",
+    state: initialData?.state || "",
+    latitude: initialData?.latitude || null,
+    longitude: initialData?.longitude || null,
   });
+
+  const inputRef = useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
+    if (!isLoaded || loadError) return;
+
+    const options = {
+      componentRestrictions: { country: "uk" },
+      fields: ["address_components", "geometry"],
+    };
+
+    if (inputRef.current) {
+      const autocomplete = new google.maps.places.Autocomplete(
+        inputRef.current,
+        options
+      );
+      autocomplete.addListener("place_changed", () =>
+        handlePlaceChanged(autocomplete)
+      );
+    }
+
+    return () => {
+      if (inputRef.current) {
+        google.maps.event.clearInstanceListeners(inputRef.current);
+      }
+    };
+  }, [isLoaded, loadError]);
 
   const handleChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
@@ -39,6 +80,80 @@ export const BusinessForm: React.FC<BusinessFormProps> = ({
     setFormData((prevData) => ({
       ...prevData,
       [name]: value,
+    }));
+  };
+
+  const handlePlaceChanged = (
+    autocomplete: google.maps.places.Autocomplete
+  ) => {
+    if (!isLoaded) return;
+    const place = autocomplete.getPlace();
+
+    if (!place || !place.geometry) {
+      // Clear address-related fields if no place is selected
+      setFormData((prevData) => ({
+        ...prevData,
+        address: "",
+        country: "",
+        zipCode: "",
+        city: "",
+        latitude: null,
+        longitude: null,
+      }));
+      return;
+    }
+
+    updateAddressFormData(place);
+  };
+
+  const updateAddressFormData = (place: google.maps.places.PlaceResult) => {
+    const addressComponents = place.address_components || [];
+
+    console.log("address components", addressComponents);
+
+    const componentMap: { [key: string]: string } = {
+      subPremise: "",
+      premise: "",
+      street_number: "",
+      route: "",
+      country: "",
+      postal_code: "",
+      state: "",
+      administrative_area_level_2: "",
+      administrative_area_level_1: "", // State
+    };
+
+    addressComponents.forEach((component) => {
+      const componentType = component.types[0];
+      if (componentMap.hasOwnProperty(componentType)) {
+        componentMap[componentType] = component.long_name;
+      }
+    });
+
+    const formattedAddress =
+      `${componentMap.subPremise} ${componentMap.premise} ${componentMap.street_number} ${componentMap.route}`.trim();
+    const latitude = place.geometry?.location?.lat()?.toString() || null;
+    const longitude = place.geometry?.location?.lng()?.toString() || null;
+
+    console.log("autocompleted address", {
+      address: formattedAddress,
+      country: componentMap.country,
+      zipCode: componentMap.postal_code,
+      city: componentMap.administrative_area_level_2,
+      state: componentMap.administrative_area_level_1,
+      latitude: latitude,
+      longitude: longitude,
+    });
+
+    setFormData((prevData) => ({
+      ...prevData,
+      address: formattedAddress,
+      country: componentMap.country,
+      zipCode: componentMap.postal_code,
+      city: componentMap.administrative_area_level_2,
+      state: componentMap.administrative_area_level_1,
+      latitude: latitude,
+      longitude: longitude,
     }));
   };
 
@@ -69,6 +184,7 @@ export const BusinessForm: React.FC<BusinessFormProps> = ({
         name="address"
         placeholder="Business Address"
         type="text"
+        ref={inputRef}
         value={formData.address}
         onChange={handleChange}
         required
@@ -118,7 +234,6 @@ export const BusinessForm: React.FC<BusinessFormProps> = ({
     </form>
   );
 };
-
 // FORM FIELDS NEEDED FROM THE PARTNER
 // - Business Name
 // - Business Address
