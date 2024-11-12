@@ -110,7 +110,7 @@ export async function GET(req: Request) {
   }
 }
 
-export async function GET_ALL(req: Request) {
+export async function GET_ALL() {
   try {
     // Add CORS headers to all responses
     const headers = {
