@@ -51,7 +51,6 @@ export const BusinessForm: React.FC<BusinessFormProps> = ({
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-
     await onSubmit(formData);
   };
 
@@ -114,31 +113,7 @@ export const BusinessForm: React.FC<BusinessFormProps> = ({
         </SelectContent>
       </Select>
 
-      <Button type="submit">Submit</Button>
+      <Button type="submit">Submit Business</Button>
     </form>
   );
 };
-
-// FORM FIELDS NEEDED FROM THE PARTNER
-// - Business Name
-// - Business Address
-// - Business Phone Number
-// - Business Description
-// - Business Hours
-// - Business Email
-// - Business type - (dropdown)
-
-// - if business type is "gym", then:
-//   - classes only
-//   - gym floor only
-//   - both classes and gym floor
-
-// once the business type is defined e.g "gym" the partner can now select a button to add schedules for the gym
-// when the button is clicked, a form will pop up and the partner can select different options for the schedule via a modal pop up
-// - name of the class
-// - price
-// - description of the class
-// - instructor of the class
-// - duration of the class
-// - capacity of the class, e.g. how many spaces are available for the class
-// - calender selection to select the days of the week the class is available this should have the option to select the date e.g. a specific data or a repeated data or a range.
