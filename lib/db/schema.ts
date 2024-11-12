@@ -6,6 +6,7 @@ import {
   uniqueIndex,
   integer,
   foreignKey,
+  numeric,
 } from "drizzle-orm/pg-core";
 
 export const UsersTable = pgTable(
@@ -36,6 +37,12 @@ export const BusinessesTable = pgTable(
     hours: text("hours"),
     email: text("email").notNull(),
     type: text("type").notNull(),
+    country: text("country"),
+    zipCode: text("zip_code"),
+    city: text("city"),
+    state: text("state"),
+    latitude: numeric("latitude", { precision: 10, scale: 7 }),
+    longitude: numeric("longitude", { precision: 10, scale: 7 }),
     createdAt: timestamp("created_at").defaultNow().notNull(),
   },
   (businesses) => ({

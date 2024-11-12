@@ -44,8 +44,42 @@ export async function POST(req: Request) {
   }
 }
 
+// Middleware to handle CORS
+export async function OPTIONS() {
+  return new NextResponse(null, {
+    status: 204,
+    headers: {
+      "Access-Control-Allow-Origin": "*",
+      "Access-Control-Allow-Methods": "GET, POST, PUT, DELETE, OPTIONS",
+      "Access-Control-Allow-Headers":
+        "Content-Type, Authorization, X-CSRF-Token, X-Requested-With, Accept, Accept-Version, Content-Length, Content-MD5, Date, X-Api-Version",
+      "Access-Control-Max-Age": "86400",
+    },
+  });
+}
+
 export async function GET(req: Request) {
   try {
+    // Add CORS headers to all responses
+    const headers = {
+      "Access-Control-Allow-Origin": "*",
+      "Access-Control-Allow-Methods": "GET, POST, PUT, DELETE, OPTIONS",
+      "Access-Control-Allow-Headers": "Content-Type, Authorization",
+    };
+
+    const url = new URL(req.url);
+    const all = url.searchParams.get("all");
+
+    if (all === "true") {
+      // Fetch all businesses
+      const businesses = await db.select().from(BusinessesTable).execute();
+      return NextResponse.json(businesses, {
+        status: 200,
+        headers,
+      });
+    }
+
+    // Fetch businesses for a specific user
     const cookieStore = cookies();
     const cookieToken = cookieStore.get("token")?.value;
     const headerToken = req.headers
@@ -69,12 +103,22 @@ export async function GET(req: Request) {
       .where(eq(BusinessesTable.userId, user.id))
       .execute();
 
-    return NextResponse.json(businesses, { status: 200 });
+    return NextResponse.json(businesses, {
+      status: 200,
+      headers,
+    });
   } catch (error) {
     console.error("Error fetching businesses:", error);
     return NextResponse.json(
       { error: "Failed to fetch businesses" },
-      { status: 500 }
+      {
+        status: 500,
+        headers: {
+          "Access-Control-Allow-Origin": "*",
+          "Access-Control-Allow-Methods": "GET, POST, PUT, DELETE, OPTIONS",
+          "Access-Control-Allow-Headers": "Content-Type, Authorization",
+        },
+      }
     );
   }
 }
