@@ -49,7 +49,12 @@ export const BusinessForm: React.FC<BusinessFormProps> = ({
   const inputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
-    if (!isLoaded || loadError) return;
+    if (!isLoaded) return;
+
+    if (loadError) {
+      console.log("Load Error: ", loadError);
+      return;
+    }
 
     const options = {
       componentRestrictions: { country: "uk" },
