@@ -45,7 +45,7 @@ export async function POST(req: Request) {
 }
 
 // Middleware to handle CORS
-export async function OPTIONS(req: Request) {
+export async function OPTIONS() {
   return new NextResponse(null, {
     status: 204,
     headers: {
@@ -98,6 +98,37 @@ export async function GET(req: Request) {
     console.error("Error fetching businesses:", error);
     return NextResponse.json(
       { error: "Failed to fetch businesses" },
+      {
+        status: 500,
+        headers: {
+          "Access-Control-Allow-Origin": "*",
+          "Access-Control-Allow-Methods": "GET, POST, PUT, DELETE, OPTIONS",
+          "Access-Control-Allow-Headers": "Content-Type, Authorization",
+        },
+      }
+    );
+  }
+}
+
+export async function GET_ALL(req: Request) {
+  try {
+    // Add CORS headers to all responses
+    const headers = {
+      "Access-Control-Allow-Origin": "*",
+      "Access-Control-Allow-Methods": "GET, POST, PUT, DELETE, OPTIONS",
+      "Access-Control-Allow-Headers": "Content-Type, Authorization",
+    };
+
+    const businesses = await db.select().from(BusinessesTable).execute();
+
+    return NextResponse.json(businesses, {
+      status: 200,
+      headers,
+    });
+  } catch (error) {
+    console.error("Error fetching all businesses:", error);
+    return NextResponse.json(
+      { error: "Failed to fetch all businesses" },
       {
         status: 500,
         headers: {
