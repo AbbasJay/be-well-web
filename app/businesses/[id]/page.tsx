@@ -92,9 +92,14 @@ export default function BusinessDetailsPage({
           <p>
             <strong>Hours:</strong> {business.hours}
           </p>
-
           <p>
             <strong>Phone:</strong> {business.phoneNumber}
+          </p>
+          <p>
+            <strong>Address:</strong> {business.address}
+          </p>
+          <p>
+            <strong>Zip Code:</strong> {business.zipCode}
           </p>
         </CardFooter>
       </Card>
