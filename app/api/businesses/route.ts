@@ -45,6 +45,17 @@ export async function POST(req: Request) {
 }
 
 export async function GET(req: Request) {
+  if (req.method === "OPTIONS") {
+    return new NextResponse(null, {
+      status: 204,
+      headers: {
+        "Access-Control-Allow-Origin": "http://localhost:8081",
+        "Access-Control-Allow-Methods": "GET, POST, OPTIONS",
+        "Access-Control-Allow-Headers": "Content-Type, Authorization",
+      },
+    });
+  }
+
   try {
     const cookieStore = cookies();
     const cookieToken = cookieStore.get("token")?.value;
@@ -69,12 +80,27 @@ export async function GET(req: Request) {
       .where(eq(BusinessesTable.userId, user.id))
       .execute();
 
-    return NextResponse.json(businesses, { status: 200 });
+    // Add CORS headers to the response
+    return NextResponse.json(businesses, {
+      status: 200,
+      headers: {
+        "Access-Control-Allow-Origin": "http://localhost:8081",
+        "Access-Control-Allow-Methods": "GET, POST, OPTIONS",
+        "Access-Control-Allow-Headers": "Content-Type, Authorization",
+      },
+    });
   } catch (error) {
     console.error("Error fetching businesses:", error);
     return NextResponse.json(
       { error: "Failed to fetch businesses" },
-      { status: 500 }
+      {
+        status: 500,
+        headers: {
+          "Access-Control-Allow-Origin": "http://localhost:8081",
+          "Access-Control-Allow-Methods": "GET, POST, OPTIONS",
+          "Access-Control-Allow-Headers": "Content-Type, Authorization",
+        },
+      }
     );
   }
 }
