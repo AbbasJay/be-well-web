@@ -87,7 +87,7 @@ export async function GET(req: Request) {
     const businesses = await db
       .select()
       .from(BusinessesTable)
-      .where(eq(BusinessesTable.userId, user.id))
+      // .where(eq(BusinessesTable.userId, user.id))
       .execute();
 
     return NextResponse.json(businesses, {
