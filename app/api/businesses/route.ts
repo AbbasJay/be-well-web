@@ -67,6 +67,19 @@ export async function GET(req: Request) {
       "Access-Control-Allow-Headers": "Content-Type, Authorization",
     };
 
+    const url = new URL(req.url);
+    const all = url.searchParams.get("all");
+
+    if (all === "true") {
+      // Fetch all businesses
+      const businesses = await db.select().from(BusinessesTable).execute();
+      return NextResponse.json(businesses, {
+        status: 200,
+        headers,
+      });
+    }
+
+    // Fetch businesses for a specific user
     const cookieStore = cookies();
     const cookieToken = cookieStore.get("token")?.value;
     const headerToken = req.headers
@@ -98,37 +111,6 @@ export async function GET(req: Request) {
     console.error("Error fetching businesses:", error);
     return NextResponse.json(
       { error: "Failed to fetch businesses" },
-      {
-        status: 500,
-        headers: {
-          "Access-Control-Allow-Origin": "*",
-          "Access-Control-Allow-Methods": "GET, POST, PUT, DELETE, OPTIONS",
-          "Access-Control-Allow-Headers": "Content-Type, Authorization",
-        },
-      }
-    );
-  }
-}
-
-export async function GET_ALL() {
-  try {
-    // Add CORS headers to all responses
-    const headers = {
-      "Access-Control-Allow-Origin": "*",
-      "Access-Control-Allow-Methods": "GET, POST, PUT, DELETE, OPTIONS",
-      "Access-Control-Allow-Headers": "Content-Type, Authorization",
-    };
-
-    const businesses = await db.select().from(BusinessesTable).execute();
-
-    return NextResponse.json(businesses, {
-      status: 200,
-      headers,
-    });
-  } catch (error) {
-    console.error("Error fetching all businesses:", error);
-    return NextResponse.json(
-      { error: "Failed to fetch all businesses" },
       {
         status: 500,
         headers: {
