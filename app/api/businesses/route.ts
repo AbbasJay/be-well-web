@@ -45,7 +45,7 @@ export async function POST(req: Request) {
 }
 
 // Middleware to handle CORS
-export async function OPTIONS(req: Request) {
+export async function OPTIONS() {
   return new NextResponse(null, {
     status: 204,
     headers: {
