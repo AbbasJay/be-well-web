@@ -3,7 +3,6 @@ import { db } from "@/lib/db/db";
 import { BusinessesTable, Business } from "@/lib/db/schema";
 import { getUserFromToken } from "@/lib/auth";
 import { cookies } from "next/headers";
-import { eq } from "drizzle-orm";
 
 export async function POST(req: Request) {
   try {
