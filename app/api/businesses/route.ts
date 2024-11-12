@@ -44,10 +44,15 @@ export async function POST(req: Request) {
   }
 }
 
-export async function GET() {
+export async function GET(req: Request) {
   try {
     const cookieStore = cookies();
-    const token = cookieStore.get("token")?.value;
+    const cookieToken = cookieStore.get("token")?.value;
+    const headerToken = req.headers
+      .get("Authorization")
+      ?.replace("Bearer ", "");
+
+    const token = headerToken || cookieToken;
 
     if (!token) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });

@@ -51,13 +51,12 @@ export async function POST(request: Request) {
       .setExpirationTime("1h")
       .sign(secret);
 
-    console.log("Generated token:", token); // Debug log
-
     // Set the JWT as an HTTP-only cookie
     const response = NextResponse.json(
-      { message: "Login successful" },
+      { message: "Login successful", token: token },
       { status: 200 }
     );
+
     response.cookies.set("token", token, {
       httpOnly: true,
       secure: process.env.NODE_ENV === "production",
