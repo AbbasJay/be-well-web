@@ -72,10 +72,6 @@ export const ClassesTable = pgTable(
     capacity: integer("capacity").notNull(),
     slotsLeft: integer("slots_left").notNull(),
     createdAt: timestamp("created_at").defaultNow().notNull(),
-    startDate: text("start_date").notNull(),
-    time: text("time").notNull(),
-    slotsLeft: integer("slots_left").notNull(),
-    location: text("location").notNull(),
   },
   (classes) => ({
     businessIdFk: foreignKey({
