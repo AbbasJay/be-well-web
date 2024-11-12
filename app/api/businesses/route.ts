@@ -45,15 +45,20 @@ export async function POST(req: Request) {
 }
 
 export async function GET(req: Request) {
+  // Define CORS headers for Expo development
+  const corsHeaders = {
+    "Access-Control-Allow-Origin": "http://localhost:8081",
+    "Access-Control-Allow-Methods": "GET, POST, PUT, DELETE, OPTIONS",
+    "Access-Control-Allow-Headers": "*", // Allow all headers during development
+    "Access-Control-Expose-Headers": "*",
+    "Access-Control-Allow-Credentials": "true",
+  };
+
+  // Handle preflight requests
   if (req.method === "OPTIONS") {
     return new NextResponse(null, {
       status: 204,
-      headers: {
-        "Access-Control-Allow-Origin": "http://localhost:8081",
-        "Access-Control-Allow-Methods": "GET, POST, OPTIONS",
-        "Access-Control-Allow-Headers": "Content-Type, Authorization",
-        "Access-Control-Allow-Credentials": "true",
-      },
+      headers: corsHeaders,
     });
   }
 
@@ -83,12 +88,7 @@ export async function GET(req: Request) {
 
     return NextResponse.json(businesses, {
       status: 200,
-      headers: {
-        "Access-Control-Allow-Origin": "http://localhost:8081",
-        "Access-Control-Allow-Methods": "GET, POST, OPTIONS",
-        "Access-Control-Allow-Headers": "Content-Type, Authorization",
-        "Access-Control-Allow-Credentials": "true",
-      },
+      headers: corsHeaders,
     });
   } catch (error) {
     console.error("Error fetching businesses:", error);
@@ -96,12 +96,7 @@ export async function GET(req: Request) {
       { error: "Failed to fetch businesses" },
       {
         status: 500,
-        headers: {
-          "Access-Control-Allow-Origin": "http://localhost:8081",
-          "Access-Control-Allow-Methods": "GET, POST, OPTIONS",
-          "Access-Control-Allow-Headers": "Content-Type, Authorization",
-          "Access-Control-Allow-Credentials": "true",
-        },
+        headers: corsHeaders,
       }
     );
   }
