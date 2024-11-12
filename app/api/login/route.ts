@@ -51,21 +51,11 @@ export async function POST(request: Request) {
       .setExpirationTime("1h")
       .sign(secret);
 
-    // Set the JWT as an HTTP-only cookie
-    const response = NextResponse.json(
-      { message: "Login successful", token: token },
+    // Simply return the token in the response body
+    return NextResponse.json(
+      { message: "Login successful", token },
       { status: 200 }
     );
-
-    response.cookies.set("token", token, {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === "production",
-      sameSite: "strict",
-      maxAge: 3600, // 1 hour in seconds
-      path: "/",
-    });
-
-    return response;
   } catch (error) {
     console.error("Error in login route:", error);
     return NextResponse.json(

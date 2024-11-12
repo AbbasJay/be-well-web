@@ -1,36 +1,40 @@
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
-import { cookies } from "next/headers";
-import * as jose from "jose";
 
-const JWT_SECRET = process.env.JWT_SECRET!;
-
-export async function middleware(req: NextRequest) {
-  const { pathname } = req.nextUrl;
-
-  // Only run this middleware on the /auth page
-  if (pathname === "/auth") {
-    const cookieStore = cookies();
-    const token = cookieStore.get("token")?.value;
-
-    if (token) {
-      try {
-        const secret = new TextEncoder().encode(JWT_SECRET);
-        await jose.jwtVerify(token, secret);
-
-        // If the token is valid, redirect to the homepage
-        return NextResponse.redirect(new URL("/", req.url));
-      } catch (error) {
-        console.error("Error verifying token:", error);
-        // If token verification fails, allow access to the /auth page
-      }
+export function middleware(request: NextRequest) {
+  // Only apply to API routes
+  if (request.nextUrl.pathname.startsWith("/api")) {
+    // Handle OPTIONS request for CORS preflight
+    if (request.method === "OPTIONS") {
+      return new NextResponse(null, {
+        status: 204,
+        headers: {
+          "Access-Control-Allow-Methods": "GET, POST, PUT, DELETE, OPTIONS",
+          "Access-Control-Allow-Headers": "Content-Type, Authorization",
+          "Access-Control-Allow-Origin": "*",
+        },
+      });
     }
+
+    // Add CORS headers to the response
+    const response = NextResponse.next();
+    response.headers.set("Access-Control-Allow-Origin", "*");
+    response.headers.set(
+      "Access-Control-Allow-Methods",
+      "GET, POST, PUT, DELETE, OPTIONS"
+    );
+    response.headers.set(
+      "Access-Control-Allow-Headers",
+      "Content-Type, Authorization"
+    );
+
+    return response;
   }
 
-  // Continue to the requested page if not redirecting
   return NextResponse.next();
 }
 
+// Configure which paths the middleware runs on
 export const config = {
-  matcher: ["/auth"], // Apply middleware only to the /auth page
+  matcher: "/api/:path*",
 };
