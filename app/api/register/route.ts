@@ -18,7 +18,6 @@ export async function POST(request: Request) {
       );
     }
 
-    // Hash the password
     const hashedPassword = await bcrypt.hash(password, 10);
 
     const newUser: User = {
@@ -29,27 +28,18 @@ export async function POST(request: Request) {
 
     const createdUser = await createUser(newUser);
 
-    // Create a JWT
     const secret = new TextEncoder().encode(JWT_SECRET);
     const token = await new jose.SignJWT({ userId: createdUser.id })
       .setProtectedHeader({ alg: "HS256" })
       .setExpirationTime("1h")
       .sign(secret);
 
-    console.log("User created:", createdUser); // Add this line for debugging
+    console.log("User created:", createdUser);
 
-    // Set the JWT as an HTTP-only cookie
     const response = NextResponse.json(
-      { message: "User registered successfully" },
+      { message: "User registered successfully", token },
       { status: 201 }
     );
-    response.cookies.set("token", token, {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === "production",
-      sameSite: "strict",
-      maxAge: 3600, // 1 hour in seconds
-      path: "/",
-    });
 
     return response;
   } catch (error) {
