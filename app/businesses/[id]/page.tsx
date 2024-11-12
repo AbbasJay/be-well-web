@@ -1,10 +1,9 @@
 "use client";
 
 import { PencilIcon } from "lucide-react";
-
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import { Business } from "@/lib/db/schema";
+import { Business, Class } from "@/lib/db/schema";
 import {
   Card,
   CardContent,
@@ -15,6 +14,15 @@ import {
 } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
+import { ClassForm } from "@/components/forms/class-form";
+import {
+  Dialog,
+  DialogTrigger,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+} from "@/components/ui/dialog";
 
 export default function BusinessDetailsPage({
   params,
@@ -22,7 +30,9 @@ export default function BusinessDetailsPage({
   params: { id: string };
 }) {
   const [business, setBusiness] = useState<Business | null>(null);
+  const [classes, setClasses] = useState<Class[]>([]);
   const [loading, setLoading] = useState(true);
+  const [dialogOpen, setDialogOpen] = useState(false);
   const router = useRouter();
 
   useEffect(() => {
@@ -36,7 +46,7 @@ export default function BusinessDetailsPage({
         setBusiness(data);
       } catch (error) {
         console.error("Error fetching business details:", error);
-        router.push("/404"); // Redirect to a 404 page if business not found
+        router.push("/404");
       } finally {
         setLoading(false);
       }
@@ -44,6 +54,22 @@ export default function BusinessDetailsPage({
 
     fetchBusiness();
   }, [params.id, router]);
+
+  useEffect(() => {
+    const fetchClasses = async () => {
+      const response = await fetch(`/api/classes/${params.id}`);
+      if (!response.ok) {
+        throw new Error("Failed to fetch classes");
+      }
+      const data = await response.json();
+      const filteredClasses = data.filter(
+        (classs: Class) => classs.businessId === parseInt(params.id)
+      );
+
+      setClasses(filteredClasses);
+    };
+    fetchClasses();
+  }, [params.id, classes]);
 
   const handleDelete = async () => {
     try {
@@ -86,9 +112,11 @@ export default function BusinessDetailsPage({
           <p>
             <strong>Email:</strong> {business.email}
           </p>
+
           <p>
             <strong>Type:</strong> {business.type}
           </p>
+
           <p>
             <strong>Hours:</strong> {business.hours}
           </p>
@@ -101,6 +129,12 @@ export default function BusinessDetailsPage({
           <p>
             <strong>Zip Code:</strong> {business.zipCode}
           </p>
+
+          {classes.length > 0 && (
+            <p>
+              <strong>Classes:</strong> {classes.length}
+            </p>
+          )}
         </CardFooter>
       </Card>
 
@@ -118,6 +152,30 @@ export default function BusinessDetailsPage({
         <Button variant="destructive" onClick={handleDelete}>
           Delete Business
         </Button>
+
+        {classes.length > 0 && (
+          <Button asChild>
+            <Link href={`/classes/${business.id}`}>View Classes</Link>
+          </Button>
+        )}
+
+        <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
+          <DialogTrigger asChild>
+            <Button>Add Class</Button>
+          </DialogTrigger>
+          <DialogContent className="bg-background">
+            <DialogHeader>
+              <DialogTitle>Add a New Class</DialogTitle>
+              <DialogDescription>
+                Fill out the form below to add a new class.
+              </DialogDescription>
+            </DialogHeader>
+            <ClassForm
+              businessId={business.id}
+              onSuccess={() => setDialogOpen(false)}
+            />
+          </DialogContent>
+        </Dialog>
       </div>
     </div>
   );

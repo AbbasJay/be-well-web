@@ -59,14 +59,18 @@ export type Business = typeof BusinessesTable.$inferInsert;
 export const ClassesTable = pgTable(
   "classes",
   {
-    id: serial("id").primaryKey(),
+    id: serial("id").primaryKey().notNull(),
     businessId: integer("business_id").notNull(),
     name: text("name").notNull(),
-    description: text("description"),
-    price: integer("price").notNull(), // Store price in cents
-    instructor: text("instructor"),
-    duration: integer("duration").notNull(), // Duration in minutes
+    description: text("description").notNull(),
+    duration: integer("duration").notNull(),
+    price: integer("price").notNull(),
+    instructor: text("instructor").notNull(),
+    location: text("location").notNull(),
+    startDate: text("start_date").notNull(),
+    time: text("time").notNull(),
     capacity: integer("capacity").notNull(),
+    slotsLeft: integer("slots_left").notNull(),
     createdAt: timestamp("created_at").defaultNow().notNull(),
     startDate: text("start_date").notNull(),
     time: text("time").notNull(),
@@ -78,26 +82,9 @@ export const ClassesTable = pgTable(
       columns: [classes.businessId],
       foreignColumns: [BusinessesTable.id],
     }),
-  })
-);
-
-export const SchedulesTable = pgTable(
-  "schedules",
-  {
-    id: serial("id").primaryKey(),
-    classId: integer("class_id").notNull(),
-    dayOfWeek: integer("day_of_week").notNull(), // 0-6 for Sunday-Saturday
-    startTime: timestamp("start_time").notNull(),
-    endTime: timestamp("end_time").notNull(),
-    createdAt: timestamp("created_at").defaultNow().notNull(),
-  },
-  (schedules) => ({
-    classIdFk: foreignKey({
-      columns: [schedules.classId],
-      foreignColumns: [ClassesTable.id],
-    }),
+    // Optionally, add a composite unique index if needed
+    // uniqueClassIdx: uniqueIndex("unique_class_idx").on(classes.businessId, classes.name),
   })
 );
 
 export type Class = typeof ClassesTable.$inferInsert;
-export type Schedule = typeof SchedulesTable.$inferInsert;
