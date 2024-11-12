@@ -49,9 +49,10 @@ export async function GET(req: Request) {
     return new NextResponse(null, {
       status: 204,
       headers: {
-        "Access-Control-Allow-Origin": "http://localhost:8081",
+        "Access-Control-Allow-Origin": "*",
         "Access-Control-Allow-Methods": "GET, POST, OPTIONS",
         "Access-Control-Allow-Headers": "Content-Type, Authorization",
+        "Access-Control-Allow-Credentials": "true",
       },
     });
   }
@@ -80,13 +81,13 @@ export async function GET(req: Request) {
       .where(eq(BusinessesTable.userId, user.id))
       .execute();
 
-    // Add CORS headers to the response
     return NextResponse.json(businesses, {
       status: 200,
       headers: {
-        "Access-Control-Allow-Origin": "http://localhost:8081",
+        "Access-Control-Allow-Origin": "*",
         "Access-Control-Allow-Methods": "GET, POST, OPTIONS",
         "Access-Control-Allow-Headers": "Content-Type, Authorization",
+        "Access-Control-Allow-Credentials": "true",
       },
     });
   } catch (error) {
@@ -96,9 +97,10 @@ export async function GET(req: Request) {
       {
         status: 500,
         headers: {
-          "Access-Control-Allow-Origin": "http://localhost:8081",
+          "Access-Control-Allow-Origin": "*",
           "Access-Control-Allow-Methods": "GET, POST, OPTIONS",
           "Access-Control-Allow-Headers": "Content-Type, Authorization",
+          "Access-Control-Allow-Credentials": "true",
         },
       }
     );
