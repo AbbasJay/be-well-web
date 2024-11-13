@@ -9,7 +9,7 @@ export default function LoginForm() {
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const router = useRouter();
-  const { setIsLoggedIn } = useAuth();
+  const { login } = useAuth();
 
   async function handleSubmit(e: FormEvent) {
     e.preventDefault();
@@ -19,13 +19,22 @@ export default function LoginForm() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email, password }),
       });
+
+      const data = await response.json();
+
       if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.error || "Failed to login");
+        throw new Error(data.error || "Failed to login");
       }
-      setIsLoggedIn(true);
+
+      // Store token in localStorage
+      localStorage.setItem("token", data.token);
+
+      // Pass token to auth context
+      login(data.token);
+
       router.push("/");
     } catch (err) {
+      console.error("Login error:", err); // Debug log
       if (err instanceof Error) {
         setError(err.message);
       } else {
@@ -56,7 +65,7 @@ export default function LoginForm() {
       />
       <button
         type="submit"
-        className="w-full p-2 bg-green-500 text-white rounded"
+        className="w-full p-2 bg-green-500 text-white rounded hover:bg-green-600"
       >
         Login
       </button>

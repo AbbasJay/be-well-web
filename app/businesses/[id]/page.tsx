@@ -4,6 +4,7 @@ import { PencilIcon } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { Business, Class } from "@/lib/db/schema";
+import { useAuth } from "@/app/contexts/AuthContext";
 import {
   Card,
   CardContent,
@@ -34,11 +35,24 @@ export default function BusinessDetailsPage({
   const [loading, setLoading] = useState(true);
   const [dialogOpen, setDialogOpen] = useState(false);
   const router = useRouter();
+  const { token, isLoggedIn } = useAuth();
+
+  useEffect(() => {
+    if (!isLoggedIn) {
+      router.push("/auth");
+      return;
+    }
+  }, [isLoggedIn, router]);
 
   useEffect(() => {
     const fetchBusiness = async () => {
       try {
-        const response = await fetch(`/api/businesses/${params.id}`);
+        const response = await fetch(`/api/businesses/${params.id}`, {
+          headers: {
+            Authorization: `Bearer ${token}`,
+            "Content-Type": "application/json",
+          },
+        });
         if (!response.ok) {
           throw new Error("Business not found");
         }
@@ -52,12 +66,19 @@ export default function BusinessDetailsPage({
       }
     };
 
-    fetchBusiness();
-  }, [params.id, router]);
+    if (isLoggedIn) {
+      fetchBusiness();
+    }
+  }, [params.id, router, token, isLoggedIn]);
 
-  useEffect(() => {
-    const fetchClasses = async () => {
-      const response = await fetch(`/api/classes/${params.id}`);
+  const fetchClasses = async () => {
+    try {
+      const response = await fetch(`/api/classes/${params.id}`, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json",
+        },
+      });
       if (!response.ok) {
         throw new Error("Failed to fetch classes");
       }
@@ -65,11 +86,17 @@ export default function BusinessDetailsPage({
       const filteredClasses = data.filter(
         (classs: Class) => classs.businessId === parseInt(params.id)
       );
-
       setClasses(filteredClasses);
-    };
-    fetchClasses();
-  }, [params.id, classes]);
+    } catch (error) {
+      console.error("Error fetching classes:", error);
+    }
+  };
+
+  useEffect(() => {
+    if (isLoggedIn) {
+      fetchClasses();
+    }
+  }, [params.id, token, isLoggedIn]);
 
   const handleDelete = async () => {
     try {
@@ -91,8 +118,8 @@ export default function BusinessDetailsPage({
     }
   };
 
+  if (!isLoggedIn) return null;
   if (loading) return <div>Loading...</div>;
-
   if (!business) return <div>Business not found</div>;
 
   return (
@@ -172,7 +199,10 @@ export default function BusinessDetailsPage({
             </DialogHeader>
             <ClassForm
               businessId={business.id}
-              onSuccess={() => setDialogOpen(false)}
+              onSuccess={() => {
+                setDialogOpen(false);
+                fetchClasses();
+              }}
             />
           </DialogContent>
         </Dialog>

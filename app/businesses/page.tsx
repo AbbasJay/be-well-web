@@ -1,7 +1,12 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import { Business } from "@/lib/db/schema";
+import { useState, useEffect } from "react";
+import { Business, User } from "@/lib/db/schema";
+import { getUserFromToken } from "@/lib/auth";
+import { useRouter } from "next/navigation";
+import { useAuth } from "../contexts/AuthContext";
+import Link from "next/link";
+import { Button } from "@/components/ui/button";
 import {
   Card,
   CardContent,
@@ -10,33 +15,54 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import Link from "next/link";
 
 export default function BusinessesPage() {
   const [businesses, setBusinesses] = useState<Business[]>([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const { token, isLoggedIn } = useAuth();
+  const router = useRouter();
 
   const fetchBusinesses = async () => {
     try {
-      const response = await fetch("/api/businesses");
-      if (!response.ok) {
-        throw new Error("Failed to fetch businesses");
+      const response = await fetch("/api/businesses", {
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json",
+        },
+      });
+
+      if (response.status === 401) {
+        router.push("/login");
+        return;
       }
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || "Failed to fetch businesses");
+      }
+
       const data = await response.json();
+
       setBusinesses(data);
     } catch (error) {
       console.error("Error fetching businesses:", error);
+      setError(error instanceof Error ? error.message : "An error occurred");
     } finally {
       setLoading(false);
     }
   };
 
   useEffect(() => {
+    if (!isLoggedIn) {
+      router.push("/auth");
+      return;
+    }
     fetchBusinesses();
-  }, []);
+  }, [isLoggedIn, router]);
 
   if (loading) return <div>Loading...</div>;
+  if (error) return <div>Error: {error}</div>;
 
   return (
     <>

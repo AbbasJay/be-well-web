@@ -1,9 +1,9 @@
 import { NextResponse } from "next/server";
-import { db } from "@/lib/db/db";
-import { BusinessesTable, Business } from "@/lib/db/schema";
-import { getUserFromToken } from "@/lib/auth";
-import { cookies } from "next/headers";
 import { eq } from "drizzle-orm";
+import { db } from "@/lib/db/db";
+import { Business, BusinessesTable } from "@/lib/db/schema";
+import { cookies } from "next/headers";
+import { getUserFromToken } from "@/lib/auth";
 
 export async function POST(req: Request) {
   try {
@@ -49,6 +49,7 @@ export async function GET(req: Request) {
       return NextResponse.json(businesses, { status: 200 });
     }
 
+    // Get token
     const headerToken = req.headers
       .get("Authorization")
       ?.replace("Bearer ", "");
@@ -56,26 +57,35 @@ export async function GET(req: Request) {
     const cookieToken = cookieStore.get("token")?.value;
     const token = headerToken || cookieToken;
 
+    // Handle no authentication
     if (!token) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+      return NextResponse.json(
+        { error: "Authentication required" },
+        { status: 401 }
+      );
     }
 
+    // Get user from token
     const user = await getUserFromToken(token);
     if (!user) {
-      return NextResponse.json({ error: "User not found" }, { status: 404 });
+      return NextResponse.json(
+        { error: "Invalid authentication" },
+        { status: 401 }
+      );
     }
 
+    // Get businesses for the authenticated user
     const businesses = await db
       .select()
       .from(BusinessesTable)
       .where(eq(BusinessesTable.userId, user.id))
       .execute();
 
-    return NextResponse.json(businesses, { status: 200 });
+    return NextResponse.json(businesses);
   } catch (error) {
-    console.error("Error fetching businesses:", error);
+    console.error("API Error:", error);
     return NextResponse.json(
-      { error: "Failed to fetch businesses" },
+      { error: "Internal server error" },
       { status: 500 }
     );
   }

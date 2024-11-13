@@ -4,34 +4,35 @@ import React, { createContext, useContext, useState, useEffect } from "react";
 
 type AuthContextType = {
   isLoggedIn: boolean;
-  setIsLoggedIn: (isLoggedIn: boolean) => void;
-  checkAuth: () => Promise<boolean>;
+  token: string | null;
+  login: (token: string) => Promise<void>;
+  logout: () => void;
 };
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const [token, setToken] = useState<string | null>(null);
 
-  const checkAuth = async () => {
-    try {
-      const response = await fetch("/api/check-auth");
-      const data = await response.json();
-      setIsLoggedIn(data.isAuthenticated);
-      return data.isAuthenticated;
-    } catch (error) {
-      console.error("Error checking authentication:", error);
-      setIsLoggedIn(false);
-      return false;
+  const login = async (token: string) => {
+    setToken(token);
+    setIsLoggedIn(true);
+    if (typeof window !== "undefined") {
+      document.cookie = `token=${token}; path=/`;
     }
   };
 
-  useEffect(() => {
-    checkAuth();
-  }, []);
+  const logout = () => {
+    setToken(null);
+    setIsLoggedIn(false);
+    if (typeof window !== "undefined") {
+      document.cookie = "token=; path=/; expires=Thu, 01 Jan 1970 00:00:01 GMT";
+    }
+  };
 
   return (
-    <AuthContext.Provider value={{ isLoggedIn, setIsLoggedIn, checkAuth }}>
+    <AuthContext.Provider value={{ isLoggedIn, token, login, logout }}>
       {children}
     </AuthContext.Provider>
   );
