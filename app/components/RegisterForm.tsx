@@ -11,7 +11,7 @@ export default function RegisterForm() {
   const [error, setError] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const router = useRouter();
-  const { setIsLoggedIn } = useAuth();
+  const { login } = useAuth();
 
   async function handleSubmit(e: FormEvent) {
     e.preventDefault();
@@ -30,7 +30,8 @@ export default function RegisterForm() {
         throw new Error(errorData.error || "Failed to register");
       }
 
-      setIsLoggedIn(true);
+      const data = await response.json();
+      login(data.token);
       router.push("/");
     } catch (err: unknown) {
       if (err instanceof Error) {

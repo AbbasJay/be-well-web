@@ -8,7 +8,7 @@ interface SideNavProps {
 }
 
 const SideNav = ({ isOpen }: SideNavProps) => {
-  const { isLoggedIn, setIsLoggedIn } = useAuth();
+  const { isLoggedIn, logout } = useAuth();
   const router = useRouter();
 
   if (!isLoggedIn) {
@@ -21,7 +21,7 @@ const SideNav = ({ isOpen }: SideNavProps) => {
     });
 
     if (response.ok) {
-      setIsLoggedIn(false);
+      logout();
       router.push("/auth");
     }
   };

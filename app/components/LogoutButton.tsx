@@ -5,7 +5,7 @@ import { useAuth } from "../contexts/AuthContext";
 
 export default function LogoutButton() {
   const router = useRouter();
-  const { setIsLoggedIn } = useAuth();
+  const { logout } = useAuth();
 
   const handleLogout = async () => {
     const response = await fetch("/api/logout", {
@@ -13,7 +13,7 @@ export default function LogoutButton() {
     });
 
     if (response.ok) {
-      setIsLoggedIn(false);
+      logout();
       router.push("/auth");
     }
   };

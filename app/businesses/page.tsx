@@ -1,8 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Business, User } from "@/lib/db/schema";
-import { getUserFromToken } from "@/lib/auth";
+import { Business } from "@/lib/db/schema";
 import { useRouter } from "next/navigation";
 import { useAuth } from "../contexts/AuthContext";
 import Link from "next/link";
