@@ -7,6 +7,7 @@ import {
   integer,
   foreignKey,
   numeric,
+  boolean,
 } from "drizzle-orm/pg-core";
 
 export const UsersTable = pgTable(
@@ -84,3 +85,23 @@ export const ClassesTable = pgTable(
 );
 
 export type Class = typeof ClassesTable.$inferInsert;
+
+export const NotificationsTable = pgTable(
+  "notifications",
+  {
+    id: serial("id").primaryKey(),
+    classId: integer("class_id"),
+    message: text("message").notNull(),
+    userId: integer("user_id").notNull(),
+    read: boolean("read").default(false).notNull(),
+    createdAt: timestamp("created_at").defaultNow().notNull(),
+  },
+  (notifications) => ({
+    userIdFk: foreignKey({
+      columns: [notifications.userId],
+      foreignColumns: [UsersTable.id],
+    }),
+  })
+);
+
+export type Notification = typeof NotificationsTable.$inferInsert;
