@@ -16,7 +16,7 @@ export async function GET() {
   }
 }
 
-export async function PUT(req: Request) {
+export async function POST(req: Request) {
   try {
     const newNotification = await req.json();
 
@@ -25,8 +25,12 @@ export async function PUT(req: Request) {
       .values(newNotification)
       .returning();
 
-    return NextResponse.json(insertedNotification);
+    return NextResponse.json(insertedNotification, { status: 201 });
   } catch (error) {
     console.error("Error creating notification:", error);
+    return NextResponse.json(
+      { error: "Failed to create notification" },
+      { status: 500 }
+    );
   }
 }
