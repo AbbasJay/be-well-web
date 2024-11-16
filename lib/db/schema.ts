@@ -89,8 +89,8 @@ export type Class = typeof ClassesTable.$inferInsert;
 export const NotificationsTable = pgTable(
   "notifications",
   {
-    id: serial("id").primaryKey(),
-    classId: integer("class_id"),
+    id: serial("id").primaryKey().notNull(),
+    classId: integer("class_id").notNull(),
     message: text("message").notNull(),
     userId: integer("user_id").notNull(),
     read: boolean("read").default(false).notNull(),
