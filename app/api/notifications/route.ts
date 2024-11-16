@@ -1,5 +1,6 @@
 import { db } from "@/lib/db/db";
 import { NotificationsTable } from "@/lib/db/schema";
+import { eq } from "drizzle-orm";
 import { NextResponse } from "next/server";
 
 export async function GET() {
@@ -30,6 +31,45 @@ export async function POST(req: Request) {
     console.error("Error creating notification:", error);
     return NextResponse.json(
       { error: "Failed to create notification" },
+      { status: 500 }
+    );
+  }
+}
+
+export async function PUT(req: Request) {
+  try {
+    const updatedNotification = await req.json();
+
+    const updated = await db
+      .update(NotificationsTable)
+      .set(updatedNotification)
+      .where(eq(NotificationsTable.id, updatedNotification.id))
+      .returning();
+
+    return NextResponse.json(updated, { status: 200 });
+  } catch (error) {
+    console.error("Error updating notification:", error);
+    return NextResponse.json(
+      { error: "Failed to update notification" },
+      { status: 500 }
+    );
+  }
+}
+
+export async function DELETE(req: Request) {
+  try {
+    const { id } = await req.json();
+
+    await db.delete(NotificationsTable).where(eq(NotificationsTable.id, id));
+
+    return NextResponse.json(
+      { message: "Notification deleted" },
+      { status: 200 }
+    );
+  } catch (error) {
+    console.error("Error deleting notification:", error);
+    return NextResponse.json(
+      { error: "Failed to delete notification" },
       { status: 500 }
     );
   }
