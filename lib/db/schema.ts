@@ -90,6 +90,7 @@ export const NotificationsTable = pgTable(
   "notifications",
   {
     id: serial("id").primaryKey().notNull(),
+    businessId: integer("business_id").notNull(),
     classId: integer("class_id").notNull(),
     message: text("message").notNull(),
     userId: integer("user_id").notNull(),
@@ -100,6 +101,10 @@ export const NotificationsTable = pgTable(
     userIdFk: foreignKey({
       columns: [notifications.userId],
       foreignColumns: [UsersTable.id],
+    }),
+    businessIdFk: foreignKey({
+      columns: [notifications.businessId],
+      foreignColumns: [BusinessesTable.id],
     }),
   })
 );
