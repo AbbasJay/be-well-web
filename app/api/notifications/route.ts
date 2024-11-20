@@ -20,7 +20,7 @@ export async function GET() {
 export async function POST(req: Request) {
   try {
     const newNotification = await req.json();
-
+    console.log("New notification:", newNotification);
     const insertedNotification = await db
       .insert(NotificationsTable)
       .values(newNotification)
