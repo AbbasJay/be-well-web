@@ -44,6 +44,8 @@ export async function GET(req: Request) {
     const url = new URL(req.url);
     const all = url.searchParams.get("all");
 
+    // TODO: NEED TO AUTHENTICATE MOBILE APP USERS, otherwise this is exposed to everyone
+
     if (all === "true") {
       const businesses = await db.select().from(BusinessesTable).execute();
       return NextResponse.json(businesses, { status: 200 });
