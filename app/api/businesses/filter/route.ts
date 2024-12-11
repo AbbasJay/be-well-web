@@ -1,10 +1,12 @@
 import { NextResponse } from "next/server";
 import { eq } from "drizzle-orm";
 import { db } from "@/lib/db/db";
-import { Business, BusinessesTable } from "@/lib/db/schema";
-import { cookies } from "next/headers";
-import { getUserFromToken } from "@/lib/auth";
+import { BusinessesTable } from "@/lib/db/schema";
+import haversine from "haversine-distance"
 
+const calculateDistance = (lat1: number, lon1: number, lat2: number, lon2: number) => {
+    return haversine({ latitude: lat1, longitude: lon1 }, { latitude: lat2, longitude: lon2 });
+}
 
 /**
  * @swagger
@@ -36,7 +38,7 @@ import { getUserFromToken } from "@/lib/auth";
  *                   - lng
  *               maxDistance:
  *                 type: number
- *                 description: The maximum distance (in kilometers or miles) within which to return businesses.
+ *                 description: The maximum distance (in meters) within which to return businesses.
  *               minRating:
  *                 type: number
  *                 description: The minimum rating (1-5) for returned businesses.
@@ -76,11 +78,6 @@ export async function POST(req: Request){
         // get the parameters from the request body
         const { location, maxDistance, minRating, type } = await req.json();
         const { lat, lng } = location;
-        
-        console.log("Location:", location);
-        console.log("Max distance:", maxDistance);
-        console.log("Min rating:", minRating);
-        console.log("Types:", type);
 
         // throw error if any of the required fields are missing
         if (!lat || !lng || !maxDistance || !minRating || !type) {
@@ -95,10 +92,25 @@ export async function POST(req: Request){
             .select()
             .from(BusinessesTable)
             .where(eq(BusinessesTable.type, type))
+            // TODO: filtering by rating
             .execute();
 
+        //calculate distance between user location and the businesses
+        // and filter out businesses that are beyond the maximum distance
+        // from the user
+        // we use haversine formula to calculate the distance
+        const filtered_businesses = businesses.filter(
+            (business) => 
+                calculateDistance(
+                    parseFloat(business.latitude!),
+                    parseFloat(business.longitude!), 
+                    lat, 
+                    lng
+                ) <= maxDistance
+        );
+
         // return the filtered businesses
-        return NextResponse.json(businesses, { status: 200 });
+        return NextResponse.json(filtered_businesses, { status: 200 });
     } catch (error) {
         console.error("API Error:", error);
         return NextResponse.json(
