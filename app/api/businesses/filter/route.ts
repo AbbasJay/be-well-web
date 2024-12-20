@@ -76,16 +76,60 @@ export async function POST(req: Request){
     try {
 
         // get the parameters from the request body
-        const { location, maxDistance, minRating, type } = await req.json();
+        const { location, maxDistance, minRating, types } = await req.json();
         const { lat, lng } = location;
 
         // throw error if any of the required fields are missing
-        if (!lat || !lng || !maxDistance || !minRating || !type) {
+        // if (!lat || !lng || !maxDistance || !minRating || !types) {
+        //     return NextResponse.json(
+        //         { error: "Missing required fields" },
+        //         { status: 400 }
+        //     );
+        // }
+
+        if(!lat) {
             return NextResponse.json(
-                { error: "Missing required fields" },
+                { error: "Missing latitude" },
                 { status: 400 }
             );
         }
+
+        if(!lng) {
+            return NextResponse.json(
+                { error: "Missing longitude" },
+                { status: 400 }
+            );
+        }
+
+        if(!maxDistance) {
+            return NextResponse.json(
+                { error: "Missing max distance" },
+                { status: 400 }
+            );
+        }
+
+        if(!minRating) {
+            return NextResponse.json(
+                { error: "Missing min rating" },
+                { status: 400 }
+            );
+        }
+
+        if(!types) {
+            return NextResponse.json(
+                { error: "Missing types" },
+                { status: 400 }
+            );
+        }
+
+
+
+        //types is an array of gym types all lowercase (e.g. ["gym", "classes"])
+        //if there are multiple rypes, need to glue them together like so: "gymAndClasses"
+        //first convert all types but the first one to have first letter capitalised
+        const type = types.map((t, i) => i === 0 ? t : t.charAt(0).toUpperCase() + t.slice(1)).join("And");
+        console.log(type);
+
 
         // get the businesses that match the filtering criteria
         const businesses = await db
@@ -108,6 +152,8 @@ export async function POST(req: Request){
                     lng
                 ) <= maxDistance
         );
+
+        console.log(filtered_businesses);
 
         // return the filtered businesses
         return NextResponse.json(filtered_businesses, { status: 200 });
