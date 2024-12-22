@@ -22,6 +22,13 @@
       "when": 1731787304838,
       "tag": "0002_cooing_roland_deschain",
       "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "7",
+      "when": 1734902827228,
+      "tag": "0003_wonderful_rage",
+      "breakpoints": true
     }
   ]
 }

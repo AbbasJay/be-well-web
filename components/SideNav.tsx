@@ -1,84 +1,56 @@
 import Link from "next/link";
 import { useAuth } from "../app/contexts/AuthContext";
-import { useRouter } from "next/navigation";
+import { 
+  Home, 
+  Store,
+  Info,
+  Phone
+} from "lucide-react";
 
 interface SideNavProps {
   isOpen: boolean;
   setIsOpen: (isOpen: boolean) => void;
 }
 
-const SideNav = ({ isOpen }: SideNavProps) => {
-  const { isLoggedIn, logout } = useAuth();
-  const router = useRouter();
+const SideNav: React.FC<SideNavProps> = ({ isOpen }) => {
+  const { isLoggedIn } = useAuth();
+
+  const menuItems = [
+    { name: "Home", href: "/", icon: Home },
+    { name: "Businesses", href: "/businesses", icon: Store },
+    { name: "About", href: "/about", icon: Info },
+    { name: "Contact", href: "/contact", icon: Phone },
+  ];
 
   if (!isLoggedIn) {
     return null;
   }
 
-  const handleLogout = async () => {
-    const response = await fetch("/api/logout", {
-      method: "POST",
-    });
-
-    if (response.ok) {
-      logout();
-      router.push("/auth");
-    }
-  };
-
   return (
-    <>
-      <nav
-        className={`fixed pt-20 left-0 h-full bg-gray-100 p-4 transition-transform transform ${
-          isOpen ? "translate-x-0" : "-translate-x-full"
-        }`}
-        style={{ width: "250px" }} // Adjusted top to 84px (20 in Tailwind is 80px, close enough)
-      >
-        <div className="flex flex-col justify-between h-full">
-          <div>
-            <ul className="space-y-2">
-              <li>
-                <Link href="/" className="block hover:bg-gray-200 p-2 rounded">
-                  Home
-                </Link>
-              </li>
-              <li>
-                <Link
-                  href="/businesses"
-                  className="block hover:bg-gray-200 p-2 rounded"
-                >
-                  My Businesses
-                </Link>
-              </li>
-              <li>
-                <Link
-                  href="/about"
-                  className="block hover:bg-gray-200 p-2 rounded"
-                >
-                  About
-                </Link>
-              </li>
-              <li>
-                <Link
-                  href="/contact"
-                  className="block hover:bg-gray-200 p-2 rounded"
-                >
-                  Contact
-                </Link>
-              </li>
-            </ul>
-          </div>
-          <div>
-            <button
-              onClick={handleLogout}
-              className="w-full bg-blue-500 text-white px-4 py-2 rounded mt-4"
-            >
-              Logout
-            </button>
-          </div>
+    <nav
+      className={`fixed top-0 left-0 h-full bg-white shadow-xl transition-all duration-300 z-30 ${
+        isOpen ? "w-64" : "w-0"
+      } overflow-hidden`}
+      style={{ marginTop: "76px" }}
+    >
+      <div className="flex flex-col h-full">
+        <div className="flex-1 py-4">
+          {menuItems.map((item) => {
+            const Icon = item.icon;
+            return (
+              <Link
+                key={item.name}
+                href={item.href}
+                className="flex items-center px-4 py-3 text-gray-700 hover:bg-gray-100"
+              >
+                <Icon className="w-6 h-6 mr-3" />
+                <span>{item.name}</span>
+              </Link>
+            );
+          })}
         </div>
-      </nav>
-    </>
+      </div>
+    </nav>
   );
 };
 
