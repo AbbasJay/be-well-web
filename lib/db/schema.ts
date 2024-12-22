@@ -91,9 +91,11 @@ export const NotificationsTable = pgTable(
   {
     id: serial("id").primaryKey().notNull(),
     businessId: integer("business_id").notNull(),
-    classId: integer("class_id").notNull(),
+    classId: integer("class_id"),
+    title: text("title").notNull(),
     message: text("message").notNull(),
     userId: integer("user_id").notNull(),
+    type: text("type").notNull(),
     read: boolean("read").default(false).notNull(),
     createdAt: timestamp("created_at").defaultNow().notNull(),
   },
@@ -106,7 +108,19 @@ export const NotificationsTable = pgTable(
       columns: [notifications.businessId],
       foreignColumns: [BusinessesTable.id],
     }),
+    classIdFk: foreignKey({
+      columns: [notifications.classId],
+      foreignColumns: [ClassesTable.id],
+    }).onDelete("set null"),
   })
 );
 
+export const NotificationType = {
+  CLASS_UPDATE: 'class_update',
+  BUSINESS_UPDATE: 'business_update',
+  SYSTEM: 'system',
+  REMINDER: 'reminder',
+} as const;
+
+export type NotificationType = typeof NotificationType[keyof typeof NotificationType];
 export type Notification = typeof NotificationsTable.$inferInsert;
