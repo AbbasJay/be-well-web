@@ -1,10 +1,12 @@
 import Link from "next/link";
 import { useAuth } from "../app/contexts/AuthContext";
+import { useRouter } from "next/navigation";
 import { 
   Home, 
   Store,
   Info,
-  Phone
+  Phone,
+  LogOut
 } from "lucide-react";
 
 interface SideNavProps {
@@ -13,7 +15,8 @@ interface SideNavProps {
 }
 
 const SideNav: React.FC<SideNavProps> = ({ isOpen }) => {
-  const { isLoggedIn } = useAuth();
+  const { isLoggedIn, logout } = useAuth();
+  const router = useRouter();
 
   const menuItems = [
     { name: "Home", href: "/", icon: Home },
@@ -22,34 +25,45 @@ const SideNav: React.FC<SideNavProps> = ({ isOpen }) => {
     { name: "Contact", href: "/contact", icon: Phone },
   ];
 
+  const handleLogout = async () => {
+    logout();
+    router.push("/auth");
+  };
+
   if (!isLoggedIn) {
     return null;
   }
 
   return (
     <nav
-      className={`fixed top-0 left-0 h-full bg-white shadow-xl transition-all duration-300 z-30 ${
+      className={`fixed top-0 left-0 h-[calc(100vh-72px)] bg-white border-r border-gray-200 transition-all duration-300 z-30 ${
         isOpen ? "w-64" : "w-0"
-      } overflow-hidden`}
-      style={{ marginTop: "76px" }}
+      } overflow-hidden flex flex-col justify-between`}
+      style={{ marginTop: "72px" }}
     >
-      <div className="flex flex-col h-full">
-        <div className="flex-1 py-4">
-          {menuItems.map((item) => {
-            const Icon = item.icon;
-            return (
-              <Link
-                key={item.name}
-                href={item.href}
-                className="flex items-center px-4 py-3 text-gray-700 hover:bg-gray-100"
-              >
-                <Icon className="w-6 h-6 mr-3" />
-                <span>{item.name}</span>
-              </Link>
-            );
-          })}
-        </div>
+      <div>
+        {menuItems.map((item) => {
+          const Icon = item.icon;
+          return (
+            <Link
+              key={item.name}
+              href={item.href}
+              className="flex items-center px-4 py-3 text-gray-700 hover:bg-gray-100"
+            >
+              <Icon className="w-6 h-6 mr-3" />
+              <span>{item.name}</span>
+            </Link>
+          );
+        })}
       </div>
+
+      <button
+        onClick={handleLogout}
+        className="flex items-center p-4 text-red-600 hover:bg-gray-100"
+      >
+        <LogOut className="w-6 h-6 mr-3" />
+        <span>Logout</span>
+      </button>
     </nav>
   );
 };
