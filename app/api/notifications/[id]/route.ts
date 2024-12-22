@@ -2,40 +2,27 @@ import { db } from "@/lib/db/db";
 import { NotificationsTable } from "@/lib/db/schema";
 import { eq } from "drizzle-orm";
 import { NextResponse } from "next/server";
-import { getUserFromToken } from "@/lib/auth";
-import { cookies } from "next/headers";
 
 export async function GET(
   req: Request,
   { params }: { params: { id: string } }
 ) {
   try {
-    // Get token from cookies
-    const cookieStore = cookies();
-    const token = cookieStore.get("token")?.value;
+    console.log("Fetching notifications for userId:", params.id);
+    console.log("Request headers:", Object.fromEntries(req.headers));
 
-    if (!token) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-    }
-
-    // Verify user
-    const user = await getUserFromToken(token);
-    if (!user) {
-      return NextResponse.json({ error: "User not found" }, { status: 404 });
-    }
-
-    // Get notifications for the specific user
     const notifications = await db
       .select()
       .from(NotificationsTable)
       .where(eq(NotificationsTable.userId, Number(params.id)))
       .orderBy(NotificationsTable.createdAt);
 
+    console.log("Found notifications:", notifications);
     return NextResponse.json(notifications);
   } catch (error) {
     console.error("Error fetching notifications:", error);
     return NextResponse.json(
-      { error: "Internal Server Error", details: error instanceof Error ? error.message : "Unknown error" },
+      { error: "Internal Server Error" },
       { status: 500 }
     );
   }
@@ -64,10 +51,7 @@ export async function PATCH(
   } catch (error) {
     console.error("Error updating notification:", error);
     return NextResponse.json(
-      { 
-        error: "Internal Server Error", 
-        details: error instanceof Error ? error.message : "Unknown error" 
-      },
+      { error: "Internal Server Error" },
       { status: 500 }
     );
   }
@@ -94,22 +78,18 @@ export async function POST(
       .values({
         title,
         message,
-        type: type || "SYSTEM", // Default to SYSTEM if not provided
+        type: type || "SYSTEM",
         businessId: Number(businessId),
         userId: Number(params.id),
         read: false,
       })
       .returning();
 
-    console.log("Created notification:", newNotification[0]); // Debug log
     return NextResponse.json(newNotification[0], { status: 201 });
   } catch (error) {
     console.error("Error creating notification:", error);
     return NextResponse.json(
-      { 
-        error: "Internal Server Error", 
-        details: error instanceof Error ? error.message : "Unknown error" 
-      },
+      { error: "Internal Server Error" },
       { status: 500 }
     );
   }
