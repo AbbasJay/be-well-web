@@ -1,4 +1,4 @@
-import { useAuth } from "../app/contexts/AuthContext";
+import { useSession } from "next-auth/react";
 
 interface HeaderProps {
   toggleNav: () => void;
@@ -6,12 +6,12 @@ interface HeaderProps {
 }
 
 const Header = ({ toggleNav }: HeaderProps) => {
-  const { isLoggedIn } = useAuth();
+  const { data: session } = useSession();
 
   return (
     <header className="fixed top-0 left-0 right-0 bg-white shadow-md z-40 flex items-center p-4">
       <div className="flex items-center">
-        {isLoggedIn && (
+        {session && (
           <button onClick={toggleNav} className="p-2">
             <svg
               xmlns="http://www.w3.org/2000/svg"

@@ -2,16 +2,15 @@
 
 import { useState, FormEvent } from "react";
 import { useRouter } from "next/navigation";
-import { useAuth } from "../contexts/AuthContext";
+import { signIn } from "next-auth/react";
 
 export default function RegisterForm() {
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
-  const [password, setPassword] = useState(""); // Add this line
+  const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const router = useRouter();
-  const { login } = useAuth();
 
   async function handleSubmit(e: FormEvent) {
     e.preventDefault();
@@ -19,25 +18,39 @@ export default function RegisterForm() {
     setError("");
 
     try {
-      const response = await fetch("/api/register", {
+      // First register the user
+      const response = await fetch("/api/auth/register", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ name, email, password }),
       });
 
+      const data = await response.json();
+
       if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.error || "Failed to register");
+        throw new Error(data.error || "Failed to register");
       }
 
-      const data = await response.json();
-      login(data.token);
+      // Then sign in with the new credentials
+      const result = await signIn("credentials", {
+        email,
+        password,
+        redirect: false,
+      });
+
+      if (result?.error) {
+        setError(result.error);
+        return;
+      }
+
       router.push("/");
-    } catch (err: unknown) {
+      router.refresh();
+    } catch (err) {
+      console.error("Registration error:", err);
       if (err instanceof Error) {
         setError(err.message);
       } else {
-        setError("An unknown error occurred");
+        setError("An unexpected error occurred");
       }
     } finally {
       setIsLoading(false);
@@ -74,10 +87,10 @@ export default function RegisterForm() {
       />
       <button
         type="submit"
-        className="w-full p-2 bg-blue-500 text-white rounded"
         disabled={isLoading}
+        className="w-full p-2 bg-blue-500 text-white rounded hover:bg-blue-600 disabled:bg-blue-300"
       >
-        {isLoading ? "Registering..." : "Register"}
+        {isLoading ? "Creating account..." : "Register"}
       </button>
     </form>
   );

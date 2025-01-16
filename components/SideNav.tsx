@@ -1,13 +1,6 @@
 import Link from "next/link";
-import { useAuth } from "../app/contexts/AuthContext";
-import { useRouter } from "next/navigation";
-import { 
-  Home, 
-  Store,
-  Info,
-  Phone,
-  LogOut
-} from "lucide-react";
+import { Home, Store, Info, Phone, LogOut } from "lucide-react";
+import { useSession, signOut } from "next-auth/react";
 
 interface SideNavProps {
   isOpen: boolean;
@@ -15,8 +8,7 @@ interface SideNavProps {
 }
 
 const SideNav: React.FC<SideNavProps> = ({ isOpen }) => {
-  const { isLoggedIn, logout } = useAuth();
-  const router = useRouter();
+  const { data: session } = useSession();
 
   const menuItems = [
     { name: "Home", href: "/", icon: Home },
@@ -26,11 +18,10 @@ const SideNav: React.FC<SideNavProps> = ({ isOpen }) => {
   ];
 
   const handleLogout = async () => {
-    logout();
-    router.push("/auth");
+    await signOut({ redirect: true, callbackUrl: "/auth" });
   };
 
-  if (!isLoggedIn) {
+  if (!session) {
     return null;
   }
 

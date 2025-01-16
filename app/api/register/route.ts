@@ -1,51 +1,64 @@
 import { NextResponse } from "next/server";
-import * as jose from "jose";
-import bcrypt from "bcryptjs";
-import { User } from "@/lib/db/schema";
-import { createUser } from "@/lib/db/users";
+import bcrypt from "bcrypt";
+import { z } from "zod";
+import { db } from "@/lib/db/db";
+import { UsersTable } from "@/lib/db/schema";
+import { eq } from "drizzle-orm";
 
-const JWT_SECRET = process.env.JWT_SECRET!;
+const registerSchema = z.object({
+  name: z.string().min(1, "Name is required"),
+  email: z.string().email("Invalid email address"),
+  password: z.string().min(6, "Password must be at least 6 characters"),
+});
 
 export async function POST(request: Request) {
   try {
     const body = await request.json();
-    const { name, email, password } = body;
+    const validatedData = registerSchema.parse(body);
 
-    if (!name || !email || !password) {
+    const [existingUser] = await db
+      .select()
+      .from(UsersTable)
+      .where(eq(UsersTable.email, validatedData.email))
+      .execute();
+
+    if (existingUser) {
       return NextResponse.json(
-        { error: "Missing required fields" },
+        { error: "Email already registered" },
         { status: 400 }
       );
     }
 
-    const hashedPassword = await bcrypt.hash(password, 10);
+    const hashedPassword = await bcrypt.hash(validatedData.password, 10);
 
-    const newUser: User = {
-      name,
-      email,
-      password: hashedPassword,
-    };
+    const [createdUser] = await db
+      .insert(UsersTable)
+      .values({
+        name: validatedData.name,
+        email: validatedData.email,
+        password: hashedPassword,
+      })
+      .returning({
+        id: UsersTable.id,
+        name: UsersTable.name,
+        email: UsersTable.email,
+      });
 
-    const createdUser = await createUser(newUser);
-
-    const secret = new TextEncoder().encode(JWT_SECRET);
-    const token = await new jose.SignJWT({ userId: createdUser.id })
-      .setProtectedHeader({ alg: "HS256" })
-      .setExpirationTime("1h")
-      .sign(secret);
-
-    console.log("User created:", createdUser);
-
-    const response = NextResponse.json(
-      { message: "User registered successfully", token },
+    return NextResponse.json(
+      { message: "User registered successfully", user: createdUser },
       { status: 201 }
     );
-
-    return response;
   } catch (error) {
-    console.error("Error in register route:", error);
+    if (error instanceof z.ZodError) {
+      return NextResponse.json(
+        { error: error.errors[0].message },
+        { status: 400 }
+      );
+    }
+
+    console.error("Error registering user:", error);
     return NextResponse.json(
-      { error: "Internal Server Error" },
+      { error: "Internal server error" },
       { status: 500 }
     );
   }

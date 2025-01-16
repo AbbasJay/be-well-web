@@ -116,11 +116,12 @@ export const NotificationsTable = pgTable(
 );
 
 export const NotificationType = {
-  CLASS_UPDATE: 'class_update',
-  BUSINESS_UPDATE: 'business_update',
-  SYSTEM: 'system',
-  REMINDER: 'reminder',
+  CLASS_UPDATE: "class_update",
+  BUSINESS_UPDATE: "business_update",
+  SYSTEM: "system",
+  REMINDER: "reminder",
 } as const;
 
-export type NotificationType = typeof NotificationType[keyof typeof NotificationType];
+export type NotificationType =
+  (typeof NotificationType)[keyof typeof NotificationType];
 export type Notification = typeof NotificationsTable.$inferInsert;

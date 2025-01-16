@@ -1,20 +1,21 @@
+import { getServerSession } from "next-auth";
+import { authOptions } from "../auth/[...nextauth]/auth";
 import { NextResponse } from "next/server";
-import { cookies } from "next/headers";
-import { getUserFromToken } from "@/lib/auth";
 
 export async function GET() {
   try {
-    const cookieStore = cookies();
-    const token = cookieStore.get("token")?.value;
+    const session = await getServerSession(authOptions);
 
-    if (!token) {
-      return NextResponse.json({ isAuthenticated: false });
+    if (!session?.user) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    const user = await getUserFromToken(token);
-    return NextResponse.json({ isAuthenticated: !!user });
+    return NextResponse.json({ authenticated: true });
   } catch (error) {
-    console.error("Error verifying token:", error);
-    return NextResponse.json({ isAuthenticated: false });
+    console.error("Error checking authentication:", error);
+    return NextResponse.json(
+      { error: "Internal server error" },
+      { status: 500 }
+    );
   }
 }

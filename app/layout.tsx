@@ -1,6 +1,12 @@
+import type { Metadata } from "next";
 import "./globals.css";
-import { AuthProvider } from "./contexts/AuthContext";
+import { Providers } from "./providers";
 import ClientLayout from "./ClientLayout";
+
+export const metadata: Metadata = {
+  title: "BeWell",
+  description: "Your wellness platform",
+};
 
 export default function RootLayout({
   children,
@@ -10,9 +16,9 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body>
-        <AuthProvider>
+        <Providers>
           <ClientLayout>{children}</ClientLayout>
-        </AuthProvider>
+        </Providers>
       </body>
     </html>
   );

@@ -4,7 +4,7 @@ import { PencilIcon } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { Business, Class } from "@/lib/db/schema";
-import { useAuth } from "@/app/contexts/AuthContext";
+import { useSession } from "next-auth/react";
 import {
   Card,
   CardContent,
@@ -24,6 +24,7 @@ import {
   DialogTitle,
   DialogDescription,
 } from "@/components/ui/dialog";
+import { DeleteDialog } from "@/components/dialogs/delete-dialog";
 
 export default function BusinessDetailsPage({
   params,
@@ -34,25 +35,14 @@ export default function BusinessDetailsPage({
   const [classes, setClasses] = useState<Class[]>([]);
   const [loading, setLoading] = useState(true);
   const [dialogOpen, setDialogOpen] = useState(false);
+  const [showDeleteDialog, setShowDeleteDialog] = useState(false);
   const router = useRouter();
-  const { token, isLoggedIn } = useAuth();
-
-  useEffect(() => {
-    if (!isLoggedIn) {
-      router.push("/auth");
-      return;
-    }
-  }, [isLoggedIn, router]);
+  const { data: session } = useSession();
 
   useEffect(() => {
     const fetchBusiness = async () => {
       try {
-        const response = await fetch(`/api/businesses/${params.id}`, {
-          headers: {
-            Authorization: `Bearer ${token}`,
-            "Content-Type": "application/json",
-          },
-        });
+        const response = await fetch(`/api/businesses/${params.id}`);
         if (!response.ok) {
           throw new Error("Business not found");
         }
@@ -66,19 +56,14 @@ export default function BusinessDetailsPage({
       }
     };
 
-    if (isLoggedIn) {
+    if (session) {
       fetchBusiness();
     }
-  }, [params.id, router, token, isLoggedIn]);
+  }, [params.id, router, session]);
 
   const fetchClasses = async () => {
     try {
-      const response = await fetch(`/api/classes/${params.id}`, {
-        headers: {
-          Authorization: `Bearer ${token}`,
-          "Content-Type": "application/json",
-        },
-      });
+      const response = await fetch(`/api/classes/${params.id}`);
       if (!response.ok) {
         throw new Error("Failed to fetch classes");
       }
@@ -93,42 +78,41 @@ export default function BusinessDetailsPage({
   };
 
   useEffect(() => {
-    if (isLoggedIn) {
+    if (session) {
       fetchClasses();
     }
-  }, [params.id, token, isLoggedIn]);
+  }, [params.id, session]);
 
-  const handleDelete = async () => {
-    try {
-      const response = await fetch(`/api/businesses/${params.id}`, {
-        method: "DELETE",
-        headers: {
-          "Content-Type": "application/json",
-        },
-      });
-
-      if (response.ok) {
-        router.push("/businesses");
-      } else {
-        const errorData = await response.json();
-        console.error("Failed to delete business:", errorData.error);
-      }
-    } catch (error) {
-      console.error("Error deleting business:", error);
-    }
+  const handleDeleteSuccess = () => {
+    router.push("/businesses");
   };
 
-  if (!isLoggedIn) return null;
+  if (!session) return null;
   if (loading) return <div>Loading...</div>;
   if (!business) return <div>Business not found</div>;
 
   return (
     <div>
-      <h1 className="text-3xl font-bold mb-4">{business.name}</h1>
+      <div className="flex justify-between items-center mb-4">
+        <h1 className="text-3xl font-bold">{business.name}</h1>
+        <Button asChild>
+          <Link href="/businesses">Back to Businesses</Link>
+        </Button>
+      </div>
       <Card className="w-full mb-4">
         <CardHeader>
-          <CardTitle>{business.name}</CardTitle>
-          <CardDescription>{business.address}</CardDescription>
+          <div className="flex justify-between items-center">
+            <div>
+              <CardTitle>{business.name}</CardTitle>
+              <CardDescription>{business.address}</CardDescription>
+            </div>
+
+            <Button variant="outline" size="icon">
+              <Link href={`/businesses/${params.id}/edit`}>
+                <PencilIcon />
+              </Link>
+            </Button>
+          </div>
         </CardHeader>
         <CardContent>
           <p>
@@ -139,11 +123,9 @@ export default function BusinessDetailsPage({
           <p>
             <strong>Email:</strong> {business.email}
           </p>
-
           <p>
             <strong>Type:</strong> {business.type}
           </p>
-
           <p>
             <strong>Hours:</strong> {business.hours}
           </p>
@@ -156,7 +138,6 @@ export default function BusinessDetailsPage({
           <p>
             <strong>Zip Code:</strong> {business.zipCode}
           </p>
-
           {classes.length > 0 && (
             <p>
               <strong>Classes:</strong> {classes.length}
@@ -166,20 +147,6 @@ export default function BusinessDetailsPage({
       </Card>
 
       <div className="flex gap-2">
-        <Button asChild>
-          <Link href="/businesses">Back to Businesses</Link>
-        </Button>
-
-        <Button variant="outline" size="icon">
-          <Link href={`/businesses/${params.id}/edit`}>
-            <PencilIcon />
-          </Link>
-        </Button>
-
-        <Button variant="destructive" onClick={handleDelete}>
-          Delete Business
-        </Button>
-
         {classes.length > 0 && (
           <Button asChild>
             <Link href={`/classes/${business.id}`}>View Classes</Link>
@@ -206,7 +173,21 @@ export default function BusinessDetailsPage({
             />
           </DialogContent>
         </Dialog>
+
+        <Button variant="destructive" onClick={() => setShowDeleteDialog(true)}>
+          Delete Business
+        </Button>
       </div>
+
+      <DeleteDialog
+        item={business}
+        itemType="Business"
+        itemName={business?.name || ""}
+        deleteEndpoint={`/api/businesses/${params.id}`}
+        isOpen={showDeleteDialog}
+        onOpenChange={setShowDeleteDialog}
+        onSuccess={handleDeleteSuccess}
+      />
     </div>
   );
 }
