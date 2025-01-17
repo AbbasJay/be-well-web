@@ -43,7 +43,6 @@ function handleEventClick(clickInfo: any) {
 }
 
 function handleDateSelect(selectInfo: any) {
-  debugger;
   let title = prompt('Please enter a new title for your event')
   let calendarApi = selectInfo.view.calendar
 
