@@ -19,12 +19,14 @@ import {
   DialogDescription,
 } from "@/components/ui/dialog";
 import { ClassForm } from "@/components/forms/class-form";
+import { DeleteDialog } from "@/components/dialogs/delete-dialog";
 
 export default function ClassesPage({ params }: { params: { id: string } }) {
   const [classes, setClasses] = useState<Class[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedClass, setSelectedClass] = useState<Class | null>(null);
   const [dialogOpen, setDialogOpen] = useState(false);
+  const [classToDelete, setClassToDelete] = useState<Class | null>(null);
 
   useEffect(() => {
     const fetchClasses = async () => {
@@ -36,21 +38,11 @@ export default function ClassesPage({ params }: { params: { id: string } }) {
     fetchClasses();
   }, [params.id]);
 
-  const handleDelete = async (classId: number) => {
-    try {
-      const response = await fetch(`/api/classes/${classId}`, {
-        method: "DELETE",
-      });
-
-      if (response.ok) {
-        setClasses((prevClasses) =>
-          prevClasses.filter((classItem) => classItem.id !== classId)
-        );
-      } else {
-        console.error("Failed to delete class");
-      }
-    } catch (error) {
-      console.error("Error deleting class:", error);
+  const handleDeleteSuccess = () => {
+    if (classToDelete?.id) {
+      setClasses((prevClasses) =>
+        prevClasses.filter((classItem) => classItem.id !== classToDelete.id)
+      );
     }
   };
 
@@ -121,7 +113,7 @@ export default function ClassesPage({ params }: { params: { id: string } }) {
               <div className="flex gap-2 mt-4">
                 <Button
                   variant="destructive"
-                  onClick={() => item.id && handleDelete(item.id)}
+                  onClick={() => setClassToDelete(item)}
                 >
                   Delete Class
                 </Button>
@@ -156,6 +148,18 @@ export default function ClassesPage({ params }: { params: { id: string } }) {
       ) : (
         <p>No classes available for this business.</p>
       )}
+
+      <DeleteDialog
+        item={classToDelete}
+        itemType="Class"
+        itemName={classToDelete?.name || ""}
+        deleteEndpoint={
+          classToDelete?.id ? `/api/classes/${classToDelete.id}` : ""
+        }
+        isOpen={!!classToDelete}
+        onOpenChange={(open) => !open && setClassToDelete(null)}
+        onSuccess={handleDeleteSuccess}
+      />
     </div>
   );
 }

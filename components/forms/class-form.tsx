@@ -18,7 +18,6 @@ export const ClassForm: React.FC<ClassFormProps> = ({
   onSuccess,
   onSubmit,
 }) => {
-  debugger;
   useEffect(() => {
     console.log("initialData:", initialData);
   }, [initialData]);

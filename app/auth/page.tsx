@@ -3,9 +3,15 @@
 import { useState } from "react";
 import LoginForm from "../components/LoginForm";
 import RegisterForm from "../components/RegisterForm";
+import { useSession } from "next-auth/react";
 
 export default function AuthPage() {
   const [isLogin, setIsLogin] = useState(true);
+  const { data: session } = useSession();
+
+  if (session) {
+    return <div>Loading...</div>;
+  }
 
   return (
     <div className="flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8">

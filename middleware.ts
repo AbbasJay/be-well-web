@@ -1,35 +1,27 @@
+import { withAuth } from "next-auth/middleware";
 import { NextResponse } from "next/server";
-import type { NextRequest } from "next/server";
 
-export function middleware(request: NextRequest) {
-  if (request.method === "OPTIONS") {
-    return new NextResponse(null, {
-      status: 204,
-      headers: {
-        "Access-Control-Allow-Credentials": "true",
-        "Access-Control-Allow-Methods": "GET, POST, PUT, DELETE, OPTIONS",
-        "Access-Control-Allow-Headers": "Content-Type, Authorization",
-        "Access-Control-Allow-Origin": "*",
-        "Access-Control-Max-Age": "86400",
-      },
-    });
+export default withAuth(
+  function middleware(req) {
+    // If the user is authenticated, allow them to access any route
+    return NextResponse.next();
+  },
+  {
+    callbacks: {
+      authorized: ({ token }) => !!token,
+    },
+    pages: {
+      signIn: "/auth",
+    },
   }
-
-  const response = NextResponse.next();
-  response.headers.set("Access-Control-Allow-Credentials", "true");
-  response.headers.set("Access-Control-Allow-Origin", "*");
-  response.headers.set(
-    "Access-Control-Allow-Methods",
-    "GET, POST, PUT, DELETE, OPTIONS"
-  );
-  response.headers.set(
-    "Access-Control-Allow-Headers",
-    "Content-Type, Authorization"
-  );
-
-  return response;
-}
+);
 
 export const config = {
-  matcher: "/api/:path*",
+  matcher: [
+    "/businesses/:path*",
+    "/classes/:path*",
+    "/dashboard/:path*",
+    "/profile/:path*",
+    // Add other protected routes here
+  ],
 };

@@ -1,29 +1,29 @@
 "use client";
 
-import { ReactNode, useState } from "react";
-import SideNav from "@/components/SideNav";
+import { useState } from "react";
 import Header from "@/components/Header";
+import SideNav from "@/components/SideNav";
 
-interface ClientLayoutProps {
-  children: ReactNode;
-}
-
-export default function ClientLayout({ children }: ClientLayoutProps) {
+export default function ClientLayout({
+  children,
+}: {
+  children: React.ReactNode;
+}) {
   const [isNavOpen, setIsNavOpen] = useState(false);
 
+  const toggleNav = () => {
+    setIsNavOpen(!isNavOpen);
+  };
+
   return (
-    <div className="flex">
-      <SideNav isOpen={isNavOpen} setIsOpen={setIsNavOpen} />
-      <div className="flex flex-col flex-grow">
-        <Header
-          toggleNav={() => setIsNavOpen(!isNavOpen)}
-          isNavOpen={isNavOpen}
-        />
+    <div className="min-h-screen">
+      <Header toggleNav={toggleNav} isNavOpen={isNavOpen} />
+      <div className="pt-[72px]">
+        <SideNav isOpen={isNavOpen} setIsOpen={setIsNavOpen} />
         <main
-          className={`flex-grow transition-all duration-300 ${
+          className={`p-4 ${
             isNavOpen ? "ml-64" : "ml-0"
-          }`}
-          style={{ marginTop: "76px" }}
+          } transition-all duration-300`}
         >
           {children}
         </main>

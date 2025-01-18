@@ -1,23 +1,21 @@
+import { getServerSession } from "next-auth";
+import { authOptions } from "../auth/[...nextauth]/auth";
 import { NextResponse } from "next/server";
-import { cookies } from "next/headers";
-import * as jose from "jose";
-
-const JWT_SECRET = process.env.JWT_SECRET!;
 
 export async function GET() {
-  const cookieStore = cookies();
-  const token = cookieStore.get("token")?.value;
-
-  if (!token) {
-    return NextResponse.json({ isAuthenticated: false });
-  }
-
   try {
-    const secret = new TextEncoder().encode(JWT_SECRET);
-    await jose.jwtVerify(token, secret);
-    return NextResponse.json({ isAuthenticated: true });
+    const session = await getServerSession(authOptions);
+
+    if (!session?.user) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+
+    return NextResponse.json({ authenticated: true });
   } catch (error) {
-    console.error("Error verifying token:", error);
-    return NextResponse.json({ isAuthenticated: false });
+    console.error("Error checking authentication:", error);
+    return NextResponse.json(
+      { error: "Internal server error" },
+      { status: 500 }
+    );
   }
 }

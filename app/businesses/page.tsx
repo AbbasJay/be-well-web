@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react";
 import { Business } from "@/lib/db/schema";
 import { useRouter } from "next/navigation";
-import { useAuth } from "../contexts/AuthContext";
+import { useSession } from "next-auth/react";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import {
@@ -14,35 +14,27 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
+import { DeleteDialog } from "@/components/dialogs/delete-dialog";
 
 export default function BusinessesPage() {
   const [businesses, setBusinesses] = useState<Business[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const { token, isLoggedIn } = useAuth();
+  const [businessToDelete, setBusinessToDelete] = useState<Business | null>(
+    null
+  );
+  const { data: session } = useSession();
   const router = useRouter();
 
   const fetchBusinesses = async () => {
     try {
-      const response = await fetch("/api/businesses", {
-        headers: {
-          Authorization: `Bearer ${token}`,
-          "Content-Type": "application/json",
-        },
-      });
-
-      if (response.status === 401) {
-        router.push("/login");
-        return;
-      }
-
+      const response = await fetch("/api/businesses");
       if (!response.ok) {
         const errorData = await response.json();
         throw new Error(errorData.error || "Failed to fetch businesses");
       }
 
       const data = await response.json();
-
       setBusinesses(data);
     } catch (error) {
       console.error("Error fetching businesses:", error);
@@ -53,12 +45,20 @@ export default function BusinessesPage() {
   };
 
   useEffect(() => {
-    if (!isLoggedIn) {
-      router.push("/auth");
-      return;
+    if (session) {
+      fetchBusinesses();
     }
-    fetchBusinesses();
-  }, [isLoggedIn, router]);
+  }, [session]);
+
+  const handleDeleteSuccess = () => {
+    if (businessToDelete) {
+      setBusinesses(businesses.filter((b) => b.id !== businessToDelete.id));
+    }
+  };
+
+  if (!session) {
+    return <div>Loading...</div>;
+  }
 
   if (loading) return <div>Loading...</div>;
   if (error) return <div>Error: {error}</div>;
@@ -94,15 +94,33 @@ export default function BusinessesPage() {
                   </p>
                 </CardContent>
               </div>
-              <CardFooter className="items-end">
-                <Button>
+              <CardFooter className="gap-2">
+                <Button asChild>
                   <Link href={`/businesses/${business.id}`}>View Details</Link>
+                </Button>
+                <Button
+                  variant="destructive"
+                  onClick={() => setBusinessToDelete(business)}
+                >
+                  Delete
                 </Button>
               </CardFooter>
             </Card>
           ))}
         </div>
       )}
+
+      <DeleteDialog
+        item={businessToDelete}
+        itemType="Business"
+        itemName={businessToDelete?.name || ""}
+        deleteEndpoint={
+          businessToDelete?.id ? `/api/businesses/${businessToDelete.id}` : ""
+        }
+        isOpen={!!businessToDelete}
+        onOpenChange={(open) => !open && setBusinessToDelete(null)}
+        onSuccess={handleDeleteSuccess}
+      />
     </>
   );
 }

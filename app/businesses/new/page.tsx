@@ -5,18 +5,18 @@ import { Button } from "@/components/ui/button";
 import Link from "next/link";
 import { Business } from "@/lib/db/schema";
 import { useRouter } from "next/navigation";
+import { useSession } from "next-auth/react";
 
 export default function NewBusinessPage() {
   const router = useRouter();
+  const { data: session } = useSession();
 
   const handleCreate = async (newBusiness: Partial<Business>) => {
     try {
-      const token = localStorage.getItem("token");
       const response = await fetch("/api/businesses", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
         },
         body: JSON.stringify(newBusiness),
       });
@@ -32,6 +32,10 @@ export default function NewBusinessPage() {
       console.error("An error occurred:", error);
     }
   };
+
+  if (!session) {
+    return <div>Loading...</div>;
+  }
 
   return (
     <div>

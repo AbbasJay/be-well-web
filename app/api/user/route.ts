@@ -1,21 +1,28 @@
+import { getServerSession } from "next-auth";
+import { authOptions } from "../auth/[...nextauth]/auth";
 import { NextResponse } from "next/server";
-import jwt from "jsonwebtoken";
-import { getUserById } from "@/lib/db/users";
-import { cookies } from "next/headers";
-
-const JWT_SECRET = process.env.JWT_SECRET!;
+import { db } from "@/lib/db/db";
+import { UsersTable } from "@/lib/db/schema";
+import { eq } from "drizzle-orm";
 
 export async function GET() {
-  const cookieStore = cookies();
-  const token = cookieStore.get("token")?.value;
-
-  if (!token) {
-    return NextResponse.json({ error: "Not authenticated" }, { status: 401 });
-  }
-
   try {
-    const decoded = jwt.verify(token, JWT_SECRET) as { userId: number };
-    const user = await getUserById(decoded.userId);
+    const session = await getServerSession(authOptions);
+
+    if (!session?.user?.id) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+
+    const [user] = await db
+      .select({
+        id: UsersTable.id,
+        email: UsersTable.email,
+        name: UsersTable.name,
+        createdAt: UsersTable.createdAt,
+      })
+      .from(UsersTable)
+      .where(eq(UsersTable.id, parseInt(session.user.id)))
+      .execute();
 
     if (!user) {
       return NextResponse.json({ error: "User not found" }, { status: 404 });
@@ -23,9 +30,9 @@ export async function GET() {
 
     return NextResponse.json(user);
   } catch (error) {
-    console.error("Error in user route:", error);
+    console.error("Error fetching user:", error);
     return NextResponse.json(
-      { error: "Internal Server Error" },
+      { error: "Internal server error" },
       { status: 500 }
     );
   }

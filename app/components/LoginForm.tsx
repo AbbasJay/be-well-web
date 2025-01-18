@@ -1,45 +1,35 @@
 "use client";
 
 import { useState, FormEvent } from "react";
-import { useRouter } from "next/navigation";
-import { useAuth } from "../contexts/AuthContext";
+import { signIn } from "next-auth/react";
 
 export default function LoginForm() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
-  const router = useRouter();
-  const { login } = useAuth();
+  const [isLoading, setIsLoading] = useState(false);
 
   async function handleSubmit(e: FormEvent) {
     e.preventDefault();
+    setIsLoading(true);
+    setError("");
+
     try {
-      const response = await fetch("/api/login", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email, password }),
+      const result = await signIn("credentials", {
+        email,
+        password,
+        redirect: true,
+        callbackUrl: "/",
       });
 
-      const data = await response.json();
-
-      if (!response.ok) {
-        throw new Error(data.error || "Failed to login");
+      if (result?.error) {
+        setError(result.error);
       }
-
-      // Store token in localStorage
-      localStorage.setItem("token", data.token);
-
-      // Pass token to auth context
-      login(data.token);
-
-      router.push("/");
     } catch (err) {
-      console.error("Login error:", err); // Debug log
-      if (err instanceof Error) {
-        setError(err.message);
-      } else {
-        setError("An unknown error occurred");
-      }
+      console.error("Login error:", err);
+      setError("An unexpected error occurred");
+    } finally {
+      setIsLoading(false);
     }
   }
 
@@ -65,9 +55,10 @@ export default function LoginForm() {
       />
       <button
         type="submit"
-        className="w-full p-2 bg-green-500 text-white rounded hover:bg-green-600"
+        disabled={isLoading}
+        className="w-full p-2 bg-green-500 text-white rounded hover:bg-green-600 disabled:bg-green-300"
       >
-        Login
+        {isLoading ? "Logging in..." : "Login"}
       </button>
     </form>
   );

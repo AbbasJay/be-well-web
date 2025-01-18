@@ -1,37 +1,37 @@
 import { NextResponse } from "next/server";
 import { db } from "@/lib/db/db";
 import { Business, BusinessesTable } from "@/lib/db/schema";
-import { getUserFromToken } from "@/lib/auth";
-import { cookies } from "next/headers";
 import { eq, and } from "drizzle-orm";
+import { getServerSession } from "next-auth";
+import { authOptions } from "../../auth/[...nextauth]/auth";
 
 export async function DELETE(
   req: Request,
   { params }: { params: { id: string } }
 ) {
   try {
-    const cookieStore = cookies();
-    const token = cookieStore.get("token")?.value;
+    const session = await getServerSession(authOptions);
 
-    if (!token) {
+    if (!session?.user) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    const user = await getUserFromToken(token);
-    if (!user) {
-      return NextResponse.json({ error: "User not found" }, { status: 404 });
+    const businessId = parseInt(params.id);
+    if (isNaN(businessId)) {
+      return NextResponse.json(
+        { error: "Invalid business ID" },
+        { status: 400 }
+      );
     }
 
-    const businessId = parseInt(params.id);
-
-    // Combine conditions using 'and'
+    // Check if business exists and belongs to user
     const business = await db
       .select()
       .from(BusinessesTable)
       .where(
         and(
           eq(BusinessesTable.id, businessId),
-          eq(BusinessesTable.userId, user.id)
+          eq(BusinessesTable.userId, parseInt(session.user.id))
         )
       )
       .execute();
@@ -70,22 +70,39 @@ export async function GET(
   { params }: { params: { id: string } }
 ) {
   try {
-    const businessId = parseInt(params.id);
+    const session = await getServerSession(authOptions);
 
-    const business = await db
+    if (!session?.user) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+
+    const businessId = parseInt(params.id);
+    if (isNaN(businessId)) {
+      return NextResponse.json(
+        { error: "Invalid business ID" },
+        { status: 400 }
+      );
+    }
+
+    const [business] = await db
       .select()
       .from(BusinessesTable)
-      .where(eq(BusinessesTable.id, businessId))
+      .where(
+        and(
+          eq(BusinessesTable.id, businessId),
+          eq(BusinessesTable.userId, parseInt(session.user.id))
+        )
+      )
       .execute();
 
-    if (!business.length) {
+    if (!business) {
       return NextResponse.json(
         { error: "Business not found" },
         { status: 404 }
       );
     }
 
-    return NextResponse.json(business[0], { status: 200 });
+    return NextResponse.json(business, { status: 200 });
   } catch (error) {
     console.error("Error fetching business:", error);
     return NextResponse.json(
@@ -100,19 +117,12 @@ export async function PUT(
   { params }: { params: { id: string } }
 ) {
   try {
-    const cookieStore = cookies();
-    const token = cookieStore.get("token")?.value;
+    const session = await getServerSession(authOptions);
 
-    if (!token) {
+    if (!session?.user) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    const user = await getUserFromToken(token);
-    if (!user) {
-      return NextResponse.json({ error: "User not found" }, { status: 404 });
-    }
-
-    // validate id
     const businessId = parseInt(params.id);
     if (isNaN(businessId)) {
       return NextResponse.json(
@@ -121,14 +131,14 @@ export async function PUT(
       );
     }
 
-    // check existence
+    // Check if business exists and belongs to user
     const existingBusiness = await db
       .select()
       .from(BusinessesTable)
       .where(
         and(
           eq(BusinessesTable.id, businessId),
-          eq(BusinessesTable.userId, user.id)
+          eq(BusinessesTable.userId, parseInt(session.user.id))
         )
       )
       .execute();
@@ -140,7 +150,6 @@ export async function PUT(
       );
     }
 
-    // patse request body
     const body: Partial<Business> = await req.json();
 
     // TODO HERE: validation
