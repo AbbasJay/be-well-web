@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { eq } from "drizzle-orm";
+import { eq, or } from "drizzle-orm";
 import { db } from "@/lib/db/db";
 import { BusinessesTable } from "@/lib/db/schema";
 import haversine from "haversine-distance"
@@ -49,7 +49,7 @@ const calculateDistance = (lat1: number, lon1: number, lat2: number, lon2: numbe
  *               location: { "lat": 51.072, "lng": 0.1276 }
  *               maxDistance: 3
  *               minRating: 4
- *               type: "gymAndClasses"
+ *               type: ["gym", "classes"]
  *     responses:
  *       200:
  *         description: Filtering request successful.
@@ -93,18 +93,18 @@ export async function POST(req: Request){
         if (validationError) {
             return NextResponse.json(validationError, { status: 400 });
         }
-        
-        let type = types[0];
 
-        if ("gym" in types && "classes" in types) {
-            type = "gymAndClasses";
+        if (types.includes("gym") && types.includes("classes")) {
+            types.push("gymAndClasses")
         }
+
+        const conditions = types.map((type: string) => eq(BusinessesTable.type, type));
 
         // get the businesses that match the filtering criteria
         const businesses = await db
             .select()
             .from(BusinessesTable)
-            .where(eq(BusinessesTable.type, type))
+            .where(or(...conditions))
             // TODO: filtering by rating
             .execute();
 
