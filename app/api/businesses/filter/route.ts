@@ -42,9 +42,9 @@ const calculateDistance = (lat1: number, lon1: number, lat2: number, lon2: numbe
  *               minRating:
  *                 type: number
  *                 description: The minimum rating (1-5) for returned businesses.
- *               type:
- *                 type: string
- *                 description: A list of gym types or categories to filter by.
+ *               types:
+ *                 type: string[]
+ *                 description: A list of gym types or categories to filter by. E.g ["gym", "classes"]
  *             example:
  *               location: { "lat": 51.072, "lng": 0.1276 }
  *               maxDistance: 3
@@ -74,62 +74,31 @@ const calculateDistance = (lat1: number, lon1: number, lat2: number, lon2: numbe
  */
 export async function POST(req: Request){
     try {
-
         // get the parameters from the request body
         const { location, maxDistance, minRating, types } = await req.json();
         const { lat, lng } = location;
 
-        // throw error if any of the required fields are missing
-        // if (!lat || !lng || !maxDistance || !minRating || !types) {
-        //     return NextResponse.json(
-        //         { error: "Missing required fields" },
-        //         { status: 400 }
-        //     );
-        // }
+        // Helper function to validate required parameters
+        const validateParams = (params: Record<string, any>) => {
+            for (const [key, value] of Object.entries(params)) {
+                if (value === undefined || value === null) {
+                    return { error: `Missing ${key}`, status: 400 };
+                }
+            }
+            return null;
+        };
 
-        if(!lat) {
-            return NextResponse.json(
-                { error: "Missing latitude" },
-                { status: 400 }
-            );
+        // Validate parameters
+        const validationError = validateParams({ lat, lng, maxDistance, minRating, types });
+        if (validationError) {
+            return NextResponse.json(validationError, { status: 400 });
         }
+        
+        let type = types[0];
 
-        if(!lng) {
-            return NextResponse.json(
-                { error: "Missing longitude" },
-                { status: 400 }
-            );
+        if ("gym" in types && "classes" in types) {
+            type = "gymAndClasses";
         }
-
-        if(!maxDistance) {
-            return NextResponse.json(
-                { error: "Missing max distance" },
-                { status: 400 }
-            );
-        }
-
-        if(!minRating) {
-            return NextResponse.json(
-                { error: "Missing min rating" },
-                { status: 400 }
-            );
-        }
-
-        if(!types) {
-            return NextResponse.json(
-                { error: "Missing types" },
-                { status: 400 }
-            );
-        }
-
-
-
-        //types is an array of gym types all lowercase (e.g. ["gym", "classes"])
-        //if there are multiple rypes, need to glue them together like so: "gymAndClasses"
-        //first convert all types but the first one to have first letter capitalised
-        const type = types.map((t, i) => i === 0 ? t : t.charAt(0).toUpperCase() + t.slice(1)).join("And");
-        console.log(type);
-
 
         // get the businesses that match the filtering criteria
         const businesses = await db
