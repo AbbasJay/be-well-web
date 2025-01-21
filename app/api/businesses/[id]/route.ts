@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { db } from "@/lib/db/db";
-import { Business, BusinessesTable } from "@/lib/db/schema";
+import { Business, BusinessesTable, ClassesTable } from "@/lib/db/schema";
 import { eq, and } from "drizzle-orm";
 import { getServerSession } from "next-auth";
 import { authOptions } from "../../auth/[...nextauth]/auth";
@@ -43,14 +43,20 @@ export async function DELETE(
       );
     }
 
-    // Delete the business
+    // First delete all associated classes
+    await db
+      .delete(ClassesTable)
+      .where(eq(ClassesTable.businessId, businessId))
+      .execute();
+
+    // Then delete the business
     await db
       .delete(BusinessesTable)
       .where(eq(BusinessesTable.id, businessId))
       .execute();
 
     return NextResponse.json(
-      { message: "Business deleted successfully" },
+      { message: "Business and associated classes deleted successfully" },
       { status: 200 }
     );
   } catch (error) {

@@ -1,7 +1,7 @@
 "use client";
 
 import { PencilIcon } from "lucide-react";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import { Business, Class } from "@/lib/db/schema";
 import { useSession } from "next-auth/react";
@@ -61,7 +61,7 @@ export default function BusinessDetailsPage({
     }
   }, [params.id, router, session]);
 
-  const fetchClasses = async () => {
+  const fetchClasses = useCallback(async () => {
     try {
       const response = await fetch(`/api/classes/${params.id}`);
       if (!response.ok) {
@@ -75,13 +75,13 @@ export default function BusinessDetailsPage({
     } catch (error) {
       console.error("Error fetching classes:", error);
     }
-  };
+  }, [params.id]);
 
   useEffect(() => {
     if (session) {
       fetchClasses();
     }
-  }, [params.id, session]);
+  }, [params.id, session, fetchClasses]);
 
   const handleDeleteSuccess = () => {
     router.push("/businesses");
