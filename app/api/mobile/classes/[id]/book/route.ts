@@ -41,14 +41,20 @@ export async function POST(
         .where(eq(ClassesTable.id, classId))
         .returning();
 
-      // Create booking confirmation notification
-      await db.insert(NotificationsTable).values({
-        userId: user.id,
-        type: NotificationType.BOOKING_CONFIRMATION,
-        title: "Class Booked Successfully",
-        message: `You have successfully booked ${classData.name} on ${classData.startDate} at ${classData.time}`,
-        read: false,
-      });
+      try {
+        // Create booking confirmation notification
+        await db.insert(NotificationsTable).values({
+          userId: user.id,
+          classId: classId,
+          businessId: classData.businessId,
+          type: NotificationType.BOOKING_CONFIRMATION,
+          title: "Class Booked Successfully",
+          message: `You have successfully booked ${classData.name}. The class is scheduled for ${classData.startDate} at ${classData.time} with instructor ${classData.instructor}. Location: ${classData.location}`,
+          read: false,
+        });
+      } catch (notificationError) {
+        console.error("Error creating notification:", notificationError);
+      }
 
       return NextResponse.json({
         message: "Class booked successfully",
