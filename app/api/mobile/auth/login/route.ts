@@ -14,7 +14,7 @@ export async function POST(request: Request) {
     const [user] = await db
       .select()
       .from(UsersTable)
-      .where(eq(UsersTable.email, body.email))
+      .where(eq(UsersTable.email, body.email.toLowerCase()))
       .limit(1);
 
     if (!user) {
@@ -38,7 +38,7 @@ export async function POST(request: Request) {
     const token = jwt.sign(
       {
         id: user.id,
-        email: user.email,
+        email: user.email.toLowerCase(),
         name: user.name,
       },
       process.env.JWT_SECRET || "your-secret-key",
@@ -49,7 +49,7 @@ export async function POST(request: Request) {
     return NextResponse.json({
       user: {
         id: user.id,
-        email: user.email,
+        email: user.email.toLowerCase(),
         name: user.name,
       },
       token,

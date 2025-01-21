@@ -3,6 +3,12 @@ import { db } from "@/lib/db/db";
 import { NotificationsTable } from "@/lib/db/schema";
 import { eq, desc, and, inArray } from "drizzle-orm";
 import { withAuth, errorResponse } from "@/lib/utils/api-utils";
+import { z } from "zod";
+
+// Validation schema for marking notifications as read
+const updateNotificationsSchema = z.object({
+  notificationIds: z.array(z.number()),
+});
 
 export async function GET(request: NextRequest) {
   return withAuth(request, async (user) => {
@@ -26,11 +32,7 @@ export async function PUT(request: NextRequest) {
   return withAuth(request, async (user) => {
     try {
       const body = await request.json();
-      const { notificationIds } = body;
-
-      if (!Array.isArray(notificationIds)) {
-        return errorResponse("notificationIds must be an array", 400);
-      }
+      const { notificationIds } = updateNotificationsSchema.parse(body);
 
       // Mark notifications as read
       await db
@@ -47,6 +49,9 @@ export async function PUT(request: NextRequest) {
       return NextResponse.json({ message: "Notifications marked as read" });
     } catch (error) {
       console.error("Error updating notifications:", error);
+      if (error instanceof z.ZodError) {
+        return errorResponse(error.errors[0].message, 400);
+      }
       return errorResponse("Failed to update notifications");
     }
   });
@@ -56,11 +61,7 @@ export async function DELETE(request: NextRequest) {
   return withAuth(request, async (user) => {
     try {
       const body = await request.json();
-      const { notificationIds } = body;
-
-      if (!Array.isArray(notificationIds)) {
-        return errorResponse("notificationIds must be an array", 400);
-      }
+      const { notificationIds } = updateNotificationsSchema.parse(body);
 
       // Delete notifications
       await db
@@ -76,6 +77,9 @@ export async function DELETE(request: NextRequest) {
       return NextResponse.json({ message: "Notifications deleted" });
     } catch (error) {
       console.error("Error deleting notifications:", error);
+      if (error instanceof z.ZodError) {
+        return errorResponse(error.errors[0].message, 400);
+      }
       return errorResponse("Failed to delete notifications");
     }
   });

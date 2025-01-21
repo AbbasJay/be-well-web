@@ -79,8 +79,6 @@ export const ClassesTable = pgTable(
       columns: [classes.businessId],
       foreignColumns: [BusinessesTable.id],
     }),
-    // Optionally, add a composite unique index if needed
-    // uniqueClassIdx: uniqueIndex("unique_class_idx").on(classes.businessId, classes.name),
   })
 );
 
@@ -90,11 +88,9 @@ export const NotificationsTable = pgTable(
   "notifications",
   {
     id: serial("id").primaryKey().notNull(),
-    businessId: integer("business_id").notNull(),
-    classId: integer("class_id"),
+    userId: integer("user_id").notNull(),
     title: text("title").notNull(),
     message: text("message").notNull(),
-    userId: integer("user_id").notNull(),
     type: text("type").notNull(),
     read: boolean("read").default(false).notNull(),
     createdAt: timestamp("created_at").defaultNow().notNull(),
@@ -104,22 +100,15 @@ export const NotificationsTable = pgTable(
       columns: [notifications.userId],
       foreignColumns: [UsersTable.id],
     }),
-    businessIdFk: foreignKey({
-      columns: [notifications.businessId],
-      foreignColumns: [BusinessesTable.id],
-    }),
-    classIdFk: foreignKey({
-      columns: [notifications.classId],
-      foreignColumns: [ClassesTable.id],
-    }).onDelete("set null"),
   })
 );
 
 export const NotificationType = {
-  CLASS_UPDATE: "class_update",
-  BUSINESS_UPDATE: "business_update",
+  BOOKING_CONFIRMATION: "booking_confirmation",
+  BOOKING_REMINDER: "booking_reminder",
+  CLASS_CANCELLED: "class_cancelled",
+  CLASS_UPDATED: "class_updated",
   SYSTEM: "system",
-  REMINDER: "reminder",
 } as const;
 
 export type NotificationType =
