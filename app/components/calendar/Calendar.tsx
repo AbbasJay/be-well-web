@@ -84,7 +84,7 @@ export default function Calendar() {
       <CalendarSidebar
         weekendsVisible={weekendsVisible}
         handleWeekendsToggle={handleWeekendsToggle}
-        currentEvents={currentEvents}
+        currentEvents={[]}
       />
       <div
         className="[&_.fc-button-primary]:bg-blue-500 [&_.fc-button-primary]:border-blue-500 [&_.fc-button-primary]:text-white
