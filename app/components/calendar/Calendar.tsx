@@ -16,20 +16,6 @@ export default function Calendar() {
   const [currentEvents, setCurrentEvents] = useState<EventApi[]>([]);
 
   let eventGuid = 0;
-  let todayStr = new Date().toISOString().replace(/T.*$/, "");
-
-  const INITIAL_EVENTS = [
-    {
-      id: createEventId(),
-      title: "All-day event",
-      start: todayStr,
-    },
-    {
-      id: createEventId(),
-      title: "Timed event",
-      start: todayStr + "T12:00:00",
-    },
-  ];
 
   function createEventId() {
     return String(eventGuid++);
@@ -84,7 +70,7 @@ export default function Calendar() {
       <CalendarSidebar
         weekendsVisible={weekendsVisible}
         handleWeekendsToggle={handleWeekendsToggle}
-        currentEvents={[]}
+        currentEvents={currentEvents}
       />
       <div
         className="[&_.fc-button-primary]:bg-blue-500 [&_.fc-button-primary]:border-blue-500 [&_.fc-button-primary]:text-white
@@ -104,7 +90,6 @@ export default function Calendar() {
           selectMirror={true}
           dayMaxEvents={true}
           weekends={weekendsVisible}
-          initialEvents={INITIAL_EVENTS}
           select={handleDateSelect}
           eventContent={renderEventContent}
           eventClick={handleEventClick}
