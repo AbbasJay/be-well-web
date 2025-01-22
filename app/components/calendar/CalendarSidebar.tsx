@@ -43,19 +43,3 @@ export default function CalendarSidebar({
     </div>
   );
 }
-
-function SidebarEvent({ event }: { event: EventApi }) {
-  return (
-    <li key={event.id}>
-      <b>
-        {event.start &&
-          formatDate(event.start, {
-            year: "numeric",
-            month: "short",
-            day: "numeric",
-          })}
-      </b>
-      <i>{event.title}</i>
-    </li>
-  );
-}
