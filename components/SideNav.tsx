@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { Home, Store, Info, Phone, LogOut } from "lucide-react";
+import { Home, Store, Info, Phone, LogOut, Calendar } from "lucide-react";
 import { useSession, signOut } from "next-auth/react";
 
 interface SideNavProps {
@@ -15,6 +15,7 @@ const SideNav: React.FC<SideNavProps> = ({ isOpen }) => {
     { name: "Businesses", href: "/businesses", icon: Store },
     { name: "About", href: "/about", icon: Info },
     { name: "Contact", href: "/contact", icon: Phone },
+    { name: "Calendar", href: "/calendar", icon: Calendar },
   ];
 
   const handleLogout = async () => {

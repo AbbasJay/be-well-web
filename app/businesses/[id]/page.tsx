@@ -25,7 +25,7 @@ import {
   DialogDescription,
 } from "@/components/ui/dialog";
 import { DeleteDialog } from "@/components/dialogs/delete-dialog";
-import Calendar from "@/app/components/Calendar";
+import Calendar from "@/app/components/calendar/Calendar";
 
 
 export default function BusinessDetailsPage({
@@ -192,7 +192,7 @@ export default function BusinessDetailsPage({
         onSuccess={handleDeleteSuccess}
       />
 
-      <Calendar />
+    
 
     </div>
   
