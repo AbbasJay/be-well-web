@@ -6,15 +6,24 @@ import {
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { useState } from "react";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { useState, useEffect } from "react";
+import { ViewApi } from "@fullcalendar/core";
 
 interface CalendarCreateEventModalProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  onSubmit: (title: string) => void;
+  onSubmit: (title: string, selectedTime: string, isAllDay: boolean) => void;
   startDate: string;
   endDate: string;
   isAllDay: boolean;
+  view: ViewApi;
 }
 
 export default function CalendarCreateEventModal({
@@ -24,13 +33,36 @@ export default function CalendarCreateEventModal({
   startDate,
   endDate,
   isAllDay,
+  view,
 }: CalendarCreateEventModalProps) {
   const [title, setTitle] = useState("");
+  const [selectedTime, setSelectedTime] = useState("09:00");
+  const [timeSlots, setTimeSlots] = useState<string[]>([]);
+
+  useEffect(() => {
+    if (open) {
+      setTitle("");
+      setSelectedTime("09:00");
+    }
+  }, [open]);
+
+  useEffect(() => {
+    const slots = [];
+    for (let hour = 0; hour < 24; hour++) {
+      for (let minute = 0; minute < 60; minute += 30) {
+        const formattedHour = hour.toString().padStart(2, "0");
+        const formattedMinute = minute.toString().padStart(2, "0");
+        slots.push(`${formattedHour}:${formattedMinute}`);
+      }
+    }
+    setTimeSlots(slots);
+  }, []);
+
+  const isMonthView = view.type === "dayGridMonth";
 
   const handleSubmit = () => {
     if (title.trim()) {
-      onSubmit(title);
-      setTitle("");
+      onSubmit(title, selectedTime, isAllDay);
       onOpenChange(false);
     }
   };
@@ -49,10 +81,28 @@ export default function CalendarCreateEventModal({
               className="mt-1"
             />
           </div>
+          {isMonthView && (
+            <div>
+              <label className="text-sm font-medium">Time</label>
+              <Select value={selectedTime} onValueChange={setSelectedTime}>
+                <SelectTrigger className="w-full mt-1">
+                  <SelectValue placeholder="Select time" />
+                </SelectTrigger>
+                <SelectContent>
+                  {timeSlots.map((time) => (
+                    <SelectItem key={time} value={time}>
+                      {time}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+          )}
           <div className="text-sm">
-            <p>Start: {new Date(startDate).toLocaleString()}</p>
-            <p>End: {new Date(endDate).toLocaleString()}</p>
-            <p>All Day: {isAllDay ? "Yes" : "No"}</p>
+            <p>Date: {new Date(startDate).toLocaleDateString()}</p>
+            {!isMonthView && (
+              <p>Time: {new Date(startDate).toLocaleTimeString()}</p>
+            )}
           </div>
         </div>
         <DialogFooter className="mt-6">
