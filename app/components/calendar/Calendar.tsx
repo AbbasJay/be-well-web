@@ -1,80 +1,58 @@
-import FullCalendar from '@fullcalendar/react'
-import dayGridPlugin from '@fullcalendar/daygrid'
-import timeGridPlugin from '@fullcalendar/timegrid'
-import interactionPlugin from '@fullcalendar/interaction'
-import { useState } from 'react'
-import CalendarSidebar from './CalendarSidebar'
-
-const events = [
-  { title: 'Meeting', start: new Date() }
-]
-
-
-let eventGuid = 0
-let todayStr = new Date().toISOString().replace(/T.*$/, '') 
-
-export const INITIAL_EVENTS = [
-  {
-    id: createEventId(),
-    title: 'All-day event',
-    start: todayStr
-  },
-  {
-    id: createEventId(),
-    title: 'Timed event',
-    start: todayStr + 'T12:00:00'
-  }
-]
-
-export function createEventId() {
-  return String(eventGuid++)
-}
-
-function renderEventContent(eventInfo: any) {
-  return (
-    <>
-      <b>{eventInfo.timeText}</b>
-      <i>{eventInfo.event.title}</i>
-    </>
-  )
-}
-
-function handleEventClick(clickInfo: any) {
-  if (confirm(`Are you sure you want to delete the event '${clickInfo.event.title}'`)) {
-    clickInfo.event.remove()
-  }
-}
-
-function handleDateSelect(selectInfo: any) {
-  let title = prompt('Please enter a new title for your event')
-  let calendarApi = selectInfo.view.calendar
-
-  calendarApi.unselect()
-
-  if (title) {
-    calendarApi.addEvent({
-      id: createEventId(),
-      title,
-      start: selectInfo.startStr,
-      end: selectInfo.endStr,
-      allDay: selectInfo.allDay
-    })
-  }
-}
+import FullCalendar from "@fullcalendar/react";
+import dayGridPlugin from "@fullcalendar/daygrid";
+import timeGridPlugin from "@fullcalendar/timegrid";
+import interactionPlugin from "@fullcalendar/interaction";
+import { useState } from "react";
+import CalendarSidebar from "./CalendarSidebar";
+import {
+  DateSelectArg,
+  EventClickArg,
+  EventApi,
+  EventContentArg,
+} from "@fullcalendar/core";
 
 export default function Calendar() {
-  const [weekendsVisible, setWeekendsVisible] = useState(true)
-  const [currentEvents, setCurrentEvents] = useState([])
+  const [weekendsVisible, setWeekendsVisible] = useState(true);
+  const [currentEvents, setCurrentEvents] = useState<EventApi[]>([]);
 
-  function handleWeekendsToggle() {
-    setWeekendsVisible(!weekendsVisible)
+  let eventGuid = 0;
+  let todayStr = new Date().toISOString().replace(/T.*$/, "");
+
+  const INITIAL_EVENTS = [
+    {
+      id: createEventId(),
+      title: "All-day event",
+      start: todayStr,
+    },
+    {
+      id: createEventId(),
+      title: "Timed event",
+      start: todayStr + "T12:00:00",
+    },
+  ];
+
+  function createEventId() {
+    return String(eventGuid++);
   }
 
-  function handleDateSelect(selectInfo: any) {
-    let title = prompt('Please enter a new title for your event')
-    let calendarApi = selectInfo.view.calendar
+  function renderEventContent(eventInfo: EventContentArg) {
+    return (
+      <>
+        <b>{eventInfo.timeText}</b>
+        <i>{eventInfo.event.title}</i>
+      </>
+    );
+  }
 
-    calendarApi.unselect()
+  function handleWeekendsToggle() {
+    setWeekendsVisible(!weekendsVisible);
+  }
+
+  function handleDateSelect(selectInfo: DateSelectArg) {
+    let title = prompt("Please enter a new title for your event");
+    let calendarApi = selectInfo.view.calendar;
+
+    calendarApi.unselect();
 
     if (title) {
       calendarApi.addEvent({
@@ -82,19 +60,23 @@ export default function Calendar() {
         title,
         start: selectInfo.startStr,
         end: selectInfo.endStr,
-        allDay: selectInfo.allDay
-      })
+        allDay: selectInfo.allDay,
+      });
     }
   }
 
-  function handleEventClick(clickInfo: any) {
-    if (confirm(`Are you sure you want to delete the event '${clickInfo.event.title}'`)) {
-      clickInfo.event.remove()
+  function handleEventClick(clickInfo: EventClickArg) {
+    if (
+      confirm(
+        `Are you sure you want to delete the event '${clickInfo.event.title}'`
+      )
+    ) {
+      clickInfo.event.remove();
     }
   }
 
-  function handleEvents(events: any) {
-    setCurrentEvents(events)
+  function handleEvents(events: EventApi[]) {
+    setCurrentEvents(events);
   }
 
   return (
@@ -104,15 +86,19 @@ export default function Calendar() {
         handleWeekendsToggle={handleWeekendsToggle}
         currentEvents={currentEvents}
       />
-      <div>
+      <div
+        className="[&_.fc-button-primary]:bg-blue-500 [&_.fc-button-primary]:border-blue-500 [&_.fc-button-primary]:text-white
+                      [&_.fc-button-primary:hover]:bg-blue-600 [&_.fc-button-primary:hover]:border-blue-600
+                      [&_.fc-button-active]:bg-blue-700 [&_.fc-button-active]:border-blue-700"
+      >
         <FullCalendar
           plugins={[dayGridPlugin, timeGridPlugin, interactionPlugin]}
           headerToolbar={{
-            left: 'prev,next today',
-            center: 'title',
-            right: 'dayGridMonth,timeGridWeek,timeGridDay'
+            left: "prev,next today",
+            center: "title",
+            right: "dayGridMonth,timeGridWeek,timeGridDay",
           }}
-          initialView='dayGridMonth'
+          initialView="dayGridMonth"
           editable={true}
           selectable={true}
           selectMirror={true}
@@ -126,5 +112,5 @@ export default function Calendar() {
         />
       </div>
     </div>
-  )
+  );
 }
