@@ -19,14 +19,22 @@ export default function CalendarSelectModal({
         <ul className="space-y-2">
           {currentEvents.map((event) => (
             <li key={event.id} className="flex flex-col">
-              <span className="font-bold">
+              <div className="font-bold">
                 {event.start &&
                   formatDate(event.start, {
                     year: "numeric",
                     month: "short",
                     day: "numeric",
                   })}
-              </span>
+                {event.start && (
+                  <span className="ml-2 text-muted-foreground">
+                    {formatDate(event.start, {
+                      hour: "2-digit",
+                      minute: "2-digit",
+                    })}
+                  </span>
+                )}
+              </div>
               <span className="italic">{event.title}</span>
             </li>
           ))}

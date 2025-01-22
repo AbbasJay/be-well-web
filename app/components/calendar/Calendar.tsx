@@ -60,13 +60,14 @@ export default function Calendar() {
   ) {
     if (selectedDates && title) {
       const calendarApi = selectedDates.view.calendar;
+
       const startDate = new Date(selectedDates.start);
       const endDate = new Date(selectedDates.end);
 
-      if (!isAllDay && selectedTime) {
+      if (selectedDates.view.type === "dayGridMonth") {
         const [hours, minutes] = selectedTime.split(":").map(Number);
-        startDate.setHours(hours, minutes);
-        endDate.setHours(hours + 1, minutes);
+        startDate.setHours(hours, minutes, 0);
+        endDate.setHours(hours + 1, minutes, 0);
       }
 
       calendarApi.addEvent({
@@ -74,7 +75,7 @@ export default function Calendar() {
         title,
         start: startDate,
         end: endDate,
-        allDay: isAllDay,
+        allDay: false,
       });
       calendarApi.unselect();
     }
