@@ -4,9 +4,12 @@ import {
   ClassesTable,
   NotificationsTable,
   NotificationType,
+  UsersTable,
+  BusinessesTable,
 } from "@/lib/db/schema";
 import { eq } from "drizzle-orm";
 import { withAuth, errorResponse } from "@/lib/utils/api-utils";
+import { sendBookingConfirmationEmail } from "@/lib/utils/email";
 
 export async function POST(
   request: NextRequest,
@@ -34,6 +37,28 @@ export async function POST(
         return errorResponse("Class is full", 400);
       }
 
+      // Get user email
+      const [userData] = await db
+        .select()
+        .from(UsersTable)
+        .where(eq(UsersTable.id, user.id))
+        .execute();
+
+      if (!userData?.email) {
+        return errorResponse("User email not found", 404);
+      }
+
+      // Get business details
+      const [businessData] = await db
+        .select()
+        .from(BusinessesTable)
+        .where(eq(BusinessesTable.id, classData.businessId))
+        .execute();
+
+      if (!businessData) {
+        return errorResponse("Business not found", 404);
+      }
+
       // Update slots left
       const [updatedClass] = await db
         .update(ClassesTable)
@@ -52,8 +77,23 @@ export async function POST(
           message: `You have successfully booked ${classData.name}. The class is scheduled for ${classData.startDate} at ${classData.time} with instructor ${classData.instructor}. Location: ${classData.location}`,
           read: false,
         });
-      } catch (notificationError) {
-        console.error("Error creating notification:", notificationError);
+
+        // Send confirmation email
+        await sendBookingConfirmationEmail({
+          userEmail: userData.email,
+          className: classData.name,
+          startDate: classData.startDate,
+          time: classData.time,
+          instructor: classData.instructor,
+          location: classData.location,
+          businessName: businessData.name,
+          cancellationPolicy:
+            "Please contact us at " +
+            businessData.email +
+            " for cancellations or rescheduling.",
+        });
+      } catch (error) {
+        console.error("Error sending notification or email:", error);
       }
 
       return NextResponse.json({
