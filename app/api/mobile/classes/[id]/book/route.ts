@@ -79,21 +79,36 @@ export async function POST(
         });
 
         // Send confirmation email
-        await sendBookingConfirmationEmail({
-          userEmail: userData.email,
-          className: classData.name,
-          startDate: classData.startDate,
-          time: classData.time,
-          instructor: classData.instructor,
-          location: classData.location,
-          businessName: businessData.name,
-          cancellationPolicy:
-            "Please contact us at " +
-            businessData.email +
-            " for cancellations or rescheduling.",
-        });
+        try {
+          await sendBookingConfirmationEmail({
+            userEmail: userData.email,
+            className: classData.name,
+            startDate: classData.startDate,
+            time: classData.time,
+            instructor: classData.instructor,
+            location: classData.location,
+            businessName: businessData.name,
+            cancellationPolicy:
+              "Please contact us at " +
+              businessData.email +
+              " for cancellations or rescheduling.",
+          });
+          console.log(
+            "Booking confirmation email sent successfully to:",
+            userData.email
+          );
+        } catch (emailError) {
+          console.error("Error sending confirmation email:", {
+            error: emailError,
+            emailConfig: {
+              to: userData.email,
+              className: classData.name,
+              businessName: businessData.name,
+            },
+          });
+        }
       } catch (error) {
-        console.error("Error sending notification or email:", error);
+        console.error("Error creating notification:", error);
       }
 
       return NextResponse.json({

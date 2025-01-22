@@ -1,5 +1,16 @@
 import nodemailer from "nodemailer";
 
+// Debug log SMTP configuration
+console.log("SMTP Config:", {
+  host: process.env.SMTP_HOST,
+  port: parseInt(process.env.SMTP_PORT || "587"),
+  secure: process.env.SMTP_SECURE === "true",
+  auth: {
+    user: process.env.SMTP_USER,
+    pass: process.env.SMTP_PASS ? "[PASSWORD SET]" : "[PASSWORD MISSING]",
+  },
+});
+
 // Create a transporter using SMTP
 const transporter = nodemailer.createTransport({
   host: process.env.SMTP_HOST,
