@@ -36,7 +36,7 @@ export async function sendBookingConfirmationEmail({
 }: BookingEmailData) {
   try {
     const mailOptions = {
-      from: "BeWell",
+      from: `"BeWell" <${process.env.SMTP_FROM}>`,
       to: userEmail,
       subject: `Booking Confirmation - ${className}`,
       html: `
