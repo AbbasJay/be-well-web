@@ -1,16 +1,5 @@
 import nodemailer from "nodemailer";
 
-// Debug log SMTP configuration
-console.log("SMTP Config:", {
-  host: process.env.SMTP_HOST,
-  port: parseInt(process.env.SMTP_PORT || "587"),
-  secure: process.env.SMTP_SECURE === "true",
-  auth: {
-    user: process.env.SMTP_USER,
-    pass: process.env.SMTP_PASS ? "[PASSWORD SET]" : "[PASSWORD MISSING]",
-  },
-});
-
 // Create a transporter using SMTP
 const transporter = nodemailer.createTransport({
   host: process.env.SMTP_HOST,
@@ -31,6 +20,7 @@ interface BookingEmailData {
   location: string;
   businessName?: string;
   cancellationPolicy?: string;
+  name: string;
 }
 
 export async function sendBookingConfirmationEmail({
@@ -42,6 +32,7 @@ export async function sendBookingConfirmationEmail({
   location,
   businessName = "BeWell",
   cancellationPolicy = "Please contact the business directly for cancellations or rescheduling.",
+  name,
 }: BookingEmailData) {
   try {
     const mailOptions = {
@@ -68,7 +59,7 @@ export async function sendBookingConfirmationEmail({
               <h1>Booking Confirmation</h1>
             </div>
             <div class="content">
-              <p>Dear valued customer,</p>
+              <p>Dear ${name},</p>
               <p>Thank you for booking a class with ${businessName}! Your booking has been confirmed.</p>
               
               <div class="details">

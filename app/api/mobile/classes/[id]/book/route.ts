@@ -88,6 +88,7 @@ export async function POST(
             instructor: classData.instructor,
             location: classData.location,
             businessName: businessData.name,
+            name: userData.name,
             cancellationPolicy:
               "Please contact us at " +
               businessData.email +
