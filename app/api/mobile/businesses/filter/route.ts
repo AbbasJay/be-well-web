@@ -1,10 +1,9 @@
-import { NextResponse } from "next/server";
+import { NextResponse, NextRequest } from "next/server";
 import { eq, or } from "drizzle-orm";
 import { db } from "@/lib/db/db";
 import { BusinessesTable } from "@/lib/db/schema";
 import haversine from "haversine-distance"
-import { getServerSession } from "next-auth";
-import { authOptions } from "../../auth/[...nextauth]/auth";
+import { errorResponse } from "@/lib/utils/api-utils";
 
 
 const calculateDistance = (lat1: number, lon1: number, lat2: number, lon2: number) => {
@@ -75,15 +74,14 @@ const calculateDistance = (lat1: number, lon1: number, lat2: number, lon2: numbe
  *                   type: string
  *                   example: "Internal server error"
  */
-export async function POST(req: Request){
+export async function POST(request: NextRequest){
     try {
-        
         // get the parameters from the request body
-        const { location, maxDistance, minRating, types } = await req.json();
+        const { location, maxDistance, minRating, types } = await request.json();
         const { lat, lng } = location;
 
         // Helper function to validate required parameters
-        const validateParams = (params: Record<string, any>) => {
+        const validateParams = (params: Record<string, string | number | boolean | null | undefined>) => {
             for (const [key, value] of Object.entries(params)) {
                 if (value === undefined || value === null) {
                     return { error: `Missing ${key}`, status: 400 };
@@ -131,11 +129,8 @@ export async function POST(req: Request){
         // return the filtered businesses
         return NextResponse.json(filtered_businesses, { status: 200 });
     } catch (error) {
-        console.error("API Error:", error);
-        return NextResponse.json(
-            { error: "Internal server error" },
-            { status: 500 }
-        ); 
+        console.error("Filter API Error:", error);
+        return errorResponse("Failed to fetch filtered businesses");
     }
 }
 
