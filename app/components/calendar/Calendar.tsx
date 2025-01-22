@@ -33,7 +33,7 @@ export default function Calendar() {
   function renderEventContent(eventInfo: EventContentArg) {
     return (
       <>
-        <div className="bg-blue-500 text-white p-1 rounded w-full">
+        <div className="bg-blue-500 text-white p-1 rounded inline-block">
           <i>{eventInfo.event.title}</i>
         </div>
       </>
@@ -126,10 +126,6 @@ export default function Calendar() {
           eventContent={renderEventContent}
           eventClick={handleEventClick}
           eventsSet={handleEvents}
-          eventColor="#3788d8"
-          eventBackgroundColor="#3788d8"
-          eventBorderColor="#3788d8"
-          eventTextColor="#ffffff"
         />
       </div>
       {selectedDates && (
