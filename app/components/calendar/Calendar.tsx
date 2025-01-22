@@ -9,11 +9,20 @@ import {
   EventClickArg,
   EventApi,
   EventContentArg,
+  ViewApi,
 } from "@fullcalendar/core";
+import CalendarCreateEventModal from "../modals/calendar-create-event-modal";
 
 export default function Calendar() {
   const [weekendsVisible, setWeekendsVisible] = useState(true);
   const [currentEvents, setCurrentEvents] = useState<EventApi[]>([]);
+  const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
+  const [selectedDates, setSelectedDates] = useState<{
+    start: string;
+    end: string;
+    allDay: boolean;
+    view: ViewApi;
+  } | null>(null);
 
   let eventGuid = 0;
 
@@ -35,19 +44,26 @@ export default function Calendar() {
   }
 
   function handleDateSelect(selectInfo: DateSelectArg) {
-    let title = prompt("Please enter a new title for your event");
-    let calendarApi = selectInfo.view.calendar;
+    setSelectedDates({
+      start: selectInfo.startStr,
+      end: selectInfo.endStr,
+      allDay: selectInfo.allDay,
+      view: selectInfo.view,
+    });
+    setIsCreateModalOpen(true);
+  }
 
-    calendarApi.unselect();
-
-    if (title) {
+  function handleCreateEvent(title: string) {
+    if (selectedDates && title) {
+      const calendarApi = selectedDates.view.calendar;
       calendarApi.addEvent({
         id: createEventId(),
         title,
-        start: selectInfo.startStr,
-        end: selectInfo.endStr,
-        allDay: selectInfo.allDay,
+        start: selectedDates.start,
+        end: selectedDates.end,
+        allDay: selectedDates.allDay,
       });
+      calendarApi.unselect();
     }
   }
 
@@ -96,6 +112,16 @@ export default function Calendar() {
           eventsSet={handleEvents}
         />
       </div>
+      {selectedDates && (
+        <CalendarCreateEventModal
+          open={isCreateModalOpen}
+          onOpenChange={setIsCreateModalOpen}
+          onSubmit={handleCreateEvent}
+          startDate={selectedDates.start}
+          endDate={selectedDates.end}
+          isAllDay={selectedDates.allDay}
+        />
+      )}
     </div>
   );
 }
