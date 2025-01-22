@@ -33,8 +33,9 @@ export default function Calendar() {
   function renderEventContent(eventInfo: EventContentArg) {
     return (
       <>
-        <b>{eventInfo.timeText}</b>
-        <i>{eventInfo.event.title}</i>
+        <div className="bg-blue-500 text-white p-1 rounded w-full">
+          <i>{eventInfo.event.title}</i>
+        </div>
       </>
     );
   }
@@ -62,7 +63,8 @@ export default function Calendar() {
       const calendarApi = selectedDates.view.calendar;
 
       const startDate = new Date(selectedDates.start);
-      const endDate = new Date(selectedDates.end);
+
+      const endDate = new Date(selectedDates.start);
 
       if (selectedDates.view.type === "dayGridMonth") {
         const [hours, minutes] = selectedTime.split(":").map(Number);
@@ -124,6 +126,10 @@ export default function Calendar() {
           eventContent={renderEventContent}
           eventClick={handleEventClick}
           eventsSet={handleEvents}
+          eventColor="#3788d8"
+          eventBackgroundColor="#3788d8"
+          eventBorderColor="#3788d8"
+          eventTextColor="#ffffff"
         />
       </div>
       {selectedDates && (
