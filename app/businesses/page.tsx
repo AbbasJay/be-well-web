@@ -2,7 +2,6 @@
 
 import { useState, useEffect } from "react";
 import { Business } from "@/lib/db/schema";
-import { useRouter } from "next/navigation";
 import { useSession } from "next-auth/react";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
@@ -24,7 +23,6 @@ export default function BusinessesPage() {
     null
   );
   const { data: session } = useSession();
-  const router = useRouter();
 
   const fetchBusinesses = async () => {
     try {

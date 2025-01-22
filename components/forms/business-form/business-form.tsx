@@ -48,36 +48,6 @@ export const BusinessForm: React.FC<BusinessFormProps> = ({
 
   const inputRef = useRef<HTMLInputElement>(null);
 
-  useEffect(() => {
-    if (!isLoaded) return;
-
-    if (loadError) {
-      console.log("Load Error: ", loadError);
-      return;
-    }
-
-    const options = {
-      componentRestrictions: { country: "uk" },
-      fields: ["address_components", "geometry"],
-    };
-
-    if (inputRef.current) {
-      const autocomplete = new google.maps.places.Autocomplete(
-        inputRef.current,
-        options
-      );
-      autocomplete.addListener("place_changed", () =>
-        handlePlaceChanged(autocomplete)
-      );
-    }
-
-    return () => {
-      if (inputRef.current) {
-        google.maps.event.clearInstanceListeners(inputRef.current);
-      }
-    };
-  }, [isLoaded, loadError]);
-
   const handleChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
   ) => {
@@ -85,80 +55,6 @@ export const BusinessForm: React.FC<BusinessFormProps> = ({
     setFormData((prevData) => ({
       ...prevData,
       [name]: value,
-    }));
-  };
-
-  const handlePlaceChanged = (
-    autocomplete: google.maps.places.Autocomplete
-  ) => {
-    if (!isLoaded) return;
-    const place = autocomplete.getPlace();
-
-    if (!place || !place.geometry) {
-      // Clear address-related fields if no place is selected
-      setFormData((prevData) => ({
-        ...prevData,
-        address: "",
-        country: "",
-        zipCode: "",
-        city: "",
-        latitude: null,
-        longitude: null,
-      }));
-      return;
-    }
-
-    updateAddressFormData(place);
-  };
-
-  const updateAddressFormData = (place: google.maps.places.PlaceResult) => {
-    const addressComponents = place.address_components || [];
-
-    console.log("address components", addressComponents);
-
-    const componentMap: { [key: string]: string } = {
-      subPremise: "",
-      premise: "",
-      street_number: "",
-      route: "",
-      country: "",
-      postal_code: "",
-      state: "",
-      administrative_area_level_2: "",
-      administrative_area_level_1: "", // State
-    };
-
-    addressComponents.forEach((component) => {
-      const componentType = component.types[0];
-      if (componentMap.hasOwnProperty(componentType)) {
-        componentMap[componentType] = component.long_name;
-      }
-    });
-
-    const formattedAddress =
-      `${componentMap.subPremise} ${componentMap.premise} ${componentMap.street_number} ${componentMap.route}`.trim();
-    const latitude = place.geometry?.location?.lat()?.toString() || null;
-    const longitude = place.geometry?.location?.lng()?.toString() || null;
-
-    console.log("autocompleted address", {
-      address: formattedAddress,
-      country: componentMap.country,
-      zipCode: componentMap.postal_code,
-      city: componentMap.administrative_area_level_2,
-      state: componentMap.administrative_area_level_1,
-      latitude: latitude,
-      longitude: longitude,
-    });
-
-    setFormData((prevData) => ({
-      ...prevData,
-      address: formattedAddress,
-      country: componentMap.country,
-      zipCode: componentMap.postal_code,
-      city: componentMap.administrative_area_level_2,
-      state: componentMap.administrative_area_level_1,
-      latitude: latitude,
-      longitude: longitude,
     }));
   };
 
@@ -173,6 +69,112 @@ export const BusinessForm: React.FC<BusinessFormProps> = ({
     e.preventDefault();
     await onSubmit(formData);
   };
+
+  useEffect(() => {
+    if (!isLoaded) return;
+
+    if (loadError) {
+      console.log("Load Error: ", loadError);
+      return;
+    }
+
+    const updateAddressFormData = (place: google.maps.places.PlaceResult) => {
+      const addressComponents = place.address_components || [];
+
+      console.log("address components", addressComponents);
+
+      const componentMap: { [key: string]: string } = {
+        subPremise: "",
+        premise: "",
+        street_number: "",
+        route: "",
+        country: "",
+        postal_code: "",
+        zipCode: "",
+        state: "",
+        administrative_area_level_2: "",
+        administrative_area_level_1: "", // State
+      };
+
+      addressComponents.forEach((component) => {
+        const componentType = component.types[0];
+        if (componentMap.hasOwnProperty(componentType)) {
+          componentMap[componentType] = component.long_name;
+        }
+      });
+
+      const formattedAddress =
+        `${componentMap.subPremise} ${componentMap.premise} ${componentMap.street_number} ${componentMap.route}`.trim();
+      const latitude = place.geometry?.location?.lat()?.toString() || null;
+      const longitude = place.geometry?.location?.lng()?.toString() || null;
+
+      console.log("autocompleted address", {
+        address: formattedAddress,
+        country: componentMap.country,
+        zipCode: componentMap.postal_code,
+        city: componentMap.administrative_area_level_2,
+        state: componentMap.administrative_area_level_1,
+        latitude: latitude,
+        longitude: longitude,
+      });
+
+      setFormData((prevData) => ({
+        ...prevData,
+        address: formattedAddress,
+        country: componentMap.country,
+        zipCode: componentMap.postal_code,
+        city: componentMap.administrative_area_level_2,
+        state: componentMap.administrative_area_level_1,
+        latitude: latitude,
+        longitude: longitude,
+      }));
+    };
+
+    const handlePlaceChanged = (
+      autocomplete: google.maps.places.Autocomplete
+    ) => {
+      if (!isLoaded) return;
+      const place = autocomplete.getPlace();
+
+      if (!place || !place.geometry) {
+        setFormData((prevData) => ({
+          ...prevData,
+          address: "",
+          country: "",
+          zipCode: "",
+          city: "",
+          latitude: null,
+          longitude: null,
+        }));
+        return;
+      }
+
+      updateAddressFormData(place);
+    };
+
+    const options = {
+      componentRestrictions: { country: "uk" },
+      fields: ["address_components", "geometry"],
+    };
+
+    const currentInputRef = inputRef.current;
+
+    if (currentInputRef) {
+      const autocomplete = new google.maps.places.Autocomplete(
+        currentInputRef,
+        options
+      );
+      autocomplete.addListener("place_changed", () =>
+        handlePlaceChanged(autocomplete)
+      );
+    }
+
+    return () => {
+      if (currentInputRef) {
+        google.maps.event.clearInstanceListeners(currentInputRef);
+      }
+    };
+  }, [isLoaded, loadError]);
 
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
