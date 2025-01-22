@@ -1,5 +1,8 @@
 import React from "react";
 import { EventApi, formatDate } from "@fullcalendar/core";
+import { Button } from "@/components/ui/button";
+import { useState } from "react";
+import CalendarSelectModal from "../modals/calendar-select-modal";
 
 export default function CalendarSidebar({
   weekendsVisible,
@@ -10,6 +13,8 @@ export default function CalendarSidebar({
   handleWeekendsToggle: () => void;
   currentEvents: EventApi[];
 }) {
+  const [isModalOpen, setIsModalOpen] = useState(false);
+
   return (
     <div>
       <div>
@@ -26,12 +31,14 @@ export default function CalendarSidebar({
         </label>
       </div>
       <div>
-        <h2>All Events ({currentEvents.length})</h2>
-        <ul>
-          {currentEvents.map((event) => (
-            <SidebarEvent key={event.id} event={event} />
-          ))}
-        </ul>
+        <Button onClick={() => setIsModalOpen(true)}>
+          View All Events ({currentEvents.length})
+        </Button>
+        <CalendarSelectModal
+          open={isModalOpen}
+          onOpenChange={setIsModalOpen}
+          currentEvents={currentEvents}
+        />
       </div>
     </div>
   );
