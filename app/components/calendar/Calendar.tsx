@@ -53,15 +53,28 @@ export default function Calendar() {
     setIsCreateModalOpen(true);
   }
 
-  function handleCreateEvent(title: string) {
+  function handleCreateEvent(
+    title: string,
+    selectedTime: string,
+    isAllDay: boolean
+  ) {
     if (selectedDates && title) {
       const calendarApi = selectedDates.view.calendar;
+      const startDate = new Date(selectedDates.start);
+      const endDate = new Date(selectedDates.end);
+
+      if (!isAllDay && selectedTime) {
+        const [hours, minutes] = selectedTime.split(":").map(Number);
+        startDate.setHours(hours, minutes);
+        endDate.setHours(hours + 1, minutes);
+      }
+
       calendarApi.addEvent({
         id: createEventId(),
         title,
-        start: selectedDates.start,
-        end: selectedDates.end,
-        allDay: selectedDates.allDay,
+        start: startDate,
+        end: endDate,
+        allDay: isAllDay,
       });
       calendarApi.unselect();
     }
@@ -120,6 +133,7 @@ export default function Calendar() {
           startDate={selectedDates.start}
           endDate={selectedDates.end}
           isAllDay={selectedDates.allDay}
+          view={selectedDates.view}
         />
       )}
     </div>
