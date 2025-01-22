@@ -2,6 +2,8 @@ import { getServerSession } from "next-auth";
 import { authOptions } from "../auth/[...nextauth]/auth";
 import { NextResponse } from "next/server";
 
+export const dynamic = "force-dynamic";
+
 export async function GET() {
   try {
     const session = await getServerSession(authOptions);
