@@ -3,7 +3,7 @@ import { formatDate } from '@fullcalendar/core';
 
 export default function CalendarSidebar({ weekendsVisible, handleWeekendsToggle, currentEvents }: { weekendsVisible: boolean, handleWeekendsToggle: () => void, currentEvents: any[] }) {
     return (
-      <div className='demo-app-sidebar'>
+      <div>
         <div>
           <h2>Instructions</h2>
         </div>

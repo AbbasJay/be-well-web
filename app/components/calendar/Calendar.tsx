@@ -98,13 +98,13 @@ export default function Calendar() {
   }
 
   return (
-    <div className='demo-app flex gap-4'>
+    <div>
       <CalendarSidebar
         weekendsVisible={weekendsVisible}
         handleWeekendsToggle={handleWeekendsToggle}
         currentEvents={currentEvents}
       />
-      <div className='demo-app-main flex-1'>
+      <div>
         <FullCalendar
           plugins={[dayGridPlugin, timeGridPlugin, interactionPlugin]}
           headerToolbar={{
