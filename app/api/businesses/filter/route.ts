@@ -3,6 +3,9 @@ import { eq, or } from "drizzle-orm";
 import { db } from "@/lib/db/db";
 import { BusinessesTable } from "@/lib/db/schema";
 import haversine from "haversine-distance"
+import { getServerSession } from "next-auth";
+import { authOptions } from "../../auth/[...nextauth]/auth";
+
 
 const calculateDistance = (lat1: number, lon1: number, lat2: number, lon2: number) => {
     return haversine({ latitude: lat1, longitude: lon1 }, { latitude: lat2, longitude: lon2 });
@@ -74,6 +77,7 @@ const calculateDistance = (lat1: number, lon1: number, lat2: number, lon2: numbe
  */
 export async function POST(req: Request){
     try {
+        
         // get the parameters from the request body
         const { location, maxDistance, minRating, types } = await req.json();
         const { lat, lng } = location;
