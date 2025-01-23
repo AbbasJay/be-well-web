@@ -2,13 +2,20 @@ import { NextResponse, NextRequest } from "next/server";
 import { eq, or } from "drizzle-orm";
 import { db } from "@/lib/db/db";
 import { BusinessesTable } from "@/lib/db/schema";
-import haversine from "haversine-distance"
+import haversine from "haversine-distance";
 import { errorResponse } from "@/lib/utils/api-utils";
 
-
-const calculateDistance = (lat1: number, lon1: number, lat2: number, lon2: number) => {
-    return haversine({ latitude: lat1, longitude: lon1 }, { latitude: lat2, longitude: lon2 });
-}
+const calculateDistance = (
+  lat1: number,
+  lon1: number,
+  lat2: number,
+  lon2: number
+) => {
+  return haversine(
+    { latitude: lat1, longitude: lon1 },
+    { latitude: lat2, longitude: lon2 }
+  );
+};
 
 /**
  * @swagger
@@ -74,63 +81,72 @@ const calculateDistance = (lat1: number, lon1: number, lat2: number, lon2: numbe
  *                   type: string
  *                   example: "Internal server error"
  */
-export async function POST(request: NextRequest){
-    try {
-        // get the parameters from the request body
-        const { location, maxDistance, minRating, types } = await request.json();
-        const { lat, lng } = location;
+export async function POST(request: NextRequest) {
+  try {
+    // get the parameters from the request body
+    const { location, maxDistance, minRating, types } = await request.json();
+    const { lat, lng } = location;
 
-        // Helper function to validate required parameters
-        const validateParams = (params: Record<string, string | number | boolean | null | undefined>) => {
-            for (const [key, value] of Object.entries(params)) {
-                if (value === undefined || value === null) {
-                    return { error: `Missing ${key}`, status: 400 };
-                }
-            }
-            return null;
-        };
-
-        // Validate parameters
-        const validationError = validateParams({ lat, lng, maxDistance, minRating, types });
-        if (validationError) {
-            return NextResponse.json(validationError, { status: 400 });
+    // Helper function to validate required parameters
+    const validateParams = (
+      params: Record<string, string | number | boolean | null | undefined>
+    ) => {
+      for (const [key, value] of Object.entries(params)) {
+        if (value === undefined || value === null) {
+          return { error: `Missing ${key}`, status: 400 };
         }
+      }
+      return null;
+    };
 
-        if (types.includes("gym") && types.includes("classes")) {
-            types.push("gymAndClasses")
-        }
-
-        const conditions = types.map((type: string) => eq(BusinessesTable.type, type));
-
-        // get the businesses that match the filtering criteria
-        const businesses = await db
-            .select()
-            .from(BusinessesTable)
-            .where(or(...conditions))
-            // TODO: filtering by rating
-            .execute();
-
-        //calculate distance between user location and the businesses
-        // and filter out businesses that are beyond the maximum distance
-        // from the user
-        // we use haversine formula to calculate the distance
-        const filtered_businesses = businesses.filter(
-            (business) => 
-                calculateDistance(
-                    parseFloat(business.latitude!),
-                    parseFloat(business.longitude!), 
-                    lat, 
-                    lng
-                ) <= maxDistance
-        );
-
-        console.log(filtered_businesses);
-
-        // return the filtered businesses
-        return NextResponse.json(filtered_businesses, { status: 200 });
-    } catch (error) {
-        console.error("Filter API Error:", error);
-        return errorResponse("Failed to fetch filtered businesses");
+    // Validate parameters
+    const validationError = validateParams({
+      lat,
+      lng,
+      maxDistance,
+      minRating,
+      types,
+    });
+    if (validationError) {
+      return NextResponse.json(validationError, { status: 400 });
     }
-}
 
+    if (types.includes("gym") && types.includes("classes")) {
+      types.push("gymAndClasses");
+    }
+
+    const conditions = types.map((type: string) =>
+      eq(BusinessesTable.type, type)
+    );
+
+    // get the businesses that match the filtering criteria
+    const businesses = await db
+      .select()
+      .from(BusinessesTable)
+      .where(or(...conditions))
+      // TODO: filtering by rating
+      .execute();
+
+    //calculate distance between user location and the businesses
+    // and filter out businesses that are beyond the maximum distance
+    // from the user
+    // we use haversine formula to calculate the distance
+    const filtered_businesses = businesses.filter(
+      (business) =>
+        calculateDistance(
+          parseFloat(business.latitude!),
+          parseFloat(business.longitude!),
+          lat,
+          lng
+        ) <= maxDistance
+    );
+
+    console.log(filtered_businesses);
+
+    // return the filtered businesses
+    return NextResponse.json(filtered_businesses, { status: 200 });
+  } catch (error) {
+    console.error("Filter API Error:", error);
+    return errorResponse("Failed to fetch filtered businesses");
+  }
+}

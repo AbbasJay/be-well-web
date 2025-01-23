@@ -7,12 +7,12 @@
  *       200:
  *         description: Hello World!
  */
- export async function GET(_request: Request) {
-    // Do whatever you want
+export async function GET(_request: Request) {
+  // Do whatever you want
 
-    await _request.json();
+  await _request.json();
 
-    return new Response('Hello World!', {
-      status: 200,
-    });
-  }
+  return new Response("Hello World!", {
+    status: 200,
+  });
+}
