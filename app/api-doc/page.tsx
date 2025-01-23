@@ -1,5 +1,5 @@
 // // import { getApiDocs } from "@/lib/swagger";
-// // import ReactSwagger from "./react-swagger";
+import ReactSwagger from "./react-swagger";
 // // import { OpenAPIV3 } from "openapi-types";
 
 // export default async function IndexPage() {
@@ -12,5 +12,10 @@
 // }
 
 export default function IndexPage() {
-  return <div>Hello World</div>;
+  return (
+    <section className="container py-8">
+      <h1 className="text-2xl font-bold mb-6">API Documentation</h1>
+      <ReactSwagger />
+    </section>
+  );
 }
