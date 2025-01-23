@@ -6,8 +6,6 @@ const nextConfig = {
   eslint: {
     ignoreDuringBuilds: true,
   },
-  output: "standalone",
-  distDir: ".next",
   async headers() {
     return [
       {
