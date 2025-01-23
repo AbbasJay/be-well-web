@@ -10,19 +10,18 @@ const SwaggerUI = dynamic(() => import("swagger-ui-react"), {
   loading: () => <div>Loading API documentation...</div>,
 });
 
-export default function ReactSwagger() {
-  const [spec, setSpec] = useState<OpenAPIV3.Document | null>(null);
+type Props = {
+  spec: OpenAPIV3.Document;
+};
+
+function ReactSwagger({ spec }: Props) {
+  const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
-    const fetchSpec = async () => {
-      const response = await fetch("/api/docs");
-      const data = await response.json();
-      setSpec(data);
-    };
-    fetchSpec();
+    setMounted(true);
   }, []);
 
-  if (!spec) {
+  if (!mounted) {
     return <div>Loading API documentation...</div>;
   }
 
@@ -32,3 +31,5 @@ export default function ReactSwagger() {
     </div>
   );
 }
+
+export default ReactSwagger;
