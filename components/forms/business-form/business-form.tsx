@@ -13,10 +13,11 @@ import {
 import { Business } from "@/lib/db/schema";
 import { Button } from "@/components/ui/button";
 import { useLoadScript, Libraries } from "@react-google-maps/api";
+import Image from "next/image";
 
 type BusinessFormProps = {
   initialData?: Partial<Business>;
-  onSubmit: (businessData: Partial<Business>) => Promise<void>;
+  onSubmit: (data: FormData) => Promise<void>;
 };
 
 const libraries: Libraries = ["places"];
@@ -44,8 +45,11 @@ export const BusinessForm: React.FC<BusinessFormProps> = ({
     state: initialData?.state || "",
     latitude: initialData?.latitude || null,
     longitude: initialData?.longitude || null,
+    photo: initialData?.photo || "",
   });
 
+  const [selectedFile, setSelectedFile] = useState<File | null>(null);
+  const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const inputRef = useRef<HTMLInputElement>(null);
 
   const handleChange = (
@@ -58,6 +62,15 @@ export const BusinessForm: React.FC<BusinessFormProps> = ({
     }));
   };
 
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files && e.target.files[0]) {
+      const file = e.target.files[0];
+      setSelectedFile(file);
+      const url = URL.createObjectURL(file);
+      setPreviewUrl(url);
+    }
+  };
+
   const handleSelectChange = (value: string) => {
     setFormData((prevData) => ({
       ...prevData,
@@ -67,7 +80,29 @@ export const BusinessForm: React.FC<BusinessFormProps> = ({
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    await onSubmit(formData);
+
+    const submitFormData = new FormData();
+
+    Object.entries(formData).forEach(([key, value]) => {
+      if (
+        value !== null &&
+        value !== undefined &&
+        key !== "photo" &&
+        value !== ""
+      ) {
+        submitFormData.append(key, value.toString());
+      }
+    });
+
+    if (selectedFile) {
+      submitFormData.append("photo", selectedFile);
+    }
+
+    try {
+      await onSubmit(submitFormData);
+    } catch (error) {
+      console.error("Error submitting form:", error);
+    }
   };
 
   useEffect(() => {
@@ -80,8 +115,6 @@ export const BusinessForm: React.FC<BusinessFormProps> = ({
 
     const updateAddressFormData = (place: google.maps.places.PlaceResult) => {
       const addressComponents = place.address_components || [];
-
-      console.log("address components", addressComponents);
 
       const componentMap: { [key: string]: string } = {
         subPremise: "",
@@ -176,6 +209,14 @@ export const BusinessForm: React.FC<BusinessFormProps> = ({
     };
   }, [isLoaded, loadError]);
 
+  useEffect(() => {
+    return () => {
+      if (previewUrl) {
+        URL.revokeObjectURL(previewUrl);
+      }
+    };
+  }, [previewUrl]);
+
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
       <Input
@@ -224,6 +265,28 @@ export const BusinessForm: React.FC<BusinessFormProps> = ({
         onChange={handleChange}
         required
       />
+
+      <div>
+        <label className="block text-sm font-medium mb-2">Business Photo</label>
+        <Input
+          name="photo"
+          type="file"
+          accept="image/*"
+          onChange={handleFileChange}
+          className="cursor-pointer"
+        />
+        {(previewUrl || formData.photo) && (
+          <div className="mt-2">
+            <Image
+              src={previewUrl ?? formData.photo ?? ""}
+              alt="Business photo preview"
+              width={128}
+              height={128}
+              className="w-32 h-32 object-cover rounded-lg"
+            />
+          </div>
+        )}
+      </div>
 
       <Select value={formData.type} onValueChange={handleSelectChange}>
         <SelectTrigger className="w-full">

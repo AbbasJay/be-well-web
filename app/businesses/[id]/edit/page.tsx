@@ -36,14 +36,11 @@ export default function EditBusinessPage({
     fetchBusiness();
   }, [params.id, router]);
 
-  const handleUpdate = async (updatedBusiness: Partial<Business>) => {
+  const handleUpdate = async (formData: FormData) => {
     try {
       const response = await fetch(`/api/businesses/${params.id}`, {
         method: "PUT",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(updatedBusiness),
+        body: formData,
       });
 
       if (response.ok) {
