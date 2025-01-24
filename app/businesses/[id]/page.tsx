@@ -130,6 +130,8 @@ export default function BusinessDetailsPage({
               <Image
                 src={business.photo}
                 alt={business.name}
+                width={800}
+                height={256}
                 className="w-full h-full object-cover"
               />
             </div>
@@ -177,6 +179,8 @@ export default function BusinessDetailsPage({
               <Image
                 src={selectedImage.url}
                 alt={selectedImage.alt}
+                width={720}
+                height={480}
                 className="w-full h-auto rounded-md"
               />
             </div>
