@@ -11,14 +11,11 @@ export default function NewBusinessPage() {
   const router = useRouter();
   const { data: session } = useSession();
 
-  const handleCreate = async (newBusiness: Partial<Business>) => {
+  const handleCreate = async (formData: FormData) => {
     try {
       const response = await fetch("/api/businesses", {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(newBusiness),
+        body: formData,
       });
 
       if (response.ok) {

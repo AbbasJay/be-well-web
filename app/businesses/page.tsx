@@ -13,6 +13,7 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
+import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { DeleteDialog } from "@/components/dialogs/delete-dialog";
 
 export default function BusinessesPage() {
@@ -22,6 +23,10 @@ export default function BusinessesPage() {
   const [businessToDelete, setBusinessToDelete] = useState<Business | null>(
     null
   );
+  const [selectedImage, setSelectedImage] = useState<{
+    url: string;
+    alt: string;
+  } | null>(null);
   const { data: session } = useSession();
 
   const fetchBusinesses = async () => {
@@ -76,6 +81,23 @@ export default function BusinessesPage() {
           {businesses.map((business) => (
             <Card key={business.id} className="grid">
               <div>
+                {business.photo && (
+                  <div
+                    className="relative w-full h-48 cursor-pointer pt-6 pl-6 pr-6"
+                    onClick={() =>
+                      setSelectedImage({
+                        url: business.photo!,
+                        alt: business.name,
+                      })
+                    }
+                  >
+                    <img
+                      src={business.photo}
+                      alt={business.name}
+                      className="w-full h-full object-cover"
+                    />
+                  </div>
+                )}
                 <CardHeader>
                   <CardTitle>{business.name}</CardTitle>
                   <CardDescription>{business.type}</CardDescription>
@@ -107,6 +129,23 @@ export default function BusinessesPage() {
           ))}
         </div>
       )}
+
+      <Dialog
+        open={!!selectedImage}
+        onOpenChange={(open) => !open && setSelectedImage(null)}
+      >
+        <DialogContent className="sm:max-w-[720px] p-0 bg-transparent border-none">
+          {selectedImage && (
+            <div className="relative w-full">
+              <img
+                src={selectedImage.url}
+                alt={selectedImage.alt}
+                className="w-full h-auto rounded-md"
+              />
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
 
       <DeleteDialog
         item={businessToDelete}

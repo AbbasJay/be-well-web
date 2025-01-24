@@ -42,6 +42,7 @@ export const BusinessesTable = pgTable(
     zipCode: text("zip_code"),
     city: text("city"),
     state: text("state"),
+    photo: text("photo"),
     latitude: numeric("latitude", { precision: 10, scale: 7 }),
     longitude: numeric("longitude", { precision: 10, scale: 7 }),
     createdAt: timestamp("created_at").defaultNow().notNull(),

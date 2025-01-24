@@ -36,6 +36,10 @@ export default function BusinessDetailsPage({
   const [loading, setLoading] = useState(true);
   const [dialogOpen, setDialogOpen] = useState(false);
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
+  const [selectedImage, setSelectedImage] = useState<{
+    url: string;
+    alt: string;
+  } | null>(null);
   const router = useRouter();
   const { data: session } = useSession();
 
@@ -114,6 +118,22 @@ export default function BusinessDetailsPage({
             </Button>
           </div>
         </CardHeader>
+        {business.photo && (
+          <div className="px-6 pb-6">
+            <div
+              className="relative h-64 w-fit overflow-hidden rounded-lg cursor-pointer"
+              onClick={() =>
+                setSelectedImage({ url: business.photo!, alt: business.name })
+              }
+            >
+              <img
+                src={business.photo}
+                alt={business.name}
+                className="w-full h-full object-cover"
+              />
+            </div>
+          </div>
+        )}
         <CardContent>
           <p>
             <strong>Description:</strong> {business.description}
@@ -145,6 +165,23 @@ export default function BusinessDetailsPage({
           )}
         </CardFooter>
       </Card>
+
+      <Dialog
+        open={!!selectedImage}
+        onOpenChange={(open) => !open && setSelectedImage(null)}
+      >
+        <DialogContent className="sm:max-w-[720px] p-0 bg-transparent border-none">
+          {selectedImage && (
+            <div className="relative w-full">
+              <img
+                src={selectedImage.url}
+                alt={selectedImage.alt}
+                className="w-full h-auto rounded-md"
+              />
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
 
       <div className="flex gap-2">
         {classes.length > 0 && (
