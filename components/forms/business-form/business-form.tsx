@@ -13,6 +13,7 @@ import {
 import { Business } from "@/lib/db/schema";
 import { Button } from "@/components/ui/button";
 import { useLoadScript, Libraries } from "@react-google-maps/api";
+import Image from "next/image";
 
 type BusinessFormProps = {
   initialData?: Partial<Business>;
@@ -276,7 +277,7 @@ export const BusinessForm: React.FC<BusinessFormProps> = ({
         />
         {(previewUrl || formData.photo) && (
           <div className="mt-2">
-            <img
+            <Image
               src={previewUrl ?? formData.photo ?? ""}
               alt="Business photo preview"
               className="w-32 h-32 object-cover rounded-lg"

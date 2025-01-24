@@ -3,7 +3,6 @@
 import { BusinessForm } from "@/components/forms/business-form/business-form";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
-import { Business } from "@/lib/db/schema";
 import { useRouter } from "next/navigation";
 import { useSession } from "next-auth/react";
 

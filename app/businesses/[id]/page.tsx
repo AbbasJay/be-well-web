@@ -25,6 +25,7 @@ import {
   DialogDescription,
 } from "@/components/ui/dialog";
 import { DeleteDialog } from "@/components/dialogs/delete-dialog";
+import Image from "next/image";
 
 export default function BusinessDetailsPage({
   params,
@@ -126,7 +127,7 @@ export default function BusinessDetailsPage({
                 setSelectedImage({ url: business.photo!, alt: business.name })
               }
             >
-              <img
+              <Image
                 src={business.photo}
                 alt={business.name}
                 className="w-full h-full object-cover"
@@ -173,7 +174,7 @@ export default function BusinessDetailsPage({
         <DialogContent className="sm:max-w-[720px] p-0 bg-transparent border-none">
           {selectedImage && (
             <div className="relative w-full">
-              <img
+              <Image
                 src={selectedImage.url}
                 alt={selectedImage.alt}
                 className="w-full h-auto rounded-md"
