@@ -1,5 +1,5 @@
 import React from "react";
-import { EventApi, formatDate } from "@fullcalendar/core";
+import { EventApi } from "@fullcalendar/core";
 import { Button } from "@/components/ui/button";
 import { useState } from "react";
 import CalendarSelectModal from "../modals/calendar-view-events-modal";

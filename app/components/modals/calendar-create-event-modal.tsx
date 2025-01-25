@@ -31,7 +31,6 @@ export default function CalendarCreateEventModal({
   onOpenChange,
   onSubmit,
   startDate,
-  endDate,
   isAllDay,
   view,
 }: CalendarCreateEventModalProps) {

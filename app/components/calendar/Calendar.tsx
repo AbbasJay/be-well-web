@@ -54,11 +54,7 @@ export default function Calendar() {
     setIsCreateModalOpen(true);
   }
 
-  function handleCreateEvent(
-    title: string,
-    selectedTime: string,
-    isAllDay: boolean
-  ) {
+  function handleCreateEvent(title: string, selectedTime: string) {
     if (selectedDates && title) {
       const calendarApi = selectedDates.view.calendar;
 
