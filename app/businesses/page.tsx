@@ -2,7 +2,6 @@
 
 import { useState, useEffect } from "react";
 import { Business } from "@/lib/db/schema";
-import { useRouter } from "next/navigation";
 import { useSession } from "next-auth/react";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
@@ -14,7 +13,9 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
+import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { DeleteDialog } from "@/components/dialogs/delete-dialog";
+import Image from "next/image";
 
 export default function BusinessesPage() {
   const [businesses, setBusinesses] = useState<Business[]>([]);
@@ -23,8 +24,11 @@ export default function BusinessesPage() {
   const [businessToDelete, setBusinessToDelete] = useState<Business | null>(
     null
   );
+  const [selectedImage, setSelectedImage] = useState<{
+    url: string;
+    alt: string;
+  } | null>(null);
   const { data: session } = useSession();
-  const router = useRouter();
 
   const fetchBusinesses = async () => {
     try {
@@ -78,6 +82,25 @@ export default function BusinessesPage() {
           {businesses.map((business) => (
             <Card key={business.id} className="grid">
               <div>
+                {business.photo && (
+                  <div
+                    className="relative w-full h-48 cursor-pointer pt-6 pl-6 pr-6"
+                    onClick={() =>
+                      setSelectedImage({
+                        url: business.photo!,
+                        alt: business.name,
+                      })
+                    }
+                  >
+                    <Image
+                      src={business.photo}
+                      alt={business.name}
+                      width={400}
+                      height={192}
+                      className="w-full h-full object-cover"
+                    />
+                  </div>
+                )}
                 <CardHeader>
                   <CardTitle>{business.name}</CardTitle>
                   <CardDescription>{business.type}</CardDescription>
@@ -109,6 +132,25 @@ export default function BusinessesPage() {
           ))}
         </div>
       )}
+
+      <Dialog
+        open={!!selectedImage}
+        onOpenChange={(open) => !open && setSelectedImage(null)}
+      >
+        <DialogContent className="sm:max-w-[720px] p-0 bg-transparent border-none">
+          {selectedImage && (
+            <div className="relative w-full">
+              <Image
+                src={selectedImage.url}
+                alt={selectedImage.alt}
+                width={720}
+                height={480}
+                className="w-full h-auto rounded-md"
+              />
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
 
       <DeleteDialog
         item={businessToDelete}

@@ -1,7 +1,7 @@
 "use client";
 
 import { PencilIcon } from "lucide-react";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import { Business, Class } from "@/lib/db/schema";
 import { useSession } from "next-auth/react";
@@ -25,6 +25,7 @@ import {
   DialogDescription,
 } from "@/components/ui/dialog";
 import { DeleteDialog } from "@/components/dialogs/delete-dialog";
+import Image from "next/image";
 
 export default function BusinessDetailsPage({
   params,
@@ -36,6 +37,10 @@ export default function BusinessDetailsPage({
   const [loading, setLoading] = useState(true);
   const [dialogOpen, setDialogOpen] = useState(false);
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
+  const [selectedImage, setSelectedImage] = useState<{
+    url: string;
+    alt: string;
+  } | null>(null);
   const router = useRouter();
   const { data: session } = useSession();
 
@@ -61,7 +66,7 @@ export default function BusinessDetailsPage({
     }
   }, [params.id, router, session]);
 
-  const fetchClasses = async () => {
+  const fetchClasses = useCallback(async () => {
     try {
       const response = await fetch(`/api/classes/${params.id}`);
       if (!response.ok) {
@@ -75,13 +80,13 @@ export default function BusinessDetailsPage({
     } catch (error) {
       console.error("Error fetching classes:", error);
     }
-  };
+  }, [params.id]);
 
   useEffect(() => {
     if (session) {
       fetchClasses();
     }
-  }, [params.id, session]);
+  }, [params.id, session, fetchClasses]);
 
   const handleDeleteSuccess = () => {
     router.push("/businesses");
@@ -114,6 +119,24 @@ export default function BusinessDetailsPage({
             </Button>
           </div>
         </CardHeader>
+        {business.photo && (
+          <div className="px-6 pb-6">
+            <div
+              className="relative h-64 w-fit overflow-hidden rounded-lg cursor-pointer"
+              onClick={() =>
+                setSelectedImage({ url: business.photo!, alt: business.name })
+              }
+            >
+              <Image
+                src={business.photo}
+                alt={business.name}
+                width={800}
+                height={256}
+                className="w-full h-full object-cover"
+              />
+            </div>
+          </div>
+        )}
         <CardContent>
           <p>
             <strong>Description:</strong> {business.description}
@@ -145,6 +168,25 @@ export default function BusinessDetailsPage({
           )}
         </CardFooter>
       </Card>
+
+      <Dialog
+        open={!!selectedImage}
+        onOpenChange={(open) => !open && setSelectedImage(null)}
+      >
+        <DialogContent className="sm:max-w-[720px] p-0 bg-transparent border-none">
+          {selectedImage && (
+            <div className="relative w-full">
+              <Image
+                src={selectedImage.url}
+                alt={selectedImage.alt}
+                width={720}
+                height={480}
+                className="w-full h-auto rounded-md"
+              />
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
 
       <div className="flex gap-2">
         {classes.length > 0 && (

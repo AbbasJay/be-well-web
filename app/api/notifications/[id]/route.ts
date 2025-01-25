@@ -63,10 +63,10 @@ export async function POST(
 ) {
   try {
     const body = await req.json();
-    const { title, message, type, businessId } = body;
+    const { title, message, type } = body;
 
     // Validate required fields
-    if (!title || !message || !businessId) {
+    if (!title || !message) {
       return NextResponse.json(
         { error: "Missing required fields" },
         { status: 400 }
@@ -79,7 +79,6 @@ export async function POST(
         title,
         message,
         type: type || "SYSTEM",
-        businessId: Number(businessId),
         userId: Number(params.id),
         read: false,
       })

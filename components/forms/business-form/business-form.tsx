@@ -13,10 +13,11 @@ import {
 import { Business } from "@/lib/db/schema";
 import { Button } from "@/components/ui/button";
 import { useLoadScript, Libraries } from "@react-google-maps/api";
+import Image from "next/image";
 
 type BusinessFormProps = {
   initialData?: Partial<Business>;
-  onSubmit: (businessData: Partial<Business>) => Promise<void>;
+  onSubmit: (data: FormData) => Promise<void>;
 };
 
 const libraries: Libraries = ["places"];
@@ -44,39 +45,12 @@ export const BusinessForm: React.FC<BusinessFormProps> = ({
     state: initialData?.state || "",
     latitude: initialData?.latitude || null,
     longitude: initialData?.longitude || null,
+    photo: initialData?.photo || "",
   });
 
+  const [selectedFile, setSelectedFile] = useState<File | null>(null);
+  const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const inputRef = useRef<HTMLInputElement>(null);
-
-  useEffect(() => {
-    if (!isLoaded) return;
-
-    if (loadError) {
-      console.log("Load Error: ", loadError);
-      return;
-    }
-
-    const options = {
-      componentRestrictions: { country: "uk" },
-      fields: ["address_components", "geometry"],
-    };
-
-    if (inputRef.current) {
-      const autocomplete = new google.maps.places.Autocomplete(
-        inputRef.current,
-        options
-      );
-      autocomplete.addListener("place_changed", () =>
-        handlePlaceChanged(autocomplete)
-      );
-    }
-
-    return () => {
-      if (inputRef.current) {
-        google.maps.event.clearInstanceListeners(inputRef.current);
-      }
-    };
-  }, [isLoaded, loadError]);
 
   const handleChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
@@ -88,78 +62,13 @@ export const BusinessForm: React.FC<BusinessFormProps> = ({
     }));
   };
 
-  const handlePlaceChanged = (
-    autocomplete: google.maps.places.Autocomplete
-  ) => {
-    if (!isLoaded) return;
-    const place = autocomplete.getPlace();
-
-    if (!place || !place.geometry) {
-      // Clear address-related fields if no place is selected
-      setFormData((prevData) => ({
-        ...prevData,
-        address: "",
-        country: "",
-        zipCode: "",
-        city: "",
-        latitude: null,
-        longitude: null,
-      }));
-      return;
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files && e.target.files[0]) {
+      const file = e.target.files[0];
+      setSelectedFile(file);
+      const url = URL.createObjectURL(file);
+      setPreviewUrl(url);
     }
-
-    updateAddressFormData(place);
-  };
-
-  const updateAddressFormData = (place: google.maps.places.PlaceResult) => {
-    const addressComponents = place.address_components || [];
-
-    console.log("address components", addressComponents);
-
-    const componentMap: { [key: string]: string } = {
-      subPremise: "",
-      premise: "",
-      street_number: "",
-      route: "",
-      country: "",
-      postal_code: "",
-      state: "",
-      administrative_area_level_2: "",
-      administrative_area_level_1: "", // State
-    };
-
-    addressComponents.forEach((component) => {
-      const componentType = component.types[0];
-      if (componentMap.hasOwnProperty(componentType)) {
-        componentMap[componentType] = component.long_name;
-      }
-    });
-
-    const formattedAddress =
-      `${componentMap.subPremise} ${componentMap.premise} ${componentMap.street_number} ${componentMap.route}`.trim();
-    const latitude = place.geometry?.location?.lat()?.toString() || null;
-    const longitude = place.geometry?.location?.lng()?.toString() || null;
-
-    console.log("autocompleted address", {
-      address: formattedAddress,
-      country: componentMap.country,
-      zipCode: componentMap.postal_code,
-      city: componentMap.administrative_area_level_2,
-      state: componentMap.administrative_area_level_1,
-      latitude: latitude,
-      longitude: longitude,
-    });
-
-    setFormData((prevData) => ({
-      ...prevData,
-      address: formattedAddress,
-      country: componentMap.country,
-      zipCode: componentMap.postal_code,
-      city: componentMap.administrative_area_level_2,
-      state: componentMap.administrative_area_level_1,
-      latitude: latitude,
-      longitude: longitude,
-    }));
   };
 
   const handleSelectChange = (value: string) => {
@@ -171,8 +80,142 @@ export const BusinessForm: React.FC<BusinessFormProps> = ({
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    await onSubmit(formData);
+
+    const submitFormData = new FormData();
+
+    Object.entries(formData).forEach(([key, value]) => {
+      if (
+        value !== null &&
+        value !== undefined &&
+        key !== "photo" &&
+        value !== ""
+      ) {
+        submitFormData.append(key, value.toString());
+      }
+    });
+
+    if (selectedFile) {
+      submitFormData.append("photo", selectedFile);
+    }
+
+    try {
+      await onSubmit(submitFormData);
+    } catch (error) {
+      console.error("Error submitting form:", error);
+    }
   };
+
+  useEffect(() => {
+    if (!isLoaded) return;
+
+    if (loadError) {
+      console.log("Load Error: ", loadError);
+      return;
+    }
+
+    const updateAddressFormData = (place: google.maps.places.PlaceResult) => {
+      const addressComponents = place.address_components || [];
+
+      const componentMap: { [key: string]: string } = {
+        subPremise: "",
+        premise: "",
+        street_number: "",
+        route: "",
+        country: "",
+        postal_code: "",
+        zipCode: "",
+        state: "",
+        administrative_area_level_2: "",
+        administrative_area_level_1: "", // State
+      };
+
+      addressComponents.forEach((component) => {
+        const componentType = component.types[0];
+        if (componentMap.hasOwnProperty(componentType)) {
+          componentMap[componentType] = component.long_name;
+        }
+      });
+
+      const formattedAddress =
+        `${componentMap.subPremise} ${componentMap.premise} ${componentMap.street_number} ${componentMap.route}`.trim();
+      const latitude = place.geometry?.location?.lat()?.toString() || null;
+      const longitude = place.geometry?.location?.lng()?.toString() || null;
+
+      console.log("autocompleted address", {
+        address: formattedAddress,
+        country: componentMap.country,
+        zipCode: componentMap.postal_code,
+        city: componentMap.administrative_area_level_2,
+        state: componentMap.administrative_area_level_1,
+        latitude: latitude,
+        longitude: longitude,
+      });
+
+      setFormData((prevData) => ({
+        ...prevData,
+        address: formattedAddress,
+        country: componentMap.country,
+        zipCode: componentMap.postal_code,
+        city: componentMap.administrative_area_level_2,
+        state: componentMap.administrative_area_level_1,
+        latitude: latitude,
+        longitude: longitude,
+      }));
+    };
+
+    const handlePlaceChanged = (
+      autocomplete: google.maps.places.Autocomplete
+    ) => {
+      if (!isLoaded) return;
+      const place = autocomplete.getPlace();
+
+      if (!place || !place.geometry) {
+        setFormData((prevData) => ({
+          ...prevData,
+          address: "",
+          country: "",
+          zipCode: "",
+          city: "",
+          latitude: null,
+          longitude: null,
+        }));
+        return;
+      }
+
+      updateAddressFormData(place);
+    };
+
+    const options = {
+      componentRestrictions: { country: "uk" },
+      fields: ["address_components", "geometry"],
+    };
+
+    const currentInputRef = inputRef.current;
+
+    if (currentInputRef) {
+      const autocomplete = new google.maps.places.Autocomplete(
+        currentInputRef,
+        options
+      );
+      autocomplete.addListener("place_changed", () =>
+        handlePlaceChanged(autocomplete)
+      );
+    }
+
+    return () => {
+      if (currentInputRef) {
+        google.maps.event.clearInstanceListeners(currentInputRef);
+      }
+    };
+  }, [isLoaded, loadError]);
+
+  useEffect(() => {
+    return () => {
+      if (previewUrl) {
+        URL.revokeObjectURL(previewUrl);
+      }
+    };
+  }, [previewUrl]);
 
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
@@ -222,6 +265,28 @@ export const BusinessForm: React.FC<BusinessFormProps> = ({
         onChange={handleChange}
         required
       />
+
+      <div>
+        <label className="block text-sm font-medium mb-2">Business Photo</label>
+        <Input
+          name="photo"
+          type="file"
+          accept="image/*"
+          onChange={handleFileChange}
+          className="cursor-pointer"
+        />
+        {(previewUrl || formData.photo) && (
+          <div className="mt-2">
+            <Image
+              src={previewUrl ?? formData.photo ?? ""}
+              alt="Business photo preview"
+              width={128}
+              height={128}
+              className="w-32 h-32 object-cover rounded-lg"
+            />
+          </div>
+        )}
+      </div>
 
       <Select value={formData.type} onValueChange={handleSelectChange}>
         <SelectTrigger className="w-full">

@@ -4,6 +4,9 @@
 // export default nextConfig;
 
 module.exports = {
+  images: {
+    domains: ["be-well-business-photos.s3.eu-north-1.amazonaws.com"],
+  },
   async headers() {
     return [
       {
