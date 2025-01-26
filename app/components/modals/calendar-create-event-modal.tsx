@@ -33,6 +33,7 @@ export default function CalendarCreateEventModal({
   onOpenChange,
   onSubmit,
   startDate,
+  endDate,
   isAllDay,
   view,
   isEditMode = false,
@@ -45,9 +46,17 @@ export default function CalendarCreateEventModal({
   useEffect(() => {
     if (open) {
       setTitle(isEditMode ? initialTitle : "");
-      setSelectedTime("09:00");
+      const date = new Date(startDate);
+      if (view.type !== "dayGridMonth") {
+        setSelectedTime(
+          `${date.getHours().toString().padStart(2, "0")}:${date
+            .getMinutes()
+            .toString()
+            .padStart(2, "0")}`
+        );
+      }
     }
-  }, [open, isEditMode, initialTitle]);
+  }, [open, isEditMode, initialTitle, startDate, view.type]);
 
   useEffect(() => {
     const slots = [];
@@ -61,14 +70,14 @@ export default function CalendarCreateEventModal({
     setTimeSlots(slots);
   }, []);
 
-  const isMonthView = view.type === "dayGridMonth";
-
   const handleSubmit = () => {
     if (title.trim()) {
       onSubmit(title, selectedTime, isAllDay);
       onOpenChange(false);
     }
   };
+
+  const isMonthView = view.type === "dayGridMonth";
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -86,7 +95,7 @@ export default function CalendarCreateEventModal({
               className="mt-1"
             />
           </div>
-          {isMonthView && (
+          {(isMonthView || !isAllDay) && (
             <div>
               <label className="text-sm font-medium">Time</label>
               <Select value={selectedTime} onValueChange={setSelectedTime}>
@@ -105,9 +114,7 @@ export default function CalendarCreateEventModal({
           )}
           <div className="text-sm">
             <p>Date: {new Date(startDate).toLocaleDateString()}</p>
-            {!isMonthView && (
-              <p>Time: {new Date(startDate).toLocaleTimeString()}</p>
-            )}
+            {(isMonthView || !isAllDay) && <p>Time: {selectedTime}</p>}
           </div>
         </div>
         <DialogFooter className="mt-6">
