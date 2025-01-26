@@ -12,12 +12,16 @@ interface CalendarEventActionsModalProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   event: EventApi;
+  onEdit: () => void;
+  onDelete: () => void;
 }
 
 export default function CalendarEventActionsModal({
   open,
   onOpenChange,
   event,
+  onEdit,
+  onDelete,
 }: CalendarEventActionsModalProps) {
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -27,8 +31,8 @@ export default function CalendarEventActionsModal({
         <span>End: {event?.end?.toLocaleString()}</span>
         <DialogFooter>
           <Button onClick={() => onOpenChange(false)}>Cancel</Button>
-          <Button onClick={() => {}}>Edit</Button>
-          <Button variant="destructive" onClick={() => {}}>
+          <Button onClick={onEdit}>Edit</Button>
+          <Button variant="destructive" onClick={onDelete}>
             Delete
           </Button>
         </DialogFooter>
