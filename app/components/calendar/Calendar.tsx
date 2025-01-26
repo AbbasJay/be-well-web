@@ -13,6 +13,7 @@ import {
 } from "@fullcalendar/core";
 import CalendarCreateEventModal from "../modals/calendar-create-event-modal";
 import CalendarEventActionsModal from "../modals/calendar-event-actions-modal";
+import DeleteConfirmationModal from "../modals/delete-confirmation-modal";
 
 export default function Calendar() {
   const [weekendsVisible, setWeekendsVisible] = useState(true);
@@ -20,6 +21,8 @@ export default function Calendar() {
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
   const [isEventActionsModalOpen, setIsEventActionsModalOpen] = useState(false);
   const [selectedEvent, setSelectedEvent] = useState<EventApi | null>(null);
+  const [isDeleteConfirmationModalOpen, setIsDeleteConfirmationModalOpen] =
+    useState(false);
   const [selectedDates, setSelectedDates] = useState<{
     start: string;
     end: string;
@@ -49,9 +52,12 @@ export default function Calendar() {
 
   function handleEventDelete() {
     if (selectedEvent) {
-      selectedEvent.remove();
-      setIsEventActionsModalOpen(false);
+      setIsDeleteConfirmationModalOpen(true);
     }
+  }
+
+  function handleDeleteConfirmationModalCancel() {
+    setIsDeleteConfirmationModalOpen(false);
   }
 
   function handleEventEdit() {
@@ -100,6 +106,14 @@ export default function Calendar() {
         allDay: false,
       });
       calendarApi.unselect();
+    }
+  }
+
+  function handleDeleteConfirm() {
+    if (selectedEvent) {
+      selectedEvent.remove();
+      setIsDeleteConfirmationModalOpen(false);
+      setIsEventActionsModalOpen(false);
     }
   }
 
@@ -154,6 +168,16 @@ export default function Calendar() {
           onEdit={handleEventEdit}
         />
       )}
+      <DeleteConfirmationModal
+        open={isDeleteConfirmationModalOpen}
+        onOpenChange={setIsDeleteConfirmationModalOpen}
+        onDelete={handleDeleteConfirm}
+        onCancel={handleDeleteConfirmationModalCancel}
+        title="Delete Event"
+        description={`Are you sure you want to delete "${selectedEvent?.title}"? This action cannot be undone.`}
+        deleteButtonText="Delete Event"
+        cancelButtonText="Cancel"
+      />
     </div>
   );
 }
