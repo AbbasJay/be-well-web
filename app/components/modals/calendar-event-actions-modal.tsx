@@ -11,3 +11,8 @@ interface CalendarEventActionsModalProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
 }
+
+export default function CalendarEventActionsModal({
+  open,
+  onOpenChange,
+}: CalendarEventActionsModalProps) {}
