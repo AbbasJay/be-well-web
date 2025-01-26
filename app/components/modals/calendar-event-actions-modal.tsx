@@ -23,6 +23,8 @@ export default function CalendarEventActionsModal({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent>
         <DialogTitle>Current Event: {event?.title}</DialogTitle>
+        <span>Start: {event?.start?.toLocaleString()}</span>
+        <span>End: {event?.end?.toLocaleString()}</span>
       </DialogContent>
     </Dialog>
   );
