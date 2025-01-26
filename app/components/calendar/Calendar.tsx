@@ -12,6 +12,7 @@ import {
   ViewApi,
 } from "@fullcalendar/core";
 import CalendarCreateEventModal from "../modals/calendar-create-event-modal";
+import CalendarEventActionsModal from "../modals/calendar-event-actions-modal";
 
 export default function Calendar() {
   const [weekendsVisible, setWeekendsVisible] = useState(true);
@@ -142,6 +143,13 @@ export default function Calendar() {
           endDate={selectedDates.end}
           isAllDay={selectedDates.allDay}
           view={selectedDates.view}
+        />
+      )}
+      {selectedEvent && (
+        <CalendarEventActionsModal
+          open={isEventActionsModalOpen}
+          onOpenChange={setIsEventActionsModalOpen}
+          event={selectedEvent}
         />
       )}
     </div>
