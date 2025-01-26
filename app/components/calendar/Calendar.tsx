@@ -13,9 +13,16 @@ import {
 } from "@fullcalendar/core";
 import CalendarCreateEventModal from "../modals/calendar-create-event-modal";
 import CalendarEventActionsModal from "../modals/calendar-event-actions-modal";
-import DeleteConfirmationModal from "../modals/delete-confirmation-modal";
 import { useCalendarEvents } from "../../hooks/calendar/useCalendarEvents";
 import { useCalendarModals } from "../../hooks/calendar/useCalendarModals";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import { Button } from "@/components/ui/button";
 
 export default function Calendar() {
   const [weekendsVisible, setWeekendsVisible] = useState(true);
@@ -100,6 +107,12 @@ export default function Calendar() {
           eventContent={renderEventContent}
           eventClick={handleEventClickWrapper}
           eventsSet={handleEvents}
+          slotMinTime="00:00:00"
+          slotMaxTime="24:00:00"
+          forceEventDuration={true}
+          defaultTimedEventDuration="01:00:00"
+          displayEventTime={true}
+          displayEventEnd={true}
         />
       </div>
       {selectedDates && (
@@ -117,7 +130,7 @@ export default function Calendar() {
       )}
       {selectedEvent && (
         <CalendarEventActionsModal
-          open={isEventActionsModalOpen}
+          open={isEventActionsModalOpen && !isDeleteConfirmationModalOpen}
           onOpenChange={setIsEventActionsModalOpen}
           event={selectedEvent}
           onDelete={() => handleEventActionsDelete(selectedEvent)}
@@ -126,16 +139,37 @@ export default function Calendar() {
           }
         />
       )}
-      <DeleteConfirmationModal
-        open={isDeleteConfirmationModalOpen}
-        onOpenChange={setIsDeleteConfirmationModalOpen}
-        onDelete={() => handleDeleteConfirm(selectedEvent, handleEventDelete)}
-        onCancel={() => setIsDeleteConfirmationModalOpen(false)}
-        title="Delete Event"
-        description={`Are you sure you want to delete "${selectedEvent?.title}"? This action cannot be undone.`}
-        deleteButtonText="Delete Event"
-        cancelButtonText="Cancel"
-      />
+      {isEventActionsModalOpen && (
+        <Dialog
+          open={isDeleteConfirmationModalOpen}
+          onOpenChange={setIsDeleteConfirmationModalOpen}
+        >
+          <DialogContent>
+            <DialogTitle>Delete Event</DialogTitle>
+            <DialogDescription>
+              Are you sure you want to delete "{selectedEvent?.title}"? This
+              action cannot be undone.
+            </DialogDescription>
+            <DialogFooter>
+              <Button
+                onClick={() => {
+                  setIsDeleteConfirmationModalOpen(false);
+                }}
+              >
+                Cancel
+              </Button>
+              <Button
+                variant="destructive"
+                onClick={() =>
+                  handleDeleteConfirm(selectedEvent, handleEventDelete)
+                }
+              >
+                Delete
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
+      )}
     </div>
   );
 }
