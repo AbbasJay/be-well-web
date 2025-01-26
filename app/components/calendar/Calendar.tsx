@@ -58,6 +58,15 @@ export default function Calendar() {
     }
   }
 
+  function handleEventClick(clickInfo: EventClickArg) {
+    setSelectedEvent(clickInfo.event);
+    setIsEventActionsModalOpen(true);
+  }
+
+  function handleEvents(events: EventApi[]) {
+    setCurrentEvents(events);
+  }
+
   function handleDateSelect(selectInfo: DateSelectArg) {
     setSelectedDates({
       start: selectInfo.startStr,
@@ -91,15 +100,6 @@ export default function Calendar() {
       });
       calendarApi.unselect();
     }
-  }
-
-  function handleEventClick(clickInfo: EventClickArg) {
-    setSelectedEvent(clickInfo.event);
-    setIsEventActionsModalOpen(true);
-  }
-
-  function handleEvents(events: EventApi[]) {
-    setCurrentEvents(events);
   }
 
   return (
