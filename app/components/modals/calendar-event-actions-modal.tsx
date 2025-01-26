@@ -25,6 +25,10 @@ export default function CalendarEventActionsModal({
         <DialogTitle>Current Event: {event?.title}</DialogTitle>
         <span>Start: {event?.start?.toLocaleString()}</span>
         <span>End: {event?.end?.toLocaleString()}</span>
+        <DialogFooter>
+          <Button>Edit</Button>
+          <Button variant="destructive">Delete</Button>
+        </DialogFooter>
       </DialogContent>
     </Dialog>
   );
