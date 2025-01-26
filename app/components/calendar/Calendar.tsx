@@ -14,123 +14,62 @@ import {
 import CalendarCreateEventModal from "../modals/calendar-create-event-modal";
 import CalendarEventActionsModal from "../modals/calendar-event-actions-modal";
 import DeleteConfirmationModal from "../modals/delete-confirmation-modal";
+import { useCalendarEvents } from "../../hooks/calendar/useCalendarEvents";
+import { useCalendarModals } from "../../hooks/calendar/useCalendarModals";
 
 export default function Calendar() {
   const [weekendsVisible, setWeekendsVisible] = useState(true);
-  const [currentEvents, setCurrentEvents] = useState<EventApi[]>([]);
-  const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
-  const [isEventActionsModalOpen, setIsEventActionsModalOpen] = useState(false);
-  const [selectedEvent, setSelectedEvent] = useState<EventApi | null>(null);
-  const [isDeleteConfirmationModalOpen, setIsDeleteConfirmationModalOpen] =
-    useState(false);
-  const [selectedDates, setSelectedDates] = useState<{
-    start: string;
-    end: string;
-    allDay: boolean;
-    view: ViewApi;
-  } | null>(null);
 
-  let eventGuid = 0;
+  const {
+    currentEvents,
+    selectedEvent,
+    selectedDates,
+    setSelectedDates,
+    handleEvents,
+    handleEventClick,
+    handleDateSelect,
+    handleCreateEvent,
+    handleEventDelete,
+  } = useCalendarEvents();
 
-  function createEventId() {
-    return String(eventGuid++);
-  }
+  const {
+    isCreateModalOpen,
+    setIsCreateModalOpen,
+    isEventActionsModalOpen,
+    setIsEventActionsModalOpen,
+    isDeleteConfirmationModalOpen,
+    setIsDeleteConfirmationModalOpen,
+    handleEventActionsDelete,
+    handleEventEdit,
+    handleDeleteConfirm,
+  } = useCalendarModals();
 
-  function renderEventContent(eventInfo: EventContentArg) {
-    return (
-      <>
-        <div className="bg-blue-500 text-white p-1 rounded inline-block">
-          <i>{eventInfo.event.title}</i>
-        </div>
-      </>
-    );
-  }
+  const handleWeekendsToggle = () => setWeekendsVisible(!weekendsVisible);
 
-  function handleWeekendsToggle() {
-    setWeekendsVisible(!weekendsVisible);
-  }
-
-  function handleEventDelete() {
-    if (selectedEvent) {
-      setIsDeleteConfirmationModalOpen(true);
-    }
-  }
-
-  function handleDeleteConfirmationModalCancel() {
-    setIsDeleteConfirmationModalOpen(false);
-  }
-
-  function handleEventEdit() {
-    if (selectedEvent) {
-      const calendarApi = selectedDates?.view.calendar;
-      setIsEventActionsModalOpen(false);
-      setSelectedDates({
-        start: selectedEvent.startStr,
-        end: selectedEvent.endStr,
-        allDay: selectedEvent.allDay,
-        view: calendarApi!.view,
-      });
-      setIsCreateModalOpen(true);
-    }
-  }
-
-  function handleEventClick(clickInfo: EventClickArg) {
-    setSelectedEvent(clickInfo.event);
+  const handleEventClickWrapper = (clickInfo: EventClickArg) => {
+    handleEventClick(clickInfo);
     setIsEventActionsModalOpen(true);
-  }
+  };
 
-  function handleEvents(events: EventApi[]) {
-    setCurrentEvents(events);
-  }
-
-  function handleDateSelect(selectInfo: DateSelectArg) {
-    setSelectedDates({
-      start: selectInfo.startStr,
-      end: selectInfo.endStr,
-      allDay: selectInfo.allDay,
-      view: selectInfo.view,
-    });
+  const handleDateSelectWrapper = (selectInfo: DateSelectArg) => {
+    handleDateSelect(selectInfo);
     setIsCreateModalOpen(true);
-  }
+  };
 
-  function handleCreateEvent(
+  const handleCreateEventWrapper = (
     title: string,
     selectedTime: string,
     isAllDay: boolean
-  ) {
-    if (selectedEvent) {
-      selectedEvent.setProp("title", title);
-      setSelectedEvent(null);
-    } else if (selectedDates && title) {
-      const calendarApi = selectedDates.view.calendar;
-      const startDate = new Date(selectedDates.start);
-      const endDate = new Date(selectedDates.start);
-
-      if (selectedDates.view.type === "dayGridMonth") {
-        const [hours, minutes] = selectedTime.split(":").map(Number);
-        startDate.setHours(hours, minutes, 0);
-        endDate.setHours(hours + 1, minutes, 0);
-      }
-
-      calendarApi.addEvent({
-        id: createEventId(),
-        title,
-        start: startDate,
-        end: endDate,
-        allDay: isAllDay,
-      });
-      calendarApi.unselect();
-    }
+  ) => {
+    handleCreateEvent(title, selectedTime, isAllDay);
     setIsCreateModalOpen(false);
-  }
+  };
 
-  function handleDeleteConfirm() {
-    if (selectedEvent) {
-      selectedEvent.remove();
-      setIsDeleteConfirmationModalOpen(false);
-      setIsEventActionsModalOpen(false);
-    }
-  }
+  const renderEventContent = (eventInfo: EventContentArg) => (
+    <div className="bg-blue-500 text-white p-1 rounded inline-block">
+      <i>{eventInfo.event.title}</i>
+    </div>
+  );
 
   return (
     <div>
@@ -157,9 +96,9 @@ export default function Calendar() {
           selectMirror={true}
           dayMaxEvents={true}
           weekends={weekendsVisible}
-          select={handleDateSelect}
+          select={handleDateSelectWrapper}
           eventContent={renderEventContent}
-          eventClick={handleEventClick}
+          eventClick={handleEventClickWrapper}
           eventsSet={handleEvents}
         />
       </div>
@@ -167,7 +106,7 @@ export default function Calendar() {
         <CalendarCreateEventModal
           open={isCreateModalOpen}
           onOpenChange={setIsCreateModalOpen}
-          onSubmit={handleCreateEvent}
+          onSubmit={handleCreateEventWrapper}
           startDate={selectedDates.start}
           endDate={selectedDates.end}
           isAllDay={selectedDates.allDay}
@@ -181,15 +120,17 @@ export default function Calendar() {
           open={isEventActionsModalOpen}
           onOpenChange={setIsEventActionsModalOpen}
           event={selectedEvent}
-          onDelete={handleEventDelete}
-          onEdit={handleEventEdit}
+          onDelete={() => handleEventActionsDelete(selectedEvent)}
+          onEdit={() =>
+            handleEventEdit(selectedEvent, selectedDates, setSelectedDates)
+          }
         />
       )}
       <DeleteConfirmationModal
         open={isDeleteConfirmationModalOpen}
         onOpenChange={setIsDeleteConfirmationModalOpen}
-        onDelete={handleDeleteConfirm}
-        onCancel={handleDeleteConfirmationModalCancel}
+        onDelete={() => handleDeleteConfirm(selectedEvent, handleEventDelete)}
+        onCancel={() => setIsDeleteConfirmationModalOpen(false)}
         title="Delete Event"
         description={`Are you sure you want to delete "${selectedEvent?.title}"? This action cannot be undone.`}
         deleteButtonText="Delete Event"
