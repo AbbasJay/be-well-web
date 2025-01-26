@@ -17,6 +17,8 @@ export default function Calendar() {
   const [weekendsVisible, setWeekendsVisible] = useState(true);
   const [currentEvents, setCurrentEvents] = useState<EventApi[]>([]);
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
+  const [isEventActionsModalOpen, setIsEventActionsModalOpen] = useState(false);
+  const [selectedEvent, setSelectedEvent] = useState<EventApi | null>(null);
   const [selectedDates, setSelectedDates] = useState<{
     start: string;
     end: string;
@@ -80,13 +82,8 @@ export default function Calendar() {
   }
 
   function handleEventClick(clickInfo: EventClickArg) {
-    if (
-      confirm(
-        `Are you sure you want to delete the event '${clickInfo.event.title}'`
-      )
-    ) {
-      clickInfo.event.remove();
-    }
+    setSelectedEvent(clickInfo.event);
+    setIsEventActionsModalOpen(true);
   }
 
   function handleEvents(events: EventApi[]) {
