@@ -46,6 +46,18 @@ export default function Calendar() {
     setWeekendsVisible(!weekendsVisible);
   }
 
+  function handleEventDelete() {
+    if (selectedEvent) {
+      selectedEvent.remove();
+    }
+  }
+
+  function handleEventEdit() {
+    if (selectedEvent) {
+      setIsEventActionsModalOpen(true);
+    }
+  }
+
   function handleDateSelect(selectInfo: DateSelectArg) {
     setSelectedDates({
       start: selectInfo.startStr,
