@@ -27,8 +27,10 @@ export default function CalendarEventActionsModal({
         <span>End: {event?.end?.toLocaleString()}</span>
         <DialogFooter>
           <Button onClick={() => onOpenChange(false)}>Cancel</Button>
-          <Button>Edit</Button>
-          <Button variant="destructive">Delete</Button>
+          <Button onClick={() => {}}>Edit</Button>
+          <Button variant="destructive" onClick={() => {}}>
+            Delete
+          </Button>
         </DialogFooter>
       </DialogContent>
     </Dialog>
