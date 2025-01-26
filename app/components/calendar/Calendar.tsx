@@ -50,13 +50,13 @@ export default function Calendar() {
   function handleEventDelete() {
     if (selectedEvent) {
       selectedEvent.remove();
+      setIsEventActionsModalOpen(false);
     }
   }
 
   function handleEventEdit() {
-    if (selectedEvent) {
-      setIsEventActionsModalOpen(true);
-    }
+    // TODO: Implement edit functionality
+    setIsEventActionsModalOpen(false);
   }
 
   function handleEventClick(clickInfo: EventClickArg) {
@@ -150,6 +150,8 @@ export default function Calendar() {
           open={isEventActionsModalOpen}
           onOpenChange={setIsEventActionsModalOpen}
           event={selectedEvent}
+          onDelete={handleEventDelete}
+          onEdit={handleEventEdit}
         />
       )}
     </div>
