@@ -24,6 +24,8 @@ interface CalendarCreateEventModalProps {
   endDate: string;
   isAllDay: boolean;
   view: ViewApi;
+  isEditMode?: boolean;
+  initialTitle?: string;
 }
 
 export default function CalendarCreateEventModal({
@@ -33,6 +35,8 @@ export default function CalendarCreateEventModal({
   startDate,
   isAllDay,
   view,
+  isEditMode = false,
+  initialTitle = "",
 }: CalendarCreateEventModalProps) {
   const [title, setTitle] = useState("");
   const [selectedTime, setSelectedTime] = useState("09:00");
@@ -40,10 +44,10 @@ export default function CalendarCreateEventModal({
 
   useEffect(() => {
     if (open) {
-      setTitle("");
+      setTitle(isEditMode ? initialTitle : "");
       setSelectedTime("09:00");
     }
-  }, [open]);
+  }, [open, isEditMode, initialTitle]);
 
   useEffect(() => {
     const slots = [];
@@ -69,7 +73,9 @@ export default function CalendarCreateEventModal({
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-[425px]">
-        <DialogTitle>Create New Event</DialogTitle>
+        <DialogTitle>
+          {isEditMode ? "Edit Event" : "Create New Event"}
+        </DialogTitle>
         <div className="space-y-4">
           <div>
             <label className="text-sm font-medium">Event Title</label>
@@ -108,7 +114,9 @@ export default function CalendarCreateEventModal({
           <Button variant="outline" onClick={() => onOpenChange(false)}>
             Cancel
           </Button>
-          <Button onClick={handleSubmit}>Create Event</Button>
+          <Button onClick={handleSubmit}>
+            {isEditMode ? "Save Changes" : "Create Event"}
+          </Button>
         </DialogFooter>
       </DialogContent>
     </Dialog>

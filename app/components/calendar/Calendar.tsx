@@ -61,7 +61,17 @@ export default function Calendar() {
   }
 
   function handleEventEdit() {
-    setIsEventActionsModalOpen(false);
+    if (selectedEvent) {
+      const calendarApi = selectedDates?.view.calendar;
+      setIsEventActionsModalOpen(false);
+      setSelectedDates({
+        start: selectedEvent.startStr,
+        end: selectedEvent.endStr,
+        allDay: selectedEvent.allDay,
+        view: calendarApi!.view,
+      });
+      setIsCreateModalOpen(true);
+    }
   }
 
   function handleEventClick(clickInfo: EventClickArg) {
@@ -83,12 +93,17 @@ export default function Calendar() {
     setIsCreateModalOpen(true);
   }
 
-  function handleCreateEvent(title: string, selectedTime: string) {
-    if (selectedDates && title) {
+  function handleCreateEvent(
+    title: string,
+    selectedTime: string,
+    isAllDay: boolean
+  ) {
+    if (selectedEvent) {
+      selectedEvent.setProp("title", title);
+      setSelectedEvent(null);
+    } else if (selectedDates && title) {
       const calendarApi = selectedDates.view.calendar;
-
       const startDate = new Date(selectedDates.start);
-
       const endDate = new Date(selectedDates.start);
 
       if (selectedDates.view.type === "dayGridMonth") {
@@ -102,10 +117,11 @@ export default function Calendar() {
         title,
         start: startDate,
         end: endDate,
-        allDay: false,
+        allDay: isAllDay,
       });
       calendarApi.unselect();
     }
+    setIsCreateModalOpen(false);
   }
 
   function handleDeleteConfirm() {
@@ -156,6 +172,8 @@ export default function Calendar() {
           endDate={selectedDates.end}
           isAllDay={selectedDates.allDay}
           view={selectedDates.view}
+          isEditMode={!!selectedEvent}
+          initialTitle={selectedEvent?.title || ""}
         />
       )}
       {selectedEvent && (
