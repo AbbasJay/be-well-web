@@ -51,21 +51,26 @@ export function useCalendarEvents() {
     } else if (selectedDates && title) {
       const calendarApi = selectedDates.view.calendar;
       const startDate = new Date(selectedDates.start);
-      const endDate = new Date(selectedDates.start);
+      const endDate = new Date(selectedDates.end);
 
       if (selectedDates.view.type === "dayGridMonth") {
         const [hours, minutes] = selectedTime.split(":").map(Number);
         startDate.setHours(hours, minutes, 0);
-        endDate.setHours(hours + 1, minutes, 0);
+        endDate.setTime(startDate.getTime() + 60 * 60 * 1000);
+      } else if (!isAllDay) {
+        const [hours, minutes] = selectedTime.split(":").map(Number);
+        startDate.setHours(hours, minutes, 0);
+        endDate.setTime(startDate.getTime() + 60 * 60 * 1000);
       }
 
       calendarApi.addEvent({
         id: createEventId(),
         title,
-        start: startDate,
-        end: endDate,
-        allDay: isAllDay,
+        start: startDate.toISOString(),
+        end: endDate.toISOString(),
+        allDay: isAllDay && selectedDates.view.type !== "dayGridMonth",
       });
+
       calendarApi.unselect();
     }
   };
