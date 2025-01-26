@@ -61,7 +61,6 @@ export default function Calendar() {
   }
 
   function handleEventEdit() {
-    // TODO: Implement edit functionality
     setIsEventActionsModalOpen(false);
   }
 
