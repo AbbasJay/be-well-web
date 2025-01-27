@@ -1,12 +1,9 @@
-import type { Metadata } from "next";
-import "./globals.css";
-import { Providers } from "./providers";
-import ClientLayout from "./ClientLayout";
+"use client";
 
-export const metadata: Metadata = {
-  title: "BeWell",
-  description: "Your wellness platform",
-};
+import "./globals.css";
+
+import ClientLayout from "./ClientLayout";
+import { Providers } from "./providers";
 
 export default function RootLayout({
   children,

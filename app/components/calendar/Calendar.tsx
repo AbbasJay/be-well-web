@@ -2,18 +2,17 @@ import FullCalendar from "@fullcalendar/react";
 import dayGridPlugin from "@fullcalendar/daygrid";
 import timeGridPlugin from "@fullcalendar/timegrid";
 import interactionPlugin from "@fullcalendar/interaction";
-import { useState } from "react";
-import CalendarSidebar from "./CalendarSidebar";
+import { useRef, useEffect } from "react";
 import {
   DateSelectArg,
   EventClickArg,
   EventApi,
   EventContentArg,
-  ViewApi,
+  CalendarApi,
 } from "@fullcalendar/core";
 import CalendarCreateEventModal from "../modals/calendar-create-event-modal";
 import CalendarEventActionsModal from "../modals/calendar-event-actions-modal";
-import { useCalendarEvents } from "../../hooks/calendar/useCalendarEvents";
+import { useCalendarWithGoogle } from "../../hooks/calendar/useCalendarWithGoogle";
 import { useCalendarModals } from "../../hooks/calendar/useCalendarModals";
 import {
   Dialog,
@@ -23,21 +22,28 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
+import { Loader2 } from "lucide-react";
 
-export default function Calendar() {
-  const [weekendsVisible, setWeekendsVisible] = useState(true);
+interface CalendarProps {
+  accessToken?: string;
+}
+
+export default function Calendar({ accessToken }: CalendarProps) {
+  const calendarRef = useRef<FullCalendar | null>(null);
+  const calendarApiRef = useRef<CalendarApi | null>(null);
 
   const {
-    currentEvents,
     selectedEvent,
     selectedDates,
+    googleState,
     setSelectedDates,
     handleEvents,
     handleEventClick,
     handleDateSelect,
     handleCreateEvent,
     handleEventDelete,
-  } = useCalendarEvents();
+    syncWithGoogle,
+  } = useCalendarWithGoogle(accessToken, calendarApiRef);
 
   const {
     isCreateModalOpen,
@@ -50,8 +56,6 @@ export default function Calendar() {
     handleEventEdit,
     handleDeleteConfirm,
   } = useCalendarModals();
-
-  const handleWeekendsToggle = () => setWeekendsVisible(!weekendsVisible);
 
   const handleEventClickWrapper = (clickInfo: EventClickArg) => {
     handleEventClick(clickInfo);
@@ -72,25 +76,72 @@ export default function Calendar() {
     setIsCreateModalOpen(false);
   };
 
+  const handleSyncWithGoogle = () => {
+    if (calendarRef.current) {
+      const api = calendarRef.current.getApi();
+      const start = api.view.activeStart;
+      const end = api.view.activeEnd;
+      handleDateSelect({
+        start,
+        end,
+        startStr: start.toISOString(),
+        endStr: end.toISOString(),
+        allDay: true,
+        view: api.view,
+        jsEvent: null as any,
+      });
+      syncWithGoogle();
+    }
+  };
+
+  // Initialize calendar ref
+  useEffect(() => {
+    if (calendarRef.current) {
+      const api = calendarRef.current.getApi();
+      calendarApiRef.current = api;
+    }
+  }, []);
+
+  useEffect(() => {
+    if (calendarRef.current) {
+      handleSyncWithGoogle();
+    }
+  }, []);
+
   const renderEventContent = (eventInfo: EventContentArg) => (
-    <div className="bg-blue-500 text-white p-1 rounded inline-block">
+    <div className="bg-blue-500 text-white p-1 rounded inline-block w-full">
       <i>{eventInfo.event.title}</i>
     </div>
   );
 
   return (
-    <div>
-      <CalendarSidebar
-        weekendsVisible={weekendsVisible}
-        handleWeekendsToggle={handleWeekendsToggle}
-        currentEvents={currentEvents}
-      />
+    <div className="space-y-4">
+      {googleState.error && (
+        <div className="bg-red-50 border-l-4 border-red-400 p-4 mb-4">
+          <p className="text-sm text-red-700">{googleState.error}</p>
+        </div>
+      )}
+      <div className="flex justify-end gap-2">
+        {accessToken && (
+          <Button
+            onClick={handleSyncWithGoogle}
+            disabled={googleState.isLoading || !googleState.isConnected}
+          >
+            {googleState.isLoading && (
+              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+            )}
+            Sync with Google Calendar
+          </Button>
+        )}
+      </div>
+
       <div
         className="[&_.fc-button-primary]:bg-blue-500 [&_.fc-button-primary]:border-blue-500 [&_.fc-button-primary]:text-white
-                      [&_.fc-button-primary:hover]:bg-blue-600 [&_.fc-button-primary:hover]:border-blue-600
-                      [&_.fc-button-active]:bg-blue-700 [&_.fc-button-active]:border-blue-700"
+                    [&_.fc-button-primary:hover]:bg-blue-600 [&_.fc-button-primary:hover]:border-blue-600
+                    [&_.fc-button-primary:active]:bg-blue-700 [&_.fc-button-primary:active]:border-blue-700 h-[calc(100vh-200px)]"
       >
         <FullCalendar
+          ref={calendarRef}
           plugins={[dayGridPlugin, timeGridPlugin, interactionPlugin]}
           headerToolbar={{
             left: "prev,next today",
@@ -98,11 +149,12 @@ export default function Calendar() {
             right: "dayGridMonth,timeGridWeek,timeGridDay",
           }}
           initialView="dayGridMonth"
+          firstDay={1}
+          height="100%"
           editable={true}
           selectable={true}
           selectMirror={true}
           dayMaxEvents={true}
-          weekends={weekendsVisible}
           select={handleDateSelectWrapper}
           eventContent={renderEventContent}
           eventClick={handleEventClickWrapper}
@@ -115,6 +167,7 @@ export default function Calendar() {
           displayEventEnd={true}
         />
       </div>
+
       {selectedDates && (
         <CalendarCreateEventModal
           open={isCreateModalOpen}
@@ -128,6 +181,7 @@ export default function Calendar() {
           initialTitle={selectedEvent?.title || ""}
         />
       )}
+
       {selectedEvent && (
         <CalendarEventActionsModal
           open={isEventActionsModalOpen && !isDeleteConfirmationModalOpen}
@@ -139,6 +193,7 @@ export default function Calendar() {
           }
         />
       )}
+
       {isEventActionsModalOpen && (
         <Dialog
           open={isDeleteConfirmationModalOpen}
