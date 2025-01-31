@@ -93,13 +93,17 @@ export function useCalendarWithGoogle(
 
   const handleEventDelete = async (event: EventApi) => {
     try {
-      const googleEventId = event.extendedProps.googleEventId;
+      setGoogleState((prev) => ({ ...prev, isLoading: true }));
+
+      const googleEventId = event.extendedProps?.googleEventId;
+
       if (googleEventId) {
-        setGoogleState((prev) => ({ ...prev, isLoading: true }));
         await googleCalendarService.deleteEvent(googleEventId);
       }
+
       event.remove();
     } catch (error) {
+      console.error("Delete event error:", error);
       setGoogleState((prev) => ({
         ...prev,
         error: "Failed to delete event from Google Calendar",

@@ -1,23 +1,16 @@
 import { google } from "googleapis";
 import { NextResponse } from "next/server";
-import { getServerSession } from "next-auth";
-import { authOptions } from "../auth/[...nextauth]/route";
 import { CalendarEvent } from "@/app/types/calendar";
 import { OAuth2Client } from "google-auth-library";
 
-const getGoogleCalendar = async () => {
-  const session = await getServerSession(authOptions);
-  if (!session?.accessToken) {
-    throw new Error("No access token found");
-  }
-
+const getGoogleCalendar = async (accessToken: string) => {
   const oauth2Client = new OAuth2Client(
     process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID,
     process.env.GOOGLE_CLIENT_SECRET
   );
 
   oauth2Client.setCredentials({
-    access_token: session.accessToken,
+    access_token: accessToken,
   });
 
   return google.calendar({
@@ -26,9 +19,18 @@ const getGoogleCalendar = async () => {
   });
 };
 
-export async function GET() {
+export async function GET(request: Request) {
   try {
-    const calendar = await getGoogleCalendar();
+    const authHeader = request.headers.get("authorization");
+    if (!authHeader?.startsWith("Bearer ")) {
+      return NextResponse.json(
+        { error: "No access token provided" },
+        { status: 401 }
+      );
+    }
+
+    const accessToken = authHeader.split(" ")[1];
+    const calendar = await getGoogleCalendar(accessToken);
 
     const timeMin = new Date();
     timeMin.setMonth(timeMin.getMonth() - 1);
@@ -55,10 +57,17 @@ export async function GET() {
     );
 
     return NextResponse.json(events);
-  } catch (error) {
-    console.error("Failed to fetch events:", error);
+  } catch (error: any) {
+    console.error("Failed to fetch events:", {
+      error: error.message,
+      stack: error.stack,
+      details: error.response?.data,
+    });
     return NextResponse.json(
-      { error: "Failed to fetch events from Google Calendar" },
+      {
+        error: "Failed to fetch events from Google Calendar",
+        details: error.message,
+      },
       { status: 500 }
     );
   }
@@ -66,7 +75,16 @@ export async function GET() {
 
 export async function POST(request: Request) {
   try {
-    const calendar = await getGoogleCalendar();
+    const authHeader = request.headers.get("authorization");
+    if (!authHeader?.startsWith("Bearer ")) {
+      return new Response(
+        JSON.stringify({ error: "No access token provided" }),
+        { status: 401 }
+      );
+    }
+
+    const accessToken = authHeader.split(" ")[1];
+    const calendar = await getGoogleCalendar(accessToken);
     const event: CalendarEvent = await request.json();
 
     const response = await calendar.events.insert({
@@ -96,7 +114,16 @@ export async function POST(request: Request) {
 
 export async function DELETE(request: Request) {
   try {
-    const calendar = await getGoogleCalendar();
+    const authHeader = request.headers.get("authorization");
+    if (!authHeader?.startsWith("Bearer ")) {
+      return NextResponse.json(
+        { error: "No access token provided" },
+        { status: 401 }
+      );
+    }
+
+    const accessToken = authHeader.split(" ")[1];
+    const calendar = await getGoogleCalendar(accessToken);
     const { eventId } = await request.json();
 
     await calendar.events.delete({
@@ -116,7 +143,16 @@ export async function DELETE(request: Request) {
 
 export async function PUT(request: Request) {
   try {
-    const calendar = await getGoogleCalendar();
+    const authHeader = request.headers.get("authorization");
+    if (!authHeader?.startsWith("Bearer ")) {
+      return NextResponse.json(
+        { error: "No access token provided" },
+        { status: 401 }
+      );
+    }
+
+    const accessToken = authHeader.split(" ")[1];
+    const calendar = await getGoogleCalendar(accessToken);
     const event: CalendarEvent = await request.json();
 
     if (!event.googleEventId) {

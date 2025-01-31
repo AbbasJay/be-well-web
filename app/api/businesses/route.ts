@@ -17,6 +17,11 @@ export async function GET() {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
+    if (!session.user.id) {
+      console.log("Missing user ID in session");
+      return NextResponse.json({ error: "Invalid session" }, { status: 401 });
+    }
+
     const businesses = await db
       .select()
       .from(BusinessesTable)
@@ -25,7 +30,7 @@ export async function GET() {
 
     return NextResponse.json(businesses);
   } catch (error) {
-    console.error("Error fetching businesses:", error);
+    console.error("Error in businesses route:", error);
     return NextResponse.json(
       { error: "Internal Server Error" },
       { status: 500 }

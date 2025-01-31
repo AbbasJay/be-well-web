@@ -2,6 +2,7 @@
 
 import "./globals.css";
 
+import { CalendarProvider } from "./contexts/CalendarContext";
 import ClientLayout from "./ClientLayout";
 import { Providers } from "./providers";
 
@@ -14,7 +15,9 @@ export default function RootLayout({
     <html lang="en">
       <body>
         <Providers>
-          <ClientLayout>{children}</ClientLayout>
+          <CalendarProvider>
+            <ClientLayout>{children}</ClientLayout>
+          </CalendarProvider>
         </Providers>
       </body>
     </html>

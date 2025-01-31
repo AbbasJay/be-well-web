@@ -14,6 +14,7 @@ import CalendarCreateEventModal from "../modals/calendar-create-event-modal";
 import CalendarEventActionsModal from "../modals/calendar-event-actions-modal";
 import { useCalendarWithGoogle } from "../../hooks/calendar/useCalendarWithGoogle";
 import { useCalendarModals } from "../../hooks/calendar/useCalendarModals";
+import { useCalendar } from "@/app/contexts/CalendarContext";
 import {
   Dialog,
   DialogContent,
@@ -31,6 +32,12 @@ interface CalendarProps {
 export default function Calendar({ accessToken }: CalendarProps) {
   const calendarRef = useRef<FullCalendar | null>(null);
   const calendarApiRef = useRef<CalendarApi | null>(null);
+  const {
+    events,
+    fetchEvents,
+    isLoading: isFetching,
+    error: fetchError,
+  } = useCalendar();
 
   const {
     selectedEvent,
@@ -57,6 +64,25 @@ export default function Calendar({ accessToken }: CalendarProps) {
     handleDeleteConfirm,
   } = useCalendarModals();
 
+  useEffect(() => {
+    const checkGoogleConnection = async () => {
+      try {
+        const response = await fetch("/api/calendar/auth");
+
+        const data = await response.json();
+
+        if (data.access_token) {
+          await fetchEvents(data.access_token);
+        } else if (data.url) {
+        }
+      } catch (error) {
+        console.error("Error checking Google Calendar connection:", error);
+      }
+    };
+
+    checkGoogleConnection();
+  }, [fetchEvents]);
+
   const handleEventClickWrapper = (clickInfo: EventClickArg) => {
     handleEventClick(clickInfo);
     setIsEventActionsModalOpen(true);
@@ -76,35 +102,28 @@ export default function Calendar({ accessToken }: CalendarProps) {
     setIsCreateModalOpen(false);
   };
 
-  const handleSyncWithGoogle = () => {
+  const handleSyncWithGoogle = async () => {
     if (calendarRef.current) {
-      const api = calendarRef.current.getApi();
-      const start = api.view.activeStart;
-      const end = api.view.activeEnd;
-      handleDateSelect({
-        start,
-        end,
-        startStr: start.toISOString(),
-        endStr: end.toISOString(),
-        allDay: true,
-        view: api.view,
-        jsEvent: null as any,
-      });
-      syncWithGoogle();
+      try {
+        const response = await fetch("/api/calendar/auth");
+        const data = await response.json();
+
+        if (!data.access_token) {
+          console.error("No access token available for sync");
+          return;
+        }
+
+        await fetchEvents(data.access_token, true);
+      } catch (error) {
+        console.error("Error syncing with Google Calendar:", error);
+      }
     }
   };
 
-  // Initialize calendar ref
   useEffect(() => {
     if (calendarRef.current) {
       const api = calendarRef.current.getApi();
       calendarApiRef.current = api;
-    }
-  }, []);
-
-  useEffect(() => {
-    if (calendarRef.current) {
-      handleSyncWithGoogle();
     }
   }, []);
 
@@ -116,25 +135,28 @@ export default function Calendar({ accessToken }: CalendarProps) {
 
   return (
     <div className="space-y-4">
-      {googleState.error && (
+      {(fetchError || googleState.error) && (
         <div className="bg-red-50 border-l-4 border-red-400 p-4 mb-4">
-          <p className="text-sm text-red-700">{googleState.error}</p>
+          <p className="text-sm text-red-700">
+            {fetchError || googleState.error}
+          </p>
         </div>
       )}
       <div className="flex justify-end gap-2">
         {accessToken && (
           <Button
             onClick={handleSyncWithGoogle}
-            disabled={googleState.isLoading || !googleState.isConnected}
+            disabled={
+              isFetching || googleState.isLoading || !googleState.isConnected
+            }
           >
-            {googleState.isLoading && (
+            {(isFetching || googleState.isLoading) && (
               <Loader2 className="mr-2 h-4 w-4 animate-spin" />
             )}
             Sync with Google Calendar
           </Button>
         )}
       </div>
-
       <div
         className="[&_.fc-button-primary]:bg-blue-500 [&_.fc-button-primary]:border-blue-500 [&_.fc-button-primary]:text-white
                     [&_.fc-button-primary:hover]:bg-blue-600 [&_.fc-button-primary:hover]:border-blue-600
@@ -159,6 +181,7 @@ export default function Calendar({ accessToken }: CalendarProps) {
           eventContent={renderEventContent}
           eventClick={handleEventClickWrapper}
           eventsSet={handleEvents}
+          events={events}
           slotMinTime="00:00:00"
           slotMaxTime="24:00:00"
           forceEventDuration={true}

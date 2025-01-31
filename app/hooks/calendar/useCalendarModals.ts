@@ -18,14 +18,13 @@ export function useCalendarModals() {
     selectedDates: { view: ViewApi } | null,
     setSelectedDates: (dates: any) => void
   ) => {
-    if (selectedEvent) {
-      const calendarApi = selectedDates?.view.calendar;
+    if (selectedEvent && selectedDates?.view) {
       setIsEventActionsModalOpen(false);
       setSelectedDates({
         start: selectedEvent.startStr,
         end: selectedEvent.endStr,
         allDay: selectedEvent.allDay,
-        view: calendarApi!.view,
+        view: selectedDates.view,
       });
       setIsCreateModalOpen(true);
     }
