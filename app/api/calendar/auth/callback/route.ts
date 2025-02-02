@@ -5,10 +5,6 @@ import { OAuth2Client } from "google-auth-library";
 import { cookies } from "next/headers";
 
 const REDIRECT_URI = process.env.NEXT_PUBLIC_GOOGLE_REDIRECT_URI;
-const BASE_URL =
-  process.env.NEXTAUTH_URL ||
-  `http://${process.env.VERCEL_URL}` ||
-  "http://localhost:3000";
 
 const oauth2Client = new OAuth2Client(
   process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID,
@@ -21,7 +17,7 @@ export async function GET(request: Request) {
 
   if (!session?.user?.id) {
     console.error("No session found in callback");
-    const redirectUrl = new URL("/calendar", BASE_URL);
+    const redirectUrl = new URL("/calendar", request.url);
     redirectUrl.searchParams.set("error", "auth_error");
     return NextResponse.redirect(redirectUrl);
   }
@@ -32,14 +28,14 @@ export async function GET(request: Request) {
 
   if (error) {
     console.error("Google OAuth error:", error);
-    const redirectUrl = new URL("/calendar", BASE_URL);
+    const redirectUrl = new URL("/calendar", request.url);
     redirectUrl.searchParams.set("error", error);
     return NextResponse.redirect(redirectUrl);
   }
 
   if (!code) {
     console.error("No code received in callback");
-    const redirectUrl = new URL("/calendar", BASE_URL);
+    const redirectUrl = new URL("/calendar", request.url);
     redirectUrl.searchParams.set("error", "no_code");
     return NextResponse.redirect(redirectUrl);
   }
@@ -65,11 +61,11 @@ export async function GET(request: Request) {
       }
     );
 
-    const redirectUrl = new URL("/calendar", BASE_URL);
+    const redirectUrl = new URL("/calendar", request.url);
     return NextResponse.redirect(redirectUrl);
   } catch (error) {
     console.error("Error getting tokens:", error);
-    const redirectUrl = new URL("/calendar", BASE_URL);
+    const redirectUrl = new URL("/calendar", request.url);
     redirectUrl.searchParams.set("error", "token_error");
     return NextResponse.redirect(redirectUrl);
   }
