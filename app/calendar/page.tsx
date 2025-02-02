@@ -1,28 +1,11 @@
 "use client";
 
 import { useSession } from "next-auth/react";
-import dynamic from "next/dynamic";
+import Calendar from "../components/calendar/Calendar";
 import { Button } from "@/components/ui/button";
 import { Loader2 } from "lucide-react";
 import { useState, useEffect, Suspense } from "react";
 import { useSearchParams } from "next/navigation";
-import { ErrorBoundary } from "react-error-boundary";
-
-// Dynamically import Calendar with no SSR
-const Calendar = dynamic(() => import("../components/calendar/Calendar"), {
-  ssr: false,
-});
-
-function ErrorFallback() {
-  return (
-    <div className="flex flex-col items-center justify-center min-h-[60vh] space-y-4">
-      <h2 className="text-2xl font-semibold">Something went wrong</h2>
-      <p className="text-muted-foreground text-center max-w-md">
-        Please try refreshing the page.
-      </p>
-    </div>
-  );
-}
 
 const CalendarPageContent = () => {
   const { data: session, status } = useSession();
@@ -124,16 +107,8 @@ const CalendarPageContent = () => {
 
 export default function CalendarPage() {
   return (
-    <Suspense
-      fallback={
-        <div className="flex items-center justify-center min-h-[60vh]">
-          <Loader2 className="h-8 w-8 animate-spin" />
-        </div>
-      }
-    >
-      <ErrorBoundary FallbackComponent={ErrorFallback}>
-        <CalendarPageContent />
-      </ErrorBoundary>
+    <Suspense fallback={<div>Loading...</div>}>
+      <CalendarPageContent />
     </Suspense>
   );
 }
