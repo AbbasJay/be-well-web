@@ -4,15 +4,12 @@ import { authOptions } from "../../auth/[...nextauth]/auth";
 import { OAuth2Client } from "google-auth-library";
 import { cookies } from "next/headers";
 
-const REDIRECT_URI = process.env.NEXT_PUBLIC_GOOGLE_REDIRECT_URI;
-
 const oauth2Client = new OAuth2Client(
   process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID,
-  process.env.GOOGLE_CLIENT_SECRET,
-  REDIRECT_URI
+  process.env.GOOGLE_CLIENT_SECRET
 );
 
-export async function GET() {
+export async function GET(request: Request) {
   const session = await getServerSession(authOptions);
 
   if (!session?.user?.id) {
@@ -70,12 +67,22 @@ export async function GET() {
     }
   }
 
-  const authUrl = oauth2Client.generateAuthUrl({
+  const origin = new URL(request.url).origin;
+  const redirectUri = `${origin}/api/calendar/auth/callback`;
+
+  const oauth2ClientWithRedirect = new OAuth2Client(
+    process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID,
+    process.env.GOOGLE_CLIENT_SECRET,
+    redirectUri
+  );
+
+  const authUrl = oauth2ClientWithRedirect.generateAuthUrl({
     access_type: "offline",
     scope: ["https://www.googleapis.com/auth/calendar"],
     prompt: "consent",
-    redirect_uri: REDIRECT_URI,
+    redirect_uri: redirectUri,
   });
+
   return NextResponse.json({ url: authUrl });
 }
 

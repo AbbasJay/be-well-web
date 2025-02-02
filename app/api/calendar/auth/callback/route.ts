@@ -4,14 +4,6 @@ import { authOptions } from "../../../auth/[...nextauth]/auth";
 import { OAuth2Client } from "google-auth-library";
 import { cookies } from "next/headers";
 
-const REDIRECT_URI = process.env.NEXT_PUBLIC_GOOGLE_REDIRECT_URI;
-
-const oauth2Client = new OAuth2Client(
-  process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID,
-  process.env.GOOGLE_CLIENT_SECRET,
-  REDIRECT_URI
-);
-
 export async function GET(request: Request) {
   const session = await getServerSession(authOptions);
 
@@ -41,6 +33,13 @@ export async function GET(request: Request) {
   }
 
   try {
+    const redirectUri = `${url.origin}/api/calendar/auth/callback`;
+    const oauth2Client = new OAuth2Client(
+      process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID,
+      process.env.GOOGLE_CLIENT_SECRET,
+      redirectUri
+    );
+
     const { tokens } = await oauth2Client.getToken(code);
 
     // Store tokens in cookie

@@ -69,7 +69,12 @@ const CalendarPageContent = () => {
       const response = await fetch("/api/calendar/auth");
       const data = await response.json();
       if (data.url) {
-        window.location.href = data.url;
+        const currentOrigin = window.location.origin;
+        const updatedUrl = data.url.replace(
+          "http://localhost:3000",
+          currentOrigin
+        );
+        window.location.href = updatedUrl;
       }
     } catch (error) {
       console.error("Error connecting to Google:", error);
