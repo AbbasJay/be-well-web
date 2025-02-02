@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { EventApi, ViewApi } from "@fullcalendar/core";
+import { SelectedDates } from "@/app/types/calendar";
 
 export function useCalendarModals() {
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
@@ -16,7 +17,7 @@ export function useCalendarModals() {
   const handleEventEdit = (
     selectedEvent: EventApi | null,
     selectedDates: { view: ViewApi } | null,
-    setSelectedDates: (dates: any) => void
+    setSelectedDates: (dates: SelectedDates) => void
   ) => {
     if (selectedEvent && selectedDates?.view) {
       setIsEventActionsModalOpen(false);

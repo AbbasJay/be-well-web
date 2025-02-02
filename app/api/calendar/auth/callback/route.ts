@@ -5,6 +5,10 @@ import { OAuth2Client } from "google-auth-library";
 import { cookies } from "next/headers";
 
 const REDIRECT_URI = process.env.NEXT_PUBLIC_GOOGLE_REDIRECT_URI;
+const BASE_URL =
+  process.env.NEXTAUTH_URL ||
+  `http://${process.env.VERCEL_URL}` ||
+  "http://localhost:3000";
 
 const oauth2Client = new OAuth2Client(
   process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID,
@@ -17,9 +21,9 @@ export async function GET(request: Request) {
 
   if (!session?.user?.id) {
     console.error("No session found in callback");
-    return NextResponse.redirect(
-      new URL("/calendar?error=auth_error", process.env.NEXTAUTH_URL!)
-    );
+    const redirectUrl = new URL("/calendar", BASE_URL);
+    redirectUrl.searchParams.set("error", "auth_error");
+    return NextResponse.redirect(redirectUrl);
   }
 
   const url = new URL(request.url);
@@ -28,16 +32,16 @@ export async function GET(request: Request) {
 
   if (error) {
     console.error("Google OAuth error:", error);
-    return NextResponse.redirect(
-      new URL(`/calendar?error=${error}`, process.env.NEXTAUTH_URL!)
-    );
+    const redirectUrl = new URL("/calendar", BASE_URL);
+    redirectUrl.searchParams.set("error", error);
+    return NextResponse.redirect(redirectUrl);
   }
 
   if (!code) {
     console.error("No code received in callback");
-    return NextResponse.redirect(
-      new URL("/calendar?error=no_code", process.env.NEXTAUTH_URL!)
-    );
+    const redirectUrl = new URL("/calendar", BASE_URL);
+    redirectUrl.searchParams.set("error", "no_code");
+    return NextResponse.redirect(redirectUrl);
   }
 
   try {
@@ -61,17 +65,12 @@ export async function GET(request: Request) {
       }
     );
 
-    return NextResponse.redirect(
-      new URL("/calendar", process.env.NEXTAUTH_URL!)
-    );
-  } catch (error: any) {
-    console.error("Error getting tokens:", {
-      message: error.message,
-      response: error.response?.data,
-      stack: error.stack,
-    });
-    return NextResponse.redirect(
-      new URL("/calendar?error=token_error", process.env.NEXTAUTH_URL!)
-    );
+    const redirectUrl = new URL("/calendar", BASE_URL);
+    return NextResponse.redirect(redirectUrl);
+  } catch (error) {
+    console.error("Error getting tokens:", error);
+    const redirectUrl = new URL("/calendar", BASE_URL);
+    redirectUrl.searchParams.set("error", "token_error");
+    return NextResponse.redirect(redirectUrl);
   }
 }

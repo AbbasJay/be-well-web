@@ -57,16 +57,12 @@ export async function GET(request: Request) {
     );
 
     return NextResponse.json(events);
-  } catch (error: any) {
-    console.error("Failed to fetch events:", {
-      error: error.message,
-      stack: error.stack,
-      details: error.response?.data,
-    });
+  } catch (error) {
+    console.error("Failed to fetch events:", error);
     return NextResponse.json(
       {
         error: "Failed to fetch events from Google Calendar",
-        details: error.message,
+        details: error instanceof Error ? error.message : "Unknown error",
       },
       { status: 500 }
     );

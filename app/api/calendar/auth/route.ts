@@ -79,7 +79,7 @@ export async function GET() {
   return NextResponse.json({ url: authUrl });
 }
 
-export async function POST(request: Request) {
+export async function POST() {
   const session = await getServerSession(authOptions);
   if (!session?.user?.id) {
     return NextResponse.json({ error: "Not authenticated" }, { status: 401 });

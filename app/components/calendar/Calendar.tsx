@@ -6,7 +6,6 @@ import { useRef, useEffect } from "react";
 import {
   DateSelectArg,
   EventClickArg,
-  EventApi,
   EventContentArg,
   CalendarApi,
 } from "@fullcalendar/core";
@@ -49,7 +48,6 @@ export default function Calendar({ accessToken }: CalendarProps) {
     handleDateSelect,
     handleCreateEvent,
     handleEventDelete,
-    syncWithGoogle,
   } = useCalendarWithGoogle(accessToken, calendarApiRef);
 
   const {
@@ -225,8 +223,8 @@ export default function Calendar({ accessToken }: CalendarProps) {
           <DialogContent>
             <DialogTitle>Delete Event</DialogTitle>
             <DialogDescription>
-              Are you sure you want to delete "{selectedEvent?.title}"? This
-              action cannot be undone.
+              {`Are you sure you want to delete ${selectedEvent?.title}? This
+              action cannot be undone.`}
             </DialogDescription>
             <DialogFooter>
               <Button

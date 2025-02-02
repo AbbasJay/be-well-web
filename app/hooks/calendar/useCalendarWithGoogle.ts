@@ -1,5 +1,10 @@
 import { useState, useEffect, MutableRefObject } from "react";
-import { EventApi, DateSelectArg, EventClickArg } from "@fullcalendar/core";
+import {
+  EventApi,
+  DateSelectArg,
+  EventClickArg,
+  CalendarApi,
+} from "@fullcalendar/core";
 import {
   CalendarEvent,
   SelectedDates,
@@ -10,7 +15,7 @@ import * as googleCalendarService from "@/app/services/google-calendar";
 
 export function useCalendarWithGoogle(
   accessToken?: string,
-  calendarApiRef?: MutableRefObject<any>
+  calendarApiRef?: MutableRefObject<CalendarApi | null>
 ) {
   const [currentEvents, setCurrentEvents] = useState<EventApi[]>([]);
   const [selectedEvent, setSelectedEvent] = useState<EventApi | null>(null);
@@ -51,7 +56,8 @@ export function useCalendarWithGoogle(
     selectedTime: string,
     isAllDay: boolean
   ) => {
-    if (!selectedDates || !calendarApiRef?.current) return;
+    const api = calendarApiRef?.current;
+    if (!selectedDates || !api) return;
 
     const startDate = new Date(selectedDates.start);
     const endDate = new Date(selectedDates.end);
@@ -79,8 +85,8 @@ export function useCalendarWithGoogle(
       const googleEventId = await googleCalendarService.createEvent(newEvent);
       newEvent.googleEventId = googleEventId;
 
-      calendarApiRef.current.addEvent(newEvent);
-      calendarApiRef.current.unselect();
+      api.addEvent(newEvent);
+      api.unselect();
     } catch (error) {
       setGoogleState((prev) => ({
         ...prev,
@@ -114,15 +120,17 @@ export function useCalendarWithGoogle(
   };
 
   const syncWithGoogle = async () => {
-    if (!calendarApiRef?.current) return;
+    const api = calendarApiRef?.current;
+    if (!api) return;
+
     try {
       setGoogleState((prev) => ({ ...prev, isLoading: true }));
       const googleEvents = await googleCalendarService.listEvents();
 
-      calendarApiRef.current.removeAllEvents();
+      api.removeAllEvents();
 
       googleEvents.forEach((event) => {
-        calendarApiRef.current.addEvent({
+        api.addEvent({
           ...event,
           extendedProps: {
             googleEventId: event.googleEventId,

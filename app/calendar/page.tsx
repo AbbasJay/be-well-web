@@ -4,10 +4,10 @@ import { useSession } from "next-auth/react";
 import Calendar from "../components/calendar/Calendar";
 import { Button } from "@/components/ui/button";
 import { Loader2 } from "lucide-react";
-import { useState, useEffect } from "react";
+import { useState, useEffect, Suspense } from "react";
 import { useSearchParams } from "next/navigation";
 
-export default function CalendarPage() {
+const CalendarPageContent = () => {
   const { data: session, status } = useSession();
   const [googleToken, setGoogleToken] = useState<string | null>(null);
   const [isConnecting, setIsConnecting] = useState(false);
@@ -103,4 +103,12 @@ export default function CalendarPage() {
   }
 
   return <Calendar accessToken={googleToken} />;
+};
+
+export default function CalendarPage() {
+  return (
+    <Suspense fallback={<div>Loading...</div>}>
+      <CalendarPageContent />
+    </Suspense>
+  );
 }
