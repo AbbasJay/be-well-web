@@ -5,10 +5,21 @@ import { OAuth2Client } from "google-auth-library";
 import { cookies } from "next/headers";
 
 const REDIRECT_URI = process.env.NEXT_PUBLIC_GOOGLE_REDIRECT_URI;
-const BASE_URL =
-  process.env.NEXTAUTH_URL ||
-  `http://${process.env.VERCEL_URL}` ||
-  "http://localhost:3000";
+
+function getBaseUrl(request: Request) {
+  const host = request.headers.get("host");
+  const protocol = process.env.NODE_ENV === "production" ? "https" : "http";
+
+  if (host) {
+    return `${protocol}://${host}`;
+  }
+
+  return process.env.NODE_ENV === "production"
+    ? process.env.VERCEL_URL
+      ? `https://${process.env.VERCEL_URL}`
+      : "https://be-well-web.vercel.app"
+    : process.env.NEXTAUTH_URL || "http://localhost:3000";
+}
 
 const oauth2Client = new OAuth2Client(
   process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID,
@@ -17,6 +28,7 @@ const oauth2Client = new OAuth2Client(
 );
 
 export async function GET(request: Request) {
+  const BASE_URL = getBaseUrl(request);
   const session = await getServerSession(authOptions);
 
   if (!session?.user?.id) {
