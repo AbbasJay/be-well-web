@@ -7,18 +7,29 @@ import { cookies } from "next/headers";
 const REDIRECT_URI = process.env.NEXT_PUBLIC_GOOGLE_REDIRECT_URI;
 
 function getBaseUrl(request: Request) {
-  const host = request.headers.get("host");
-  const protocol = process.env.NODE_ENV === "production" ? "https" : "http";
+  try {
+    const requestUrl = new URL(request.url);
+    return requestUrl.origin;
+  } catch (error) {
+    console.error("Failed to parse request URL:", error);
 
-  if (host) {
-    return `${protocol}://${host}`;
+    const host = request.headers.get("host");
+
+    if (host) {
+      const protocol = host.includes("vercel.app")
+        ? "https"
+        : process.env.NODE_ENV === "production"
+        ? "https"
+        : "http";
+      return `${protocol}://${host}`;
+    }
+
+    return process.env.NODE_ENV === "production"
+      ? process.env.VERCEL_URL
+        ? `https://${process.env.VERCEL_URL}`
+        : "https://be-well-web.vercel.app"
+      : process.env.NEXTAUTH_URL || "http://localhost:3000";
   }
-
-  return process.env.NODE_ENV === "production"
-    ? process.env.VERCEL_URL
-      ? `https://${process.env.VERCEL_URL}`
-      : "https://be-well-web.vercel.app"
-    : process.env.NEXTAUTH_URL || "http://localhost:3000";
 }
 
 const oauth2Client = new OAuth2Client(
