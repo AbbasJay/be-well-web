@@ -115,9 +115,17 @@ export async function POST(request: NextRequest) {
       types.push("gymAndClasses");
     }
 
+    console.log("Types:", types);
+
     const conditions = types.map((type: string) =>
       eq(BusinessesTable.type, type)
     );
+
+    //return empry array if no types are provided
+    if (types.length === 0) {
+      return NextResponse.json([], { status: 200 });
+    }
+
 
     // get the businesses that match the filtering criteria
     const businesses = await db
