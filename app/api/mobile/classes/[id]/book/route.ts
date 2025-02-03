@@ -6,8 +6,9 @@ import {
   NotificationType,
   UsersTable,
   BusinessesTable,
+  BookingsTable,
 } from "@/lib/db/schema";
-import { eq } from "drizzle-orm";
+import { eq, and } from "drizzle-orm";
 import { withAuth, errorResponse } from "@/lib/utils/api-utils";
 import { sendBookingConfirmationEmail } from "@/lib/utils/email";
 
@@ -37,6 +38,22 @@ export async function POST(
         return errorResponse("Class is full", 400);
       }
 
+      const existingBooking = await db
+        .select()
+        .from(BookingsTable)
+        .where(
+          and(
+            eq(BookingsTable.userId, user.id),
+            eq(BookingsTable.classId, classId),
+            eq(BookingsTable.status, "active")
+          )
+        )
+        .execute();
+
+      if (existingBooking.length > 0) {
+        return errorResponse("You have already booked this class", 400);
+      }
+
       // Get user email
       const [userData] = await db
         .select()
@@ -58,6 +75,15 @@ export async function POST(
       if (!businessData) {
         return errorResponse("Business not found", 404);
       }
+
+      const [booking] = await db
+        .insert(BookingsTable)
+        .values({
+          userId: user.id,
+          classId: classId,
+          status: "active",
+        })
+        .returning();
 
       // Update slots left
       const [updatedClass] = await db
@@ -115,6 +141,7 @@ export async function POST(
       return NextResponse.json({
         message: "Class booked successfully",
         class: updatedClass,
+        booking: booking,
       });
     } catch (error) {
       console.error("Error booking class:", error);

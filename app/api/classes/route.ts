@@ -5,6 +5,8 @@ import { NextResponse } from "next/server";
 export async function POST(req: Request) {
   try {
     const newClass = await req.json();
+    newClass.slotsLeft = newClass.capacity;
+
     const insertedClass = await db
       .insert(ClassesTable)
       .values(newClass)

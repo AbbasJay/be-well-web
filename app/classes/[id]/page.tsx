@@ -20,6 +20,8 @@ import {
 } from "@/components/ui/dialog";
 import { ClassForm } from "@/components/forms/class-form";
 import { DeleteDialog } from "@/components/dialogs/delete-dialog";
+import { useSession } from "next-auth/react";
+import Link from "next/link";
 
 export default function ClassesPage({ params }: { params: { id: string } }) {
   const [classes, setClasses] = useState<Class[]>([]);
@@ -27,6 +29,7 @@ export default function ClassesPage({ params }: { params: { id: string } }) {
   const [selectedClass, setSelectedClass] = useState<Class | null>(null);
   const [dialogOpen, setDialogOpen] = useState(false);
   const [classToDelete, setClassToDelete] = useState<Class | null>(null);
+  const { data: session } = useSession();
 
   useEffect(() => {
     const fetchClasses = async () => {
@@ -57,19 +60,52 @@ export default function ClassesPage({ params }: { params: { id: string } }) {
       });
 
       if (response.ok) {
+        const { class: updatedClassData } = await response.json();
         setClasses((prevClasses) =>
           prevClasses.map((classItem) =>
-            classItem.id === selectedClass?.id
-              ? { ...classItem, ...updatedClass }
-              : classItem
+            classItem.id === selectedClass?.id ? updatedClassData : classItem
           )
         );
         setSelectedClass(null);
+        setDialogOpen(false);
       } else {
         console.error("Failed to update class");
       }
     } catch (error) {
       console.error("Error updating class:", error);
+    }
+  };
+
+  const handleBookClass = async (classItem: Class) => {
+    if (!session) {
+      alert("Please sign in to book a class");
+      return;
+    }
+
+    try {
+      const response = await fetch(`/api/classes/${classItem.id}/book`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+      });
+
+      if (!response.ok) {
+        const error = await response.json();
+        alert(error.error || "Failed to book class");
+        return;
+      }
+
+      const { class: updatedClass } = await response.json();
+
+      setClasses((prevClasses) =>
+        prevClasses.map((c) => (c.id === updatedClass.id ? updatedClass : c))
+      );
+
+      alert("Class booked successfully!");
+    } catch (error) {
+      console.error("Error booking class:", error);
+      alert("Failed to book class");
     }
   };
 
@@ -111,6 +147,20 @@ export default function ClassesPage({ params }: { params: { id: string } }) {
               </p>
 
               <div className="flex gap-2 mt-4">
+                {item.slotsLeft > 0 && (
+                  <Button
+                    onClick={() => handleBookClass(item)}
+                    disabled={!session}
+                    title={!session ? "Please sign in to book a class" : ""}
+                  >
+                    Book Class
+                  </Button>
+                )}
+                <Button asChild variant="outline">
+                  <Link href={`/classes/${item.id}/bookings`}>
+                    View Bookings
+                  </Link>
+                </Button>
                 <Button
                   variant="destructive"
                   onClick={() => setClassToDelete(item)}

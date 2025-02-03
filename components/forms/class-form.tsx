@@ -146,14 +146,6 @@ export const ClassForm: React.FC<ClassFormProps> = ({
         onChange={handleChange}
         required
       />
-      <Input
-        name="slotsLeft"
-        placeholder="Slots Left"
-        type="number"
-        value={formData.slotsLeft || ""}
-        onChange={handleChange}
-        required
-      />
       <Button type="submit">Submit</Button>
     </form>
   );
