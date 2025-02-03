@@ -12,6 +12,44 @@ import { eq, and } from "drizzle-orm";
 import { withAuth, errorResponse } from "@/lib/utils/api-utils";
 import { sendBookingConfirmationEmail } from "@/lib/utils/email";
 
+// Get booking ID for a class
+export async function GET(
+  request: NextRequest,
+  { params }: { params: { id: string } }
+) {
+  return withAuth(request, async (user) => {
+    try {
+      const classId = parseInt(params.id);
+      if (isNaN(classId)) {
+        return errorResponse("Invalid class ID", 400);
+      }
+
+      // Find active booking for this user and class
+      const [booking] = await db
+        .select()
+        .from(BookingsTable)
+        .where(
+          and(
+            eq(BookingsTable.userId, user.id),
+            eq(BookingsTable.classId, classId),
+            eq(BookingsTable.status, "active")
+          )
+        )
+        .execute();
+
+      if (!booking) {
+        return errorResponse("No active booking found for this class", 404);
+      }
+
+      return Response.json({ bookingId: booking.id });
+    } catch (error) {
+      console.error("Error fetching booking:", error);
+      return errorResponse("Failed to fetch booking");
+    }
+  });
+}
+
+// Book a class
 export async function POST(
   request: NextRequest,
   { params }: { params: { id: string } }
@@ -129,7 +167,11 @@ export async function POST(
       return Response.json({
         message: "Class booked successfully",
         class: updatedClass,
-        booking: booking,
+        booking: {
+          id: booking.id,
+          status: booking.status,
+          createdAt: booking.createdAt,
+        },
       });
     } catch (error) {
       console.error("Error booking class:", error);
