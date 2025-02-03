@@ -1,4 +1,4 @@
-import { NextRequest, NextResponse } from "next/server";
+import { NextRequest } from "next/server";
 import { db } from "@/lib/db/db";
 import {
   ClassesTable,
@@ -38,6 +38,7 @@ export async function POST(
         return errorResponse("Class is full", 400);
       }
 
+      // Check if user has already booked this class and it's still active
       const existingBooking = await db
         .select()
         .from(BookingsTable)
@@ -76,6 +77,7 @@ export async function POST(
         return errorResponse("Business not found", 404);
       }
 
+      // Create booking record
       const [booking] = await db
         .insert(BookingsTable)
         .values({
@@ -92,53 +94,39 @@ export async function POST(
         .where(eq(ClassesTable.id, classId))
         .returning();
 
-      try {
-        // Create booking confirmation notification
-        await db.insert(NotificationsTable).values({
-          userId: user.id,
-          classId: classId,
-          businessId: classData.businessId,
-          type: NotificationType.BOOKING_CONFIRMATION,
-          title: "Class Booked Successfully",
-          message: `You have successfully booked ${classData.name}. The class is scheduled for ${classData.startDate} at ${classData.time} with instructor ${classData.instructor}. Location: ${classData.location}`,
-          read: false,
-        });
+      // Create booking confirmation notification
+      await db.insert(NotificationsTable).values({
+        userId: user.id,
+        classId: classId,
+        businessId: classData.businessId,
+        type: NotificationType.BOOKING_CONFIRMATION,
+        title: "Class Booked Successfully",
+        message: `You have successfully booked ${classData.name}. The class is scheduled for ${classData.startDate} at ${classData.time} with instructor ${classData.instructor}. Location: ${classData.location}`,
+        read: false,
+      });
 
-        // Send confirmation email
-        try {
-          await sendBookingConfirmationEmail({
-            userEmail: userData.email,
-            className: classData.name,
-            startDate: classData.startDate,
-            time: classData.time,
-            instructor: classData.instructor,
-            location: classData.location,
-            businessName: businessData.name,
-            name: userData.name,
-            cancellationPolicy:
-              "Please contact us at " +
-              businessData.email +
-              " for cancellations or rescheduling.",
-          });
-          console.log(
-            "Booking confirmation email sent successfully to:",
-            userData.email
-          );
-        } catch (emailError) {
-          console.error("Error sending confirmation email:", {
-            error: emailError,
-            emailConfig: {
-              to: userData.email,
-              className: classData.name,
-              businessName: businessData.name,
-            },
-          });
-        }
-      } catch (error) {
-        console.error("Error creating notification:", error);
+      // Send confirmation email
+      try {
+        await sendBookingConfirmationEmail({
+          userEmail: userData.email,
+          className: classData.name,
+          startDate: classData.startDate,
+          time: classData.time,
+          instructor: classData.instructor,
+          location: classData.location,
+          businessName: businessData.name,
+          name: userData.name,
+          cancellationPolicy:
+            "Please contact us at " +
+            businessData.email +
+            " for cancellations or rescheduling.",
+        });
+      } catch (emailError) {
+        console.error("Error sending confirmation email:", emailError);
+        // Continue even if email fails
       }
 
-      return NextResponse.json({
+      return Response.json({
         message: "Class booked successfully",
         class: updatedClass,
         booking: booking,

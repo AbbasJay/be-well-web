@@ -10,6 +10,21 @@ import {
 } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 
+interface Booking {
+  booking: {
+    id: number;
+    status: "active" | "cancelled";
+    createdAt: string;
+    cancelledAt: string | null;
+    cancellationReason: string | null;
+  };
+  user: {
+    id: number;
+    name: string;
+    email: string;
+  };
+}
+
 async function getBookings(classId: string) {
   const res = await fetch(
     `${process.env.NEXT_PUBLIC_APP_URL}/api/classes/${classId}/bookings`,
@@ -50,28 +65,32 @@ export default async function ClassBookingsPage({
             </TableRow>
           </TableHeader>
           <TableBody>
-            {bookings.map((booking: any) => (
-              <TableRow key={booking.id}>
+            {bookings.map((booking: Booking) => (
+              <TableRow key={booking.booking.id}>
                 <TableCell>{booking.user.name}</TableCell>
                 <TableCell>{booking.user.email}</TableCell>
-                <TableCell>{booking.createdAt}</TableCell>
+                <TableCell>{booking.booking.createdAt}</TableCell>
                 <TableCell>
                   <Badge
                     variant={
-                      booking.status === "active"
+                      booking.booking.status === "active"
                         ? "default"
-                        : booking.status === "cancelled"
+                        : booking.booking.status === "cancelled"
                         ? "destructive"
                         : "secondary"
                     }
                   >
-                    {booking.status}
+                    {booking.booking.status}
                   </Badge>
                 </TableCell>
                 <TableCell>
-                  {booking.cancelledAt ? booking.cancelledAt : "-"}
+                  {booking.booking.cancelledAt
+                    ? booking.booking.cancelledAt
+                    : "-"}
                 </TableCell>
-                <TableCell>{booking.cancellationReason || "-"}</TableCell>
+                <TableCell>
+                  {booking.booking.cancellationReason || "-"}
+                </TableCell>
               </TableRow>
             ))}
           </TableBody>
