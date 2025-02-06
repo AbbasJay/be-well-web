@@ -38,8 +38,27 @@ export default function CalendarCreateEventModal({
   isEditMode = false,
   initialTitle = "",
 }: CalendarCreateEventModalProps) {
+  const formatSelectedStartTime = () => {
+    const now = new Date();
+    let hours = now.getHours();
+    let minutes = now.getMinutes();
+
+    if (minutes > 0 && minutes <= 30) {
+      minutes = 30;
+    } else if (minutes > 30) {
+      minutes = 0;
+      hours = (hours + 1) % 24;
+    }
+
+    return `${hours.toString().padStart(2, "0")}:${minutes
+      .toString()
+      .padStart(2, "0")}`;
+  };
+
   const [title, setTitle] = useState("");
-  const [selectedStartTime, setSelectedStartTime] = useState("");
+  const [selectedStartTime, setSelectedStartTime] = useState(
+    formatSelectedStartTime()
+  );
   const [selectedEndTime, setSelectedEndTime] = useState("");
   const [timeSlots, setTimeSlots] = useState<string[]>([]);
   const [showTimeSelectors, setShowTimeSelectors] = useState(false);
@@ -47,8 +66,11 @@ export default function CalendarCreateEventModal({
   useEffect(() => {
     if (!open) {
       setTitle("");
-      setSelectedStartTime("");
-      setSelectedEndTime("");
+      const initialStartTime = formatSelectedStartTime();
+      setSelectedStartTime(initialStartTime);
+      const startIndex = timeSlots.indexOf(initialStartTime);
+      const nextSlot = timeSlots[startIndex + 1] || "";
+      setSelectedEndTime(nextSlot);
       setShowTimeSelectors(false);
     } else {
       setTitle(isEditMode ? initialTitle : "");
@@ -59,13 +81,13 @@ export default function CalendarCreateEventModal({
           .toString()
           .padStart(2, "0")}`;
         setSelectedStartTime(timeStr);
-        setSelectedEndTime(timeStr);
+        setSelectedEndTime(timeSlots[timeSlots.indexOf(timeStr) + 1] || "");
         setShowTimeSelectors(true);
       } else {
         setShowTimeSelectors(false);
       }
     }
-  }, [open, isEditMode, initialTitle, startDate, view.type]);
+  }, [open, isEditMode, initialTitle, startDate, view.type, timeSlots]);
 
   useEffect(() => {
     const slots = [];
@@ -79,17 +101,31 @@ export default function CalendarCreateEventModal({
     setTimeSlots(slots);
   }, []);
 
+  useEffect(() => {
+    if (showTimeSelectors && selectedStartTime) {
+      const startIndex = timeSlots.indexOf(selectedStartTime);
+      const nextSlot = timeSlots[startIndex + 1] || "";
+      setSelectedEndTime(nextSlot);
+    }
+  }, [selectedStartTime, timeSlots, showTimeSelectors]);
+
   const formatEndTimeOptions = () => {
     const startTimeIndex = timeSlots.indexOf(selectedStartTime);
-    return timeSlots.slice(startTimeIndex + 1).map((endTime, index) => {
-      const duration = (index + 1) * 30;
-      const hours = Math.floor(duration / 60);
-      const minutes = duration % 60;
-      const durationString = `${hours > 0 ? `${hours}hr ` : ""}${
-        minutes > 0 ? `${minutes}min` : ""
-      }`;
-      return `${endTime} (${durationString})`;
-    });
+    return timeSlots.slice(startTimeIndex + 1).map((endTime) => ({
+      value: endTime,
+      label: `${endTime} (${getDurationString(endTime)})`,
+    }));
+  };
+
+  const getDurationString = (endTime: string) => {
+    const startIndex = timeSlots.indexOf(selectedStartTime);
+    const endIndex = timeSlots.indexOf(endTime);
+    const duration = (endIndex - startIndex) * 30;
+    const hours = Math.floor(duration / 60);
+    const minutes = duration % 60;
+    return `${hours > 0 ? `${hours}hr ` : ""}${
+      minutes > 0 ? `${minutes}min` : ""
+    }`;
   };
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -129,7 +165,7 @@ export default function CalendarCreateEventModal({
                     onValueChange={setSelectedStartTime}
                   >
                     <SelectTrigger className="">
-                      <SelectValue placeholder="" />
+                      <SelectValue placeholder={formatSelectedStartTime()} />
                     </SelectTrigger>
                     <SelectContent>
                       {timeSlots.map((startTime) => (
@@ -139,17 +175,25 @@ export default function CalendarCreateEventModal({
                       ))}
                     </SelectContent>
                   </Select>
+
                   <Select
                     value={selectedEndTime}
-                    onValueChange={setSelectedEndTime}
+                    onValueChange={(newEndTime) =>
+                      setSelectedEndTime(newEndTime)
+                    }
                   >
                     <SelectTrigger className="">
-                      <SelectValue placeholder="" />
+                      <SelectValue
+                        placeholder={
+                          timeSlots[timeSlots.indexOf(selectedStartTime) + 1] ||
+                          ""
+                        }
+                      />
                     </SelectTrigger>
                     <SelectContent>
-                      {formatEndTimeOptions().map((endTime) => (
-                        <SelectItem key={endTime} value={endTime}>
-                          {endTime}
+                      {formatEndTimeOptions().map(({ value, label }) => (
+                        <SelectItem key={value} value={value}>
+                          {label}
                         </SelectItem>
                       ))}
                     </SelectContent>
