@@ -59,38 +59,56 @@ export function useCalendarWithGoogle(
     const api = calendarApiRef?.current;
     if (!selectedDates || !api) return;
 
-    const startDate = new Date(selectedDates.start);
-    const endDate = new Date(selectedDates.end);
-
-    if (selectedDates.view.type === "dayGridMonth") {
-      const [hours, minutes] = selectedTime.split(":").map(Number);
-      startDate.setHours(hours, minutes, 0);
-      endDate.setTime(startDate.getTime() + 60 * 60 * 1000);
-    } else if (!isAllDay) {
-      const [hours, minutes] = selectedTime.split(":").map(Number);
-      startDate.setHours(hours, minutes, 0);
-      endDate.setTime(startDate.getTime() + 60 * 60 * 1000);
-    }
-
-    const newEvent: CalendarEvent = {
-      id: createEventId(),
-      title,
-      start: startDate.toISOString(),
-      end: endDate.toISOString(),
-      allDay: isAllDay && selectedDates.view.type !== "dayGridMonth",
-    };
-
     try {
       setGoogleState((prev) => ({ ...prev, isLoading: true }));
-      const googleEventId = await googleCalendarService.createEvent(newEvent);
-      newEvent.googleEventId = googleEventId;
 
+      let startDate = new Date(selectedDates.start);
+      let endDate = new Date(selectedDates.end);
+
+      // Ensure valid dates
+      if (isNaN(startDate.getTime()) || isNaN(endDate.getTime())) {
+        console.error("Invalid date values:", {
+          start: selectedDates.start,
+          end: selectedDates.end,
+        });
+        throw new Error("Invalid date values");
+      }
+
+      if (!isAllDay) {
+        const [hours, minutes] = selectedTime.split(":").map(Number);
+
+        startDate = new Date(startDate.setHours(hours, minutes, 0, 0));
+        endDate = new Date(startDate.getTime() + 60 * 60 * 1000);
+      } else {
+        startDate = new Date(startDate.setHours(0, 0, 0, 0));
+        endDate = new Date(endDate.setHours(23, 59, 59, 999));
+      }
+
+      const newEvent: CalendarEvent = {
+        id: selectedEvent?.id || createEventId(),
+        title,
+        start: startDate.toISOString(),
+        end: endDate.toISOString(),
+        allDay: isAllDay,
+        googleEventId: selectedEvent?.extendedProps?.googleEventId,
+      };
+      if (newEvent.googleEventId) {
+        await googleCalendarService.updateEvent(newEvent);
+      } else {
+        const googleEventId = await googleCalendarService.createEvent(newEvent);
+        newEvent.googleEventId = googleEventId;
+      }
+
+      if (selectedEvent) {
+        selectedEvent.remove();
+      }
       api.addEvent(newEvent);
       api.unselect();
     } catch (error) {
+      console.error("Event operation error:", error);
       setGoogleState((prev) => ({
         ...prev,
-        error: "Failed to create event in Google Calendar",
+        error: "Failed to save event in Google Calendar",
       }));
     } finally {
       setGoogleState((prev) => ({ ...prev, isLoading: false }));

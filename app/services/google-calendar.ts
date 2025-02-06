@@ -64,7 +64,7 @@ export const createEvent = async (event: CalendarEvent): Promise<string> => {
 
 export const updateEvent = async (event: CalendarEvent): Promise<void> => {
   if (!event.googleEventId) {
-    throw new Error("Google Event ID not found");
+    throw new Error("No Google Event ID provided for update");
   }
 
   await fetchWithAuth("", {

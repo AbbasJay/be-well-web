@@ -39,20 +39,30 @@ export default function CalendarCreateEventModal({
   initialTitle = "",
 }: CalendarCreateEventModalProps) {
   const [title, setTitle] = useState("");
-  const [selectedTime, setSelectedTime] = useState("09:00");
+  const [selectedStartTime, setSelectedStartTime] = useState("");
+  const [selectedEndTime, setSelectedEndTime] = useState("");
   const [timeSlots, setTimeSlots] = useState<string[]>([]);
+  const [showTimeSelectors, setShowTimeSelectors] = useState(false);
 
   useEffect(() => {
-    if (open) {
+    if (!open) {
+      setTitle("");
+      setSelectedStartTime("");
+      setSelectedEndTime("");
+      setShowTimeSelectors(false);
+    } else {
       setTitle(isEditMode ? initialTitle : "");
       const date = new Date(startDate);
       if (view.type !== "dayGridMonth") {
-        setSelectedTime(
-          `${date.getHours().toString().padStart(2, "0")}:${date
-            .getMinutes()
-            .toString()
-            .padStart(2, "0")}`
-        );
+        const timeStr = `${date.getHours().toString().padStart(2, "0")}:${date
+          .getMinutes()
+          .toString()
+          .padStart(2, "0")}`;
+        setSelectedStartTime(timeStr);
+        setSelectedEndTime(timeStr);
+        setShowTimeSelectors(true);
+      } else {
+        setShowTimeSelectors(false);
       }
     }
   }, [open, isEditMode, initialTitle, startDate, view.type]);
@@ -69,11 +79,22 @@ export default function CalendarCreateEventModal({
     setTimeSlots(slots);
   }, []);
 
-  const handleSubmit = () => {
-    if (title.trim()) {
-      onSubmit(title, selectedTime, isAllDay);
-      onOpenChange(false);
-    }
+  const formatEndTimeOptions = () => {
+    const startTimeIndex = timeSlots.indexOf(selectedStartTime);
+    return timeSlots.slice(startTimeIndex + 1).map((endTime, index) => {
+      const duration = (index + 1) * 30;
+      const hours = Math.floor(duration / 60);
+      const minutes = duration % 60;
+      const durationString = `${hours > 0 ? `${hours}hr ` : ""}${
+        minutes > 0 ? `${minutes}min` : ""
+      }`;
+      return `${endTime} (${durationString})`;
+    });
+  };
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    onSubmit(title, selectedStartTime, isAllDay);
   };
 
   const isMonthView = view.type === "dayGridMonth";
@@ -94,26 +115,57 @@ export default function CalendarCreateEventModal({
               className="mt-1"
             />
           </div>
+
           {(isMonthView || !isAllDay) && (
             <div>
-              <label className="text-sm font-medium">Time</label>
-              <Select value={selectedTime} onValueChange={setSelectedTime}>
-                <SelectTrigger className="w-full mt-1">
-                  <SelectValue placeholder="Select time" />
-                </SelectTrigger>
-                <SelectContent>
-                  {timeSlots.map((time) => (
-                    <SelectItem key={time} value={time}>
-                      {time}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+              {!showTimeSelectors ? (
+                <Button onClick={() => setShowTimeSelectors(true)}>
+                  Add Time
+                </Button>
+              ) : (
+                <div className="flex">
+                  <Select
+                    value={selectedStartTime}
+                    onValueChange={setSelectedStartTime}
+                  >
+                    <SelectTrigger className="">
+                      <SelectValue placeholder="" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {timeSlots.map((startTime) => (
+                        <SelectItem key={startTime} value={startTime}>
+                          {startTime}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  <Select
+                    value={selectedEndTime}
+                    onValueChange={setSelectedEndTime}
+                  >
+                    <SelectTrigger className="">
+                      <SelectValue placeholder="" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {formatEndTimeOptions().map((endTime) => (
+                        <SelectItem key={endTime} value={endTime}>
+                          {endTime}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+              )}
             </div>
           )}
+
           <div className="text-sm">
             <p>Date: {new Date(startDate).toLocaleDateString()}</p>
-            {(isMonthView || !isAllDay) && <p>Time: {selectedTime}</p>}
+            {(isMonthView || !isAllDay) && showTimeSelectors && (
+              <p>
+                Time: {selectedStartTime} - {selectedEndTime}
+              </p>
+            )}
           </div>
         </div>
         <DialogFooter className="mt-6">

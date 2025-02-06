@@ -8,6 +8,7 @@ import {
   EventClickArg,
   EventContentArg,
   CalendarApi,
+  EventApi,
 } from "@fullcalendar/core";
 import CalendarCreateEventModal from "../modals/calendar-create-event-modal";
 import CalendarEventActionsModal from "../modals/calendar-event-actions-modal";
@@ -48,6 +49,7 @@ export default function Calendar({ accessToken }: CalendarProps) {
     handleDateSelect,
     handleCreateEvent,
     handleEventDelete,
+    setSelectedEvent,
   } = useCalendarWithGoogle(accessToken, calendarApiRef);
 
   const {
@@ -59,7 +61,6 @@ export default function Calendar({ accessToken }: CalendarProps) {
     setIsDeleteConfirmationModalOpen,
     handleEventActionsDelete,
     handleEventEdit,
-    handleDeleteConfirm,
   } = useCalendarModals();
 
   useEffect(() => {
@@ -98,6 +99,7 @@ export default function Calendar({ accessToken }: CalendarProps) {
   ) => {
     handleCreateEvent(title, selectedTime, isAllDay);
     setIsCreateModalOpen(false);
+    setSelectedEvent(null);
   };
 
   const handleSyncWithGoogle = async () => {
@@ -130,6 +132,33 @@ export default function Calendar({ accessToken }: CalendarProps) {
       <i>{eventInfo.event.title}</i>
     </div>
   );
+
+  const handleModalOpenChange = (open: boolean) => {
+    setIsCreateModalOpen(open);
+    if (!open) {
+      setSelectedEvent(null);
+    }
+  };
+
+  const handleEventActionsModalOpenChange = (open: boolean) => {
+    setIsEventActionsModalOpen(open);
+    if (!open) {
+      setSelectedEvent(null);
+    }
+  };
+
+  const handleDeleteConfirm = (
+    event: EventApi | null,
+    handleEventDelete: (event: EventApi) => void
+  ) => {
+    if (event) {
+      handleEventDelete(event);
+      setIsDeleteConfirmationModalOpen(false);
+      setIsEventActionsModalOpen(false);
+      setSelectedEvent(null);
+      setSelectedDates(null);
+    }
+  };
 
   return (
     <div className="space-y-4">
@@ -192,7 +221,7 @@ export default function Calendar({ accessToken }: CalendarProps) {
       {selectedDates && (
         <CalendarCreateEventModal
           open={isCreateModalOpen}
-          onOpenChange={setIsCreateModalOpen}
+          onOpenChange={handleModalOpenChange}
           onSubmit={handleCreateEventWrapper}
           startDate={selectedDates.start}
           endDate={selectedDates.end}
@@ -206,7 +235,7 @@ export default function Calendar({ accessToken }: CalendarProps) {
       {selectedEvent && (
         <CalendarEventActionsModal
           open={isEventActionsModalOpen && !isDeleteConfirmationModalOpen}
-          onOpenChange={setIsEventActionsModalOpen}
+          onOpenChange={handleEventActionsModalOpenChange}
           event={selectedEvent}
           onDelete={() => handleEventActionsDelete(selectedEvent)}
           onEdit={() =>
