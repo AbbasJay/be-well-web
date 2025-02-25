@@ -115,8 +115,6 @@ export async function POST(request: NextRequest) {
       types.push("gymAndClasses");
     }
 
-    console.log("Types:", types);
-
     const conditions = types.map((type: string) =>
       eq(BusinessesTable.type, type)
     );
