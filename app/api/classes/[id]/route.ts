@@ -45,13 +45,36 @@ export async function PUT(
   { params }: { params: { id: string } }
 ) {
   try {
+    const classId = Number(params.id);
     const updatedData = await req.json();
-    await db
+
+    // If capacity is being updated, we need to adjust slotsLeft
+    if (updatedData.capacity !== undefined) {
+      // Get the current class data
+      const [currentClass] = await db
+        .select()
+        .from(ClassesTable)
+        .where(eq(ClassesTable.id, classId));
+
+      if (!currentClass) {
+        return NextResponse.json({ error: "Class not found" }, { status: 404 });
+      }
+
+      const bookedSlots = currentClass.capacity - currentClass.slotsLeft;
+
+      updatedData.slotsLeft = Math.max(0, updatedData.capacity - bookedSlots);
+    }
+
+    const [updatedClass] = await db
       .update(ClassesTable)
       .set(updatedData)
-      .where(eq(ClassesTable.id, Number(params.id)));
+      .where(eq(ClassesTable.id, classId))
+      .returning();
 
-    return NextResponse.json({ message: "Class updated successfully" });
+    return NextResponse.json({
+      message: "Class updated successfully",
+      class: updatedClass,
+    });
   } catch (error) {
     console.error("Error updating class:", error);
     return NextResponse.json(

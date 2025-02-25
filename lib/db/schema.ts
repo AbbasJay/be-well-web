@@ -85,6 +85,34 @@ export const ClassesTable = pgTable(
 
 export type Class = typeof ClassesTable.$inferInsert;
 
+export const BookingsTable = pgTable(
+  "bookings",
+  {
+    id: serial("id").primaryKey().notNull(),
+    userId: integer("user_id").notNull(),
+    classId: integer("class_id").notNull(),
+    status: text("status")
+      .notNull()
+      .$type<"active" | "cancelled">()
+      .default("active"),
+    createdAt: timestamp("created_at").defaultNow().notNull(),
+    cancelledAt: timestamp("cancelled_at"),
+    cancellationReason: text("cancellation_reason"),
+  },
+  (bookings) => ({
+    userIdFk: foreignKey({
+      columns: [bookings.userId],
+      foreignColumns: [UsersTable.id],
+    }),
+    classIdFk: foreignKey({
+      columns: [bookings.classId],
+      foreignColumns: [ClassesTable.id],
+    }).onDelete("cascade"),
+  })
+);
+
+export type Booking = typeof BookingsTable.$inferInsert;
+
 export const NotificationsTable = pgTable(
   "notifications",
   {

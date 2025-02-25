@@ -56,7 +56,7 @@ export const authOptions: AuthOptions = {
       return token;
     },
     async session({ session, token }) {
-      if (session.user) {
+      if (token.id) {
         session.user.id = token.id as string;
       }
       return session;
@@ -66,4 +66,5 @@ export const authOptions: AuthOptions = {
     signIn: "/auth",
     error: "/auth",
   },
+  secret: process.env.NEXTAUTH_SECRET,
 };

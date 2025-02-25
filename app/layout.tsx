@@ -1,12 +1,10 @@
-import type { Metadata } from "next";
-import "./globals.css";
-import { Providers } from "./providers";
-import ClientLayout from "./ClientLayout";
+"use client";
 
-export const metadata: Metadata = {
-  title: "BeWell",
-  description: "Your wellness platform",
-};
+import "./globals.css";
+
+import { CalendarProvider } from "./contexts/CalendarContext";
+import ClientLayout from "./ClientLayout";
+import { Providers } from "./providers";
 
 export default function RootLayout({
   children,
@@ -17,7 +15,9 @@ export default function RootLayout({
     <html lang="en">
       <body>
         <Providers>
-          <ClientLayout>{children}</ClientLayout>
+          <CalendarProvider>
+            <ClientLayout>{children}</ClientLayout>
+          </CalendarProvider>
         </Providers>
       </body>
     </html>
