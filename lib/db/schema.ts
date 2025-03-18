@@ -8,7 +8,10 @@ import {
   foreignKey,
   numeric,
   boolean,
+  check,
 } from "drizzle-orm/pg-core";
+
+import { sql } from "drizzle-orm";
 
 export const UsersTable = pgTable(
   "users",
@@ -153,3 +156,28 @@ export const NotificationType = {
 export type NotificationType =
   (typeof NotificationType)[keyof typeof NotificationType];
 export type Notification = typeof NotificationsTable.$inferInsert;
+
+export const RatingsTable = pgTable(
+  "ratings",
+  {
+    id: serial("id").primaryKey().notNull(),
+    userId: integer("user_id").notNull(),
+    businessId: integer("business_id").notNull(),
+    rating: integer("rating").notNull(),
+    review: text("review"),
+    createdAt: timestamp("created_at").defaultNow().notNull(),
+  },
+  (ratings) => ({
+    userIdFk: foreignKey({
+      columns: [ratings.userId],
+      foreignColumns: [UsersTable.id],
+    }),
+    businessIdFk: foreignKey({
+      columns: [ratings.businessId],
+      foreignColumns: [BusinessesTable.id],
+    }),
+    checkRating: check("check_rating", sql`${ratings.rating} >= 1 AND ${ratings.rating} <= 5`),
+  })
+);
+
+export type Rating = typeof RatingsTable.$inferInsert;
