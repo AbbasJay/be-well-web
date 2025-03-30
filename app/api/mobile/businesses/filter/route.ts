@@ -119,6 +119,12 @@ export async function POST(request: NextRequest) {
       eq(BusinessesTable.type, type)
     );
 
+    //return empry array if no types are provided
+    if (types.length === 0) {
+      return NextResponse.json([], { status: 200 });
+    }
+
+
     // get the businesses that match the filtering criteria
     const businesses = await db
       .select()
@@ -131,7 +137,7 @@ export async function POST(request: NextRequest) {
     // and filter out businesses that are beyond the maximum distance
     // from the user
     // we use haversine formula to calculate the distance
-    const filtered_businesses = businesses.filter(
+    let filtered_businesses = businesses.filter(
       (business) =>
         calculateDistance(
           parseFloat(business.latitude!),
@@ -142,6 +148,27 @@ export async function POST(request: NextRequest) {
     );
 
     console.log(filtered_businesses);
+    
+    //if no businesses are found return top 5 closest businesses
+    if (filtered_businesses.length === 0) {
+      filtered_businesses = businesses
+        .sort(
+          (a, b) =>
+            calculateDistance(
+              parseFloat(a.latitude!),
+              parseFloat(a.longitude!),
+              lat,
+              lng
+            ) -
+            calculateDistance(
+              parseFloat(b.latitude!),
+              parseFloat(b.longitude!),
+              lat,
+              lng
+            )
+        )
+        .slice(0, 5);
+    }
 
     // return the filtered businesses
     return NextResponse.json(filtered_businesses, { status: 200 });
