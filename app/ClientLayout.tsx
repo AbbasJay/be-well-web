@@ -1,29 +1,25 @@
 "use client";
 
-import { useState } from "react";
 import Header from "@/components/Header";
 import SideNav from "@/components/SideNav";
+import { useSession } from "next-auth/react";
 
 export default function ClientLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
-  const [isNavOpen, setIsNavOpen] = useState(false);
-
-  const toggleNav = () => {
-    setIsNavOpen(!isNavOpen);
-  };
-
+  const { data: session, status } = useSession();
+  const isAuthenticated = !!session;
   return (
     <div className="min-h-screen">
-      <Header toggleNav={toggleNav} isNavOpen={isNavOpen} />
+      <Header />
       <div className="pt-[72px]">
-        <SideNav isOpen={isNavOpen} setIsOpen={setIsNavOpen} />
+        {isAuthenticated && <SideNav isOpen={true} setIsOpen={() => {}} />}
         <main
-          className={`p-4 ${
-            isNavOpen ? "ml-64" : "ml-0"
-          } transition-all duration-300`}
+          className={`p-4 transition-all duration-300${
+            isAuthenticated ? " ml-64" : ""
+          }`}
         >
           {children}
         </main>

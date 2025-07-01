@@ -1,6 +1,7 @@
 "use client";
 
 import { useSession } from "next-auth/react";
+import { useRouter } from "next/navigation";
 import Calendar from "../components/calendar/Calendar";
 import { Button } from "@/components/ui/button";
 import { Loader2 } from "lucide-react";
@@ -9,11 +10,13 @@ import { useSearchParams } from "next/navigation";
 
 const CalendarPageContent = () => {
   const { data: session, status } = useSession();
+  const router = useRouter();
   const [googleToken, setGoogleToken] = useState<string | null>(null);
   const [isConnecting, setIsConnecting] = useState(false);
   const [isCheckingToken, setIsCheckingToken] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const searchParams = useSearchParams();
+  const [isSigningOut, setIsSigningOut] = useState(false);
 
   useEffect(() => {
     const urlError = searchParams.get("error");
@@ -84,6 +87,24 @@ const CalendarPageContent = () => {
     }
   };
 
+  const handleSignOutGoogle = async () => {
+    setIsSigningOut(true);
+    setError(null);
+    try {
+      const response = await fetch("/api/calendar/auth", { method: "DELETE" });
+      if (response.ok) {
+        setGoogleToken(null);
+        router.replace(window.location.pathname + window.location.search);
+      } else {
+        setError("Failed to sign out of Google Calendar");
+      }
+    } catch (error) {
+      setError("Failed to sign out of Google Calendar");
+    } finally {
+      setIsSigningOut(false);
+    }
+  };
+
   if (!googleToken) {
     return (
       <div className="flex flex-col items-center justify-center min-h-[60vh] space-y-4">
@@ -107,7 +128,23 @@ const CalendarPageContent = () => {
     );
   }
 
-  return <Calendar accessToken={googleToken} />;
+  return (
+    <>
+      <div className="flex justify-end mb-4">
+        <Button
+          variant="outline"
+          onClick={handleSignOutGoogle}
+          disabled={isSigningOut}
+        >
+          {isSigningOut ? (
+            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+          ) : null}
+          Sign out of Google Calendar
+        </Button>
+      </div>
+      <Calendar accessToken={googleToken} />
+    </>
+  );
 };
 
 export default function CalendarPage() {

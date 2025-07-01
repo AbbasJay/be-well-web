@@ -11,14 +11,7 @@ import { useEffect, useState, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import { Business, Class } from "@/lib/db/schema";
 import { useSession } from "next-auth/react";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardFooter,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
 import {
@@ -33,6 +26,7 @@ import { DeleteDialog } from "@/components/dialogs/delete-dialog";
 import Image from "next/image";
 import { ClassForm } from "@/components/forms/class-form";
 import { formatClassDateTime } from "@/app/utils/calendar";
+import GoogleCalendarPrompt from "@/app/components/calendar/GoogleCalendarPrompt";
 
 export default function BusinessDetailsPage({
   params,
@@ -44,10 +38,6 @@ export default function BusinessDetailsPage({
   const [loading, setLoading] = useState(true);
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
   const [dialogOpen, setDialogOpen] = useState(false);
-  const [selectedImage, setSelectedImage] = useState<{
-    url: string;
-    alt: string;
-  } | null>(null);
   const [editClass, setEditClass] = useState<Class | null>(null);
   const [editDialogOpen, setEditDialogOpen] = useState(false);
   const router = useRouter();
@@ -72,6 +62,20 @@ export default function BusinessDetailsPage({
 
     if (session) {
       fetchBusiness();
+    }
+
+    // Auto-open Add Class modal if ?addClass=1 is present in the URL after hydration
+    if (typeof window !== "undefined") {
+      const params = new URLSearchParams(window.location.search);
+      if (params.get("addClass") === "1") {
+        setDialogOpen(true);
+        // Clean up the URL (remove addClass param)
+        params.delete("addClass");
+        const newUrl =
+          window.location.pathname +
+          (params.toString() ? `?${params.toString()}` : "");
+        window.history.replaceState({}, "", newUrl);
+      }
     }
   }, [params.id, router, session]);
 
@@ -202,6 +206,7 @@ export default function BusinessDetailsPage({
                   automatically create a calendar event.
                 </DialogDescription>
               </DialogHeader>
+              <GoogleCalendarPrompt />
               <ClassForm
                 businessId={business.id}
                 onSuccess={() => {
@@ -234,6 +239,7 @@ export default function BusinessDetailsPage({
                     automatically create a calendar event.
                   </DialogDescription>
                 </DialogHeader>
+                <GoogleCalendarPrompt />
                 <ClassForm
                   businessId={business.id}
                   onSuccess={() => {
