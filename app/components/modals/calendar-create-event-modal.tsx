@@ -18,7 +18,6 @@ import { ViewApi } from "@fullcalendar/core";
 import {
   PlusCircle,
   Edit,
-  X,
   Calendar as CalendarIcon,
   Clock,
 } from "lucide-react";
