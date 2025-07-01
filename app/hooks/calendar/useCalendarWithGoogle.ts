@@ -53,7 +53,8 @@ export function useCalendarWithGoogle(
 
   const handleCreateEvent = async (
     title: string,
-    selectedTime: string,
+    selectedStartTime: string,
+    selectedEndTime: string,
     isAllDay: boolean
   ) => {
     const api = calendarApiRef?.current;
@@ -62,6 +63,7 @@ export function useCalendarWithGoogle(
     try {
       setGoogleState((prev) => ({ ...prev, isLoading: true }));
 
+      // Parse the UTC dates from FullCalendar
       let startDate = new Date(selectedDates.start);
       let endDate = new Date(selectedDates.end);
 
@@ -75,20 +77,84 @@ export function useCalendarWithGoogle(
       }
 
       if (!isAllDay) {
-        const [hours, minutes] = selectedTime.split(":").map(Number);
+        const [startHours, startMinutes] = selectedStartTime
+          .split(":")
+          .map(Number);
+        const [endHours, endMinutes] = selectedEndTime.split(":").map(Number);
 
-        startDate = new Date(startDate.setHours(hours, minutes, 0, 0));
-        endDate = new Date(startDate.getTime() + 60 * 60 * 1000);
+        // Use local Y/M/D, not UTC, to avoid timezone shift bugs
+        const localStartDate = new Date(
+          startDate.getFullYear(),
+          startDate.getMonth(),
+          startDate.getDate(),
+          startHours,
+          startMinutes,
+          0,
+          0
+        );
+
+        // If end time is before or equal to start time, increment the day for end date
+        let endDay = startDate.getDate();
+        if (
+          endHours < startHours ||
+          (endHours === startHours && endMinutes <= startMinutes)
+        ) {
+          endDay += 1;
+        }
+
+        const localEndDate = new Date(
+          startDate.getFullYear(),
+          startDate.getMonth(),
+          endDay,
+          endHours,
+          endMinutes,
+          0,
+          0
+        );
+
+        startDate = localStartDate;
+        endDate = localEndDate;
       } else {
-        startDate = new Date(startDate.setHours(0, 0, 0, 0));
-        endDate = new Date(endDate.setHours(23, 59, 59, 999));
+        // For all-day events, use only the start date and create a single-day event
+        const localStartDate = new Date(
+          startDate.getFullYear(),
+          startDate.getMonth(),
+          startDate.getDate(),
+          0,
+          0,
+          0,
+          0
+        );
+
+        // End date should be the same day, just before midnight
+        const localEndDate = new Date(
+          startDate.getFullYear(),
+          startDate.getMonth(),
+          startDate.getDate(),
+          23,
+          59,
+          59,
+          999
+        );
+
+        startDate = localStartDate;
+        endDate = localEndDate;
       }
 
       const newEvent: CalendarEvent = {
         id: selectedEvent?.id || createEventId(),
         title,
-        start: startDate.toISOString(),
-        end: endDate.toISOString(),
+        start: isAllDay
+          ? `${startDate.getFullYear()}-${String(
+              startDate.getMonth() + 1
+            ).padStart(2, "0")}-${String(startDate.getDate()).padStart(2, "0")}`
+          : startDate.toISOString(),
+        end: isAllDay
+          ? `${endDate.getFullYear()}-${String(endDate.getMonth() + 1).padStart(
+              2,
+              "0"
+            )}-${String(endDate.getDate()).padStart(2, "0")}`
+          : endDate.toISOString(),
         allDay: isAllDay,
         googleEventId: selectedEvent?.extendedProps?.googleEventId,
       };

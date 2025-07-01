@@ -94,10 +94,11 @@ export default function Calendar({ accessToken }: CalendarProps) {
 
   const handleCreateEventWrapper = (
     title: string,
-    selectedTime: string,
+    selectedStartTime: string,
+    selectedEndTime: string,
     isAllDay: boolean
   ) => {
-    handleCreateEvent(title, selectedTime, isAllDay);
+    handleCreateEvent(title, selectedStartTime, selectedEndTime, isAllDay);
     setIsCreateModalOpen(false);
     setSelectedEvent(null);
   };
@@ -215,6 +216,7 @@ export default function Calendar({ accessToken }: CalendarProps) {
           defaultTimedEventDuration="01:00:00"
           displayEventTime={true}
           displayEventEnd={true}
+          timeZone={Intl.DateTimeFormat().resolvedOptions().timeZone}
         />
       </div>
 

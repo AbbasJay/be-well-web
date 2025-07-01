@@ -19,7 +19,12 @@ import { ViewApi } from "@fullcalendar/core";
 interface CalendarCreateEventModalProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  onSubmit: (title: string, selectedTime: string, isAllDay: boolean) => void;
+  onSubmit: (
+    title: string,
+    selectedStartTime: string,
+    selectedEndTime: string,
+    isAllDay: boolean
+  ) => void;
   startDate: string;
   endDate: string;
   isAllDay: boolean;
@@ -62,6 +67,7 @@ export default function CalendarCreateEventModal({
   const [selectedEndTime, setSelectedEndTime] = useState("");
   const [timeSlots, setTimeSlots] = useState<string[]>([]);
   const [showTimeSelectors, setShowTimeSelectors] = useState(false);
+  const [isAllDayEvent, setIsAllDayEvent] = useState(isAllDay);
 
   useEffect(() => {
     if (!open) {
@@ -69,25 +75,37 @@ export default function CalendarCreateEventModal({
       const initialStartTime = formatSelectedStartTime();
       setSelectedStartTime(initialStartTime);
       const startIndex = timeSlots.indexOf(initialStartTime);
-      const nextSlot = timeSlots[startIndex + 1] || "";
+      const nextSlot = timeSlots[startIndex + 1] || timeSlots[0] || "00:30";
       setSelectedEndTime(nextSlot);
       setShowTimeSelectors(false);
+      setIsAllDayEvent(isAllDay);
     } else {
       setTitle(isEditMode ? initialTitle : "");
+      setIsAllDayEvent(isAllDay);
       const date = new Date(startDate);
-      if (view.type !== "dayGridMonth") {
+      if (view.type !== "dayGridMonth" && !isAllDay) {
         const timeStr = `${date.getHours().toString().padStart(2, "0")}:${date
           .getMinutes()
           .toString()
           .padStart(2, "0")}`;
         setSelectedStartTime(timeStr);
-        setSelectedEndTime(timeSlots[timeSlots.indexOf(timeStr) + 1] || "");
+        const startIndex = timeSlots.indexOf(timeStr);
+        const nextSlot = timeSlots[startIndex + 1] || timeSlots[0] || "00:30";
+        setSelectedEndTime(nextSlot);
         setShowTimeSelectors(true);
       } else {
         setShowTimeSelectors(false);
       }
     }
-  }, [open, isEditMode, initialTitle, startDate, view.type, timeSlots]);
+  }, [
+    open,
+    isEditMode,
+    initialTitle,
+    startDate,
+    view.type,
+    timeSlots,
+    isAllDay,
+  ]);
 
   useEffect(() => {
     const slots = [];
@@ -104,7 +122,7 @@ export default function CalendarCreateEventModal({
   useEffect(() => {
     if (showTimeSelectors && selectedStartTime) {
       const startIndex = timeSlots.indexOf(selectedStartTime);
-      const nextSlot = timeSlots[startIndex + 1] || "";
+      const nextSlot = timeSlots[startIndex + 1] || timeSlots[0] || "00:30";
       setSelectedEndTime(nextSlot);
     }
   }, [selectedStartTime, timeSlots, showTimeSelectors]);
@@ -130,10 +148,8 @@ export default function CalendarCreateEventModal({
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    onSubmit(title, selectedStartTime, isAllDay);
+    onSubmit(title, selectedStartTime, selectedEndTime, isAllDayEvent);
   };
-
-  const isMonthView = view.type === "dayGridMonth";
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -152,7 +168,23 @@ export default function CalendarCreateEventModal({
             />
           </div>
 
-          {(isMonthView || !isAllDay) && (
+          <div className="flex items-center space-x-2">
+            <input
+              type="checkbox"
+              id="allDay"
+              checked={isAllDayEvent}
+              onChange={(e) => {
+                setIsAllDayEvent(e.target.checked);
+                setShowTimeSelectors(!e.target.checked);
+              }}
+              className="rounded border-gray-300"
+            />
+            <label htmlFor="allDay" className="text-sm font-medium">
+              All Day
+            </label>
+          </div>
+
+          {!isAllDayEvent && (
             <div>
               {!showTimeSelectors ? (
                 <Button onClick={() => setShowTimeSelectors(true)}>
@@ -205,7 +237,7 @@ export default function CalendarCreateEventModal({
 
           <div className="text-sm">
             <p>Date: {new Date(startDate).toLocaleDateString()}</p>
-            {(isMonthView || !isAllDay) && showTimeSelectors && (
+            {!isAllDayEvent && showTimeSelectors && (
               <p>
                 Time: {selectedStartTime} - {selectedEndTime}
               </p>
