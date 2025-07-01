@@ -47,30 +47,36 @@ export const ClassForm: React.FC<ClassFormProps> = ({
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    try {
-      const method = initialData?.id ? "PUT" : "POST";
-      const url = initialData?.id
-        ? `/api/classes/${initialData.id}`
-        : `/api/classes`;
 
-      const response = await fetch(url, {
-        method,
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(formData),
-      });
+    // Call the parent's onSubmit handler instead of making the API call directly
+    if (onSubmit) {
+      onSubmit(formData);
+    } else {
+      // Fallback to direct API call if no onSubmit handler is provided
+      try {
+        const method = initialData?.id ? "PUT" : "POST";
+        const url = initialData?.id
+          ? `/api/classes/${initialData.id}`
+          : `/api/classes`;
 
-      if (!response.ok) {
-        throw new Error(
-          `Failed to ${method === "POST" ? "create" : "update"} class`
-        );
+        const response = await fetch(url, {
+          method,
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(formData),
+        });
+
+        if (!response.ok) {
+          throw new Error(
+            `Failed to ${method === "POST" ? "create" : "update"} class`
+          );
+        }
+
+        onSuccess?.();
+      } catch (error) {
+        console.error("Error submitting class form:", error);
       }
-
-      onSuccess?.();
-      onSubmit?.(formData);
-    } catch (error) {
-      console.error("Error submitting class form:", error);
     }
   };
 

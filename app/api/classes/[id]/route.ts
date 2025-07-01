@@ -2,6 +2,14 @@ import { db } from "@/lib/db/db";
 import { ClassesTable } from "@/lib/db/schema";
 import { eq } from "drizzle-orm";
 import { NextResponse } from "next/server";
+import {
+  createEventFromClassServer,
+  updateEventFromClassServer,
+  deleteEventFromClassServer,
+} from "@/app/services/google-calendar-server";
+import { getServerSession } from "next-auth";
+import { authOptions } from "../../auth/[...nextauth]/auth";
+import { cookies } from "next/headers";
 
 export async function GET(
   req: Request,
@@ -28,7 +36,56 @@ export async function DELETE(
   { params }: { params: { id: string } }
 ) {
   try {
-    await db.delete(ClassesTable).where(eq(ClassesTable.id, Number(params.id)));
+    const classId = Number(params.id);
+
+    // Get the class data before deleting for calendar event cleanup
+    const [classToDelete] = await db
+      .select()
+      .from(ClassesTable)
+      .where(eq(ClassesTable.id, classId));
+
+    await db.delete(ClassesTable).where(eq(ClassesTable.id, classId));
+
+    // Delete the associated calendar event if it exists
+    if (classToDelete?.googleEventId) {
+      try {
+        const session = await getServerSession(authOptions);
+        if (session?.user?.id) {
+          const cookieStore = cookies();
+          const tokensCookie = cookieStore.get(
+            `google_calendar_tokens_${session.user.id}`
+          );
+          const existingTokens = tokensCookie
+            ? JSON.parse(tokensCookie.value)
+            : null;
+
+          if (existingTokens?.access_token) {
+            const deleteSuccess = await deleteEventFromClassServer(
+              existingTokens.access_token,
+              classToDelete.googleEventId
+            );
+            if (deleteSuccess) {
+              console.log(
+                `Calendar event deleted for class: ${classToDelete.name}`
+              );
+            } else {
+              console.log(
+                `Failed to delete calendar event for class: ${classToDelete.name}`
+              );
+            }
+          }
+        }
+      } catch (calendarError) {
+        console.error(
+          "Failed to delete calendar event for class:",
+          calendarError
+        );
+      }
+    } else if (classToDelete) {
+      console.log(
+        `Class "${classToDelete.name}" deleted. No calendar event to clean up.`
+      );
+    }
 
     return NextResponse.json({ message: "Class deleted successfully" });
   } catch (error) {
@@ -70,6 +127,70 @@ export async function PUT(
       .set(updatedData)
       .where(eq(ClassesTable.id, classId))
       .returning();
+
+    // Try to update the calendar event for the updated class
+    try {
+      const session = await getServerSession(authOptions);
+      if (session?.user?.id) {
+        const cookieStore = cookies();
+        const tokensCookie = cookieStore.get(
+          `google_calendar_tokens_${session.user.id}`
+        );
+        const existingTokens = tokensCookie
+          ? JSON.parse(tokensCookie.value)
+          : null;
+
+        if (existingTokens?.access_token) {
+          // Check if we have a Google Event ID stored for this class
+          if (updatedClass.googleEventId) {
+            // Update the existing calendar event
+            const updateSuccess = await updateEventFromClassServer(
+              updatedClass,
+              existingTokens.access_token,
+              updatedClass.googleEventId
+            );
+            if (updateSuccess) {
+              console.log(
+                `Calendar event updated for class: ${updatedClass.name}`
+              );
+            } else {
+              console.log(
+                `Failed to update calendar event for class: ${updatedClass.name}`
+              );
+            }
+          } else {
+            // Create a new calendar event if we don't have an existing one
+            const calendarEventId = await createEventFromClassServer(
+              updatedClass,
+              existingTokens.access_token
+            );
+            if (calendarEventId) {
+              console.log(
+                `New calendar event created with ID: ${calendarEventId}`
+              );
+
+              // Store the Google Event ID in the database
+              await db
+                .update(ClassesTable)
+                .set({ googleEventId: calendarEventId })
+                .where(eq(ClassesTable.id, updatedClass.id));
+
+              console.log(
+                `Stored Google Event ID for class ${updatedClass.id}`
+              );
+            }
+          }
+        } else {
+          console.log("No Google Calendar access token found for user");
+        }
+      }
+    } catch (calendarError) {
+      console.error(
+        "Failed to update calendar event for class:",
+        calendarError
+      );
+      // Don't fail the class update if calendar event update fails
+    }
 
     return NextResponse.json({
       message: "Class updated successfully",

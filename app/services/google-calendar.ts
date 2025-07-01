@@ -1,4 +1,5 @@
 import { CalendarEvent } from "../types/calendar";
+import { Class } from "@/lib/db/schema";
 
 const fetchWithAuth = async (
   endpoint: string,
@@ -78,4 +79,25 @@ export const deleteEvent = async (googleEventId: string): Promise<void> => {
     method: "DELETE",
     body: JSON.stringify({ eventId: googleEventId }),
   });
+};
+
+export const createEventFromClass = async (
+  classData: Partial<Class>
+): Promise<string | null> => {
+  try {
+    // Import the utility function
+    const { createCalendarEventFromClass } = await import("../utils/calendar");
+
+    // Create calendar event from class data
+    const calendarEvent = createCalendarEventFromClass(classData);
+
+    // Create the event in Google Calendar
+    const googleEventId = await createEvent(calendarEvent);
+
+    console.log(`Calendar event created for class: ${classData.name}`);
+    return googleEventId;
+  } catch (error) {
+    console.error("Error creating calendar event from class:", error);
+    return null;
+  }
 };
