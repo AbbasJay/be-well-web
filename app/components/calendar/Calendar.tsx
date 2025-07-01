@@ -273,35 +273,35 @@ export default function Calendar({ accessToken }: CalendarProps) {
                 </TooltipTrigger>
                 <TooltipContent>Today</TooltipContent>
               </Tooltip>
-              <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                  <Tooltip>
-                    <TooltipTrigger asChild>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
                       <button className="rounded-full p-2 hover:bg-accent transition">
                         <Grid className="w-5 h-5" />
                       </button>
-                    </TooltipTrigger>
-                    <TooltipContent>Change View</TooltipContent>
-                  </Tooltip>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent align="end">
-                  <DropdownMenuItem
-                    onClick={() => handleViewChange("dayGridMonth")}
-                  >
-                    Month View
-                  </DropdownMenuItem>
-                  <DropdownMenuItem
-                    onClick={() => handleViewChange("timeGridWeek")}
-                  >
-                    Week View
-                  </DropdownMenuItem>
-                  <DropdownMenuItem
-                    onClick={() => handleViewChange("timeGridDay")}
-                  >
-                    Day View
-                  </DropdownMenuItem>
-                </DropdownMenuContent>
-              </DropdownMenu>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent align="end">
+                      <DropdownMenuItem
+                        onClick={() => handleViewChange("dayGridMonth")}
+                      >
+                        Month View
+                      </DropdownMenuItem>
+                      <DropdownMenuItem
+                        onClick={() => handleViewChange("timeGridWeek")}
+                      >
+                        Week View
+                      </DropdownMenuItem>
+                      <DropdownMenuItem
+                        onClick={() => handleViewChange("timeGridDay")}
+                      >
+                        Day View
+                      </DropdownMenuItem>
+                    </DropdownMenuContent>
+                  </DropdownMenu>
+                </TooltipTrigger>
+                <TooltipContent>Change View</TooltipContent>
+              </Tooltip>
               {accessToken && (
                 <Tooltip>
                   <TooltipTrigger asChild>
