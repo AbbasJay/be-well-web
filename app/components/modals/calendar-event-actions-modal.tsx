@@ -7,6 +7,8 @@ import {
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { EventApi } from "@fullcalendar/core";
+import { Edit, Trash2, X, Calendar as CalendarIcon, Clock } from "lucide-react";
+import { Badge } from "@/components/ui/badge";
 
 interface CalendarEventActionsModalProps {
   open: boolean;
@@ -63,13 +65,35 @@ export default function CalendarEventActionsModal({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent>
-        <DialogTitle>Current Event: {event?.title}</DialogTitle>
-        <div className="whitespace-pre-line">{formatEventTime()}</div>
-        <DialogFooter>
-          <Button onClick={() => onOpenChange(false)}>Cancel</Button>
-          <Button onClick={onEdit}>Edit</Button>
-          <Button variant="destructive" onClick={onDelete}>
+      <DialogContent className="sm:max-w-[400px] rounded-2xl p-6 flex flex-col items-center justify-center">
+        <div className="flex items-center gap-2 mb-2 w-full">
+          <CalendarIcon className="w-6 h-6 text-blue-600" />
+          <DialogTitle className="text-xl font-bold tracking-tight flex-1">
+            {event?.title}
+          </DialogTitle>
+        </div>
+        <div className="whitespace-pre-line text-base text-muted-foreground flex items-center gap-2 mb-4 w-full">
+          <Clock className="w-4 h-4" />
+          <span>{formatEventTime()}</span>
+        </div>
+        <DialogFooter className="flex gap-2 mt-6 w-full">
+          <Button
+            onClick={() => onOpenChange(false)}
+            variant="outline"
+            className="w-1/3"
+          >
+            Close
+          </Button>
+          <Button onClick={onEdit} className="w-1/3 flex items-center gap-1">
+            <Edit className="w-4 h-4" />
+            Edit
+          </Button>
+          <Button
+            variant="destructive"
+            onClick={onDelete}
+            className="w-1/3 flex items-center gap-1"
+          >
+            <Trash2 className="w-4 h-4" />
             Delete
           </Button>
         </DialogFooter>

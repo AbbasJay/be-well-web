@@ -15,6 +15,14 @@ import {
 } from "@/components/ui/select";
 import { useState, useEffect } from "react";
 import { ViewApi } from "@fullcalendar/core";
+import {
+  PlusCircle,
+  Edit,
+  X,
+  Calendar as CalendarIcon,
+  Clock,
+} from "lucide-react";
+import { Badge } from "@/components/ui/badge";
 
 interface CalendarCreateEventModalProps {
   open: boolean;
@@ -153,22 +161,28 @@ export default function CalendarCreateEventModal({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-[425px]">
-        <DialogTitle>
-          {isEditMode ? "Edit Event" : "Create New Event"}
-        </DialogTitle>
-        <div className="space-y-4">
+      <DialogContent className="sm:max-w-[480px] rounded-2xl p-6 flex flex-col items-center justify-center">
+        <div className="flex items-center gap-2 mb-2 w-full">
+          {isEditMode ? (
+            <Edit className="w-6 h-6 text-blue-600" />
+          ) : (
+            <PlusCircle className="w-6 h-6 text-green-600" />
+          )}
+          <DialogTitle className="text-xl font-bold tracking-tight flex-1">
+            {isEditMode ? "Edit Event" : "Create New Event"}
+          </DialogTitle>
+        </div>
+        <div className="space-y-5 w-full">
           <div>
-            <label className="text-sm font-medium">Event Title</label>
+            <label className="text-sm font-semibold">Event Title</label>
             <Input
               value={title}
               onChange={(e) => setTitle(e.target.value)}
               placeholder="Enter event title"
-              className="mt-1"
+              className="mt-2 text-base px-3 py-2 rounded-lg border border-border focus:ring-2 focus:ring-blue-200"
             />
           </div>
-
-          <div className="flex items-center space-x-2">
+          <div className="flex items-center gap-3">
             <input
               type="checkbox"
               id="allDay"
@@ -177,26 +191,29 @@ export default function CalendarCreateEventModal({
                 setIsAllDayEvent(e.target.checked);
                 setShowTimeSelectors(!e.target.checked);
               }}
-              className="rounded border-gray-300"
+              className="rounded border-gray-300 accent-blue-500 w-5 h-5"
             />
             <label htmlFor="allDay" className="text-sm font-medium">
               All Day
             </label>
           </div>
-
           {!isAllDayEvent && (
             <div>
               {!showTimeSelectors ? (
-                <Button onClick={() => setShowTimeSelectors(true)}>
+                <Button
+                  onClick={() => setShowTimeSelectors(true)}
+                  className="w-full flex items-center gap-2"
+                >
+                  <Clock className="w-4 h-4" />
                   Add Time
                 </Button>
               ) : (
-                <div className="flex">
+                <div className="flex gap-2">
                   <Select
                     value={selectedStartTime}
                     onValueChange={setSelectedStartTime}
                   >
-                    <SelectTrigger className="">
+                    <SelectTrigger className="w-28">
                       <SelectValue placeholder={formatSelectedStartTime()} />
                     </SelectTrigger>
                     <SelectContent>
@@ -207,14 +224,11 @@ export default function CalendarCreateEventModal({
                       ))}
                     </SelectContent>
                   </Select>
-
                   <Select
                     value={selectedEndTime}
-                    onValueChange={(newEndTime) =>
-                      setSelectedEndTime(newEndTime)
-                    }
+                    onValueChange={setSelectedEndTime}
                   >
-                    <SelectTrigger className="">
+                    <SelectTrigger className="w-28">
                       <SelectValue
                         placeholder={
                           timeSlots[timeSlots.indexOf(selectedStartTime) + 1] ||
@@ -234,21 +248,26 @@ export default function CalendarCreateEventModal({
               )}
             </div>
           )}
-
-          <div className="text-sm">
-            <p>Date: {new Date(startDate).toLocaleDateString()}</p>
+          <div className="flex items-center gap-2 text-sm text-muted-foreground">
+            <CalendarIcon className="w-4 h-4" />
+            <span>Date: {new Date(startDate).toLocaleDateString()}</span>
             {!isAllDayEvent && showTimeSelectors && (
-              <p>
-                Time: {selectedStartTime} - {selectedEndTime}
-              </p>
+              <Badge className="ml-2 bg-blue-100 text-blue-700">
+                <Clock className="w-3 h-3 mr-1" />
+                {selectedStartTime} - {selectedEndTime}
+              </Badge>
             )}
           </div>
         </div>
-        <DialogFooter className="mt-6">
-          <Button variant="outline" onClick={() => onOpenChange(false)}>
+        <DialogFooter className="mt-8 flex gap-2 w-full">
+          <Button
+            variant="outline"
+            onClick={() => onOpenChange(false)}
+            className="w-1/2"
+          >
             Cancel
           </Button>
-          <Button onClick={handleSubmit}>
+          <Button onClick={handleSubmit} className="w-1/2">
             {isEditMode ? "Save Changes" : "Create Event"}
           </Button>
         </DialogFooter>
