@@ -29,7 +29,6 @@ import {
   RefreshCw,
   ChevronLeft,
   ChevronRight,
-  UserCircle2,
   PlusCircle,
   List,
   Grid,
@@ -235,21 +234,33 @@ export default function Calendar({ accessToken }: CalendarProps) {
   return (
     <div className="flex flex-col h-[calc(100vh-120px)]">
       <div className="flex flex-col gap-2 mb-4">
-        <div className="flex items-center justify-between gap-4 py-2 px-2 rounded-xl bg-white border border-border">
-          <div className="flex items-center gap-2">
-            <CalendarIcon className="w-7 h-7 text-blue-600" />
-            <span className="text-2xl font-bold tracking-tight">
-              My Calendar
-            </span>
-            <span className="text-muted-foreground text-lg font-medium ml-2">
-              {currentDate.toLocaleDateString(undefined, {
-                month: "long",
-                year: "numeric",
-              })}
-            </span>
-          </div>
-          <div className="flex items-center gap-2">
-            <TooltipProvider>
+        <TooltipProvider>
+          <div className="flex items-center justify-between gap-4 py-2 px-2 rounded-xl bg-white border border-border">
+            <div className="flex items-center gap-2">
+              <CalendarIcon className="w-7 h-7 text-blue-600" />
+              <span className="text-2xl font-bold tracking-tight">
+                My Calendar
+              </span>
+              <span className="text-muted-foreground text-lg font-medium ml-2">
+                {currentDate.toLocaleDateString(undefined, {
+                  month: "long",
+                  year: "numeric",
+                })}
+              </span>
+            </div>
+            <div className="flex items-center gap-2">
+              <button
+                onClick={handlePrev}
+                className="rounded-full p-2 hover:bg-accent transition"
+              >
+                <ChevronLeft className="w-5 h-5" />
+              </button>
+              <button
+                onClick={handleNext}
+                className="rounded-full p-2 hover:bg-accent transition"
+              >
+                <ChevronRight className="w-5 h-5" />
+              </button>
               <Tooltip>
                 <TooltipTrigger asChild>
                   <button
@@ -262,48 +273,36 @@ export default function Calendar({ accessToken }: CalendarProps) {
                 </TooltipTrigger>
                 <TooltipContent>Today</TooltipContent>
               </Tooltip>
-            </TooltipProvider>
-            <button
-              onClick={handlePrev}
-              className="rounded-full p-2 hover:bg-accent transition"
-            >
-              <ChevronLeft className="w-5 h-5" />
-            </button>
-            <button
-              onClick={handleNext}
-              className="rounded-full p-2 hover:bg-accent transition"
-            >
-              <ChevronRight className="w-5 h-5" />
-            </button>
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <button className="rounded-full p-2 hover:bg-accent transition">
-                  <Grid className="w-5 h-5" />
-                </button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="end">
-                <DropdownMenuItem
-                  onClick={() => handleViewChange("dayGridMonth")}
-                >
-                  Month View
-                </DropdownMenuItem>
-                <DropdownMenuItem
-                  onClick={() => handleViewChange("timeGridWeek")}
-                >
-                  Week View
-                </DropdownMenuItem>
-                <DropdownMenuItem
-                  onClick={() => handleViewChange("timeGridDay")}
-                >
-                  Day View
-                </DropdownMenuItem>
-                <DropdownMenuItem onClick={() => handleViewChange("listWeek")}>
-                  List View
-                </DropdownMenuItem>
-              </DropdownMenuContent>
-            </DropdownMenu>
-            {accessToken && (
-              <TooltipProvider>
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <button className="rounded-full p-2 hover:bg-accent transition">
+                        <Grid className="w-5 h-5" />
+                      </button>
+                    </TooltipTrigger>
+                    <TooltipContent>Change View</TooltipContent>
+                  </Tooltip>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end">
+                  <DropdownMenuItem
+                    onClick={() => handleViewChange("dayGridMonth")}
+                  >
+                    Month View
+                  </DropdownMenuItem>
+                  <DropdownMenuItem
+                    onClick={() => handleViewChange("timeGridWeek")}
+                  >
+                    Week View
+                  </DropdownMenuItem>
+                  <DropdownMenuItem
+                    onClick={() => handleViewChange("timeGridDay")}
+                  >
+                    Day View
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
+              {accessToken && (
                 <Tooltip>
                   <TooltipTrigger asChild>
                     <button
@@ -324,11 +323,10 @@ export default function Calendar({ accessToken }: CalendarProps) {
                   </TooltipTrigger>
                   <TooltipContent>Sync with Google Calendar</TooltipContent>
                 </Tooltip>
-              </TooltipProvider>
-            )}
-            <UserCircle2 className="w-7 h-7 text-muted-foreground ml-2" />
+              )}
+            </div>
           </div>
-        </div>
+        </TooltipProvider>
       </div>
       {(fetchError || googleState.error) && (
         <div className="bg-red-50 border-l-4 border-red-400 p-4 mb-4">
