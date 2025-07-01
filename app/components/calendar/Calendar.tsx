@@ -23,14 +23,11 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
-import { Loader2 } from "lucide-react";
 import {
   Calendar as CalendarIcon,
   RefreshCw,
   ChevronLeft,
   ChevronRight,
-  PlusCircle,
-  List,
   Grid,
   Clock,
 } from "lucide-react";
@@ -88,7 +85,6 @@ export default function Calendar({ accessToken }: CalendarProps) {
 
   const [currentView, setCurrentView] = useState("dayGridMonth");
   const [currentDate, setCurrentDate] = useState(new Date());
-  const calendarHeaderRef = useRef<HTMLDivElement | null>(null);
 
   useEffect(() => {
     const checkGoogleConnection = async () => {

@@ -7,8 +7,7 @@ import {
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { EventApi } from "@fullcalendar/core";
-import { Edit, Trash2, X, Calendar as CalendarIcon, Clock } from "lucide-react";
-import { Badge } from "@/components/ui/badge";
+import { Edit, Trash2, Calendar as CalendarIcon, Clock } from "lucide-react";
 
 interface CalendarEventActionsModalProps {
   open: boolean;
