@@ -10,9 +10,7 @@ import {
 import { useCalendarWithGoogle } from "../../hooks/calendar/useCalendarWithGoogle";
 import { useCalendarModals } from "../../hooks/calendar/useCalendarModals";
 import { useCalendar } from "@/app/contexts/CalendarContext";
-
 import { Calendar as CalendarIcon, Clock } from "lucide-react";
-
 import { Badge } from "@/components/ui/badge";
 import CalendarHeader from "./CalendarHeader";
 import CalendarGrid from "./CalendarGrid";
