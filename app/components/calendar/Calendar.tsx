@@ -1,7 +1,4 @@
 import FullCalendar from "@fullcalendar/react";
-import dayGridPlugin from "@fullcalendar/daygrid";
-import timeGridPlugin from "@fullcalendar/timegrid";
-import interactionPlugin from "@fullcalendar/interaction";
 import { useRef, useEffect, useState } from "react";
 import {
   DateSelectArg,
@@ -10,39 +7,12 @@ import {
   CalendarApi,
   EventApi,
 } from "@fullcalendar/core";
-import CalendarCreateEventModal from "../modals/calendar-create-event-modal";
-import CalendarEventActionsModal from "../modals/calendar-event-actions-modal";
 import { useCalendarWithGoogle } from "../../hooks/calendar/useCalendarWithGoogle";
 import { useCalendarModals } from "../../hooks/calendar/useCalendarModals";
 import { useCalendar } from "@/app/contexts/CalendarContext";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogTitle,
-} from "@/components/ui/dialog";
-import { Button } from "@/components/ui/button";
-import {
-  Calendar as CalendarIcon,
-  RefreshCw,
-  ChevronLeft,
-  ChevronRight,
-  Grid,
-  Clock,
-} from "lucide-react";
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipProvider,
-  TooltipTrigger,
-} from "@/components/ui/tooltip";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
+
+import { Calendar as CalendarIcon, Clock } from "lucide-react";
+
 import { Badge } from "@/components/ui/badge";
 import CalendarHeader from "./CalendarHeader";
 import CalendarGrid from "./CalendarGrid";
@@ -203,20 +173,6 @@ export default function Calendar({ accessToken }: CalendarProps) {
       )}
     </div>
   );
-
-  const handleModalOpenChange = (open: boolean) => {
-    setIsCreateModalOpen(open);
-    if (!open) {
-      setSelectedEvent(null);
-    }
-  };
-
-  const handleEventActionsModalOpenChange = (open: boolean) => {
-    setIsEventActionsModalOpen(open);
-    if (!open) {
-      setSelectedEvent(null);
-    }
-  };
 
   const handleDeleteConfirm = (
     event: EventApi | null,
