@@ -44,6 +44,10 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Badge } from "@/components/ui/badge";
+import CalendarHeader from "./CalendarHeader";
+import CalendarGrid from "./CalendarGrid";
+import CalendarErrorAlert from "./CalendarErrorAlert";
+import CalendarModals from "./CalendarModals";
 
 interface CalendarProps {
   accessToken?: string;
@@ -230,200 +234,48 @@ export default function Calendar({ accessToken }: CalendarProps) {
   return (
     <div className="flex flex-col h-[calc(100vh-120px)]">
       <div className="flex flex-col gap-2 mb-4">
-        <TooltipProvider>
-          <div className="flex items-center justify-between gap-4 py-2 px-2 rounded-xl bg-white border border-border">
-            <div className="flex items-center gap-2">
-              <CalendarIcon className="w-7 h-7 text-blue-600" />
-              <span className="text-2xl font-bold tracking-tight">
-                My Calendar
-              </span>
-              <span className="text-muted-foreground text-lg font-medium ml-2">
-                {currentDate.toLocaleDateString(undefined, {
-                  month: "long",
-                  year: "numeric",
-                })}
-              </span>
-            </div>
-            <div className="flex items-center gap-2">
-              <button
-                onClick={handlePrev}
-                className="rounded-full p-2 hover:bg-accent transition"
-              >
-                <ChevronLeft className="w-5 h-5" />
-              </button>
-              <button
-                onClick={handleNext}
-                className="rounded-full p-2 hover:bg-accent transition"
-              >
-                <ChevronRight className="w-5 h-5" />
-              </button>
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <button
-                    onClick={handleToday}
-                    className="rounded-full p-2 hover:bg-accent transition"
-                  >
-                    <span className="sr-only">Today</span>
-                    <CalendarIcon className="w-5 h-5" />
-                  </button>
-                </TooltipTrigger>
-                <TooltipContent>Today</TooltipContent>
-              </Tooltip>
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <DropdownMenu>
-                    <DropdownMenuTrigger asChild>
-                      <button className="rounded-full p-2 hover:bg-accent transition">
-                        <Grid className="w-5 h-5" />
-                      </button>
-                    </DropdownMenuTrigger>
-                    <DropdownMenuContent align="end">
-                      <DropdownMenuItem
-                        onClick={() => handleViewChange("dayGridMonth")}
-                      >
-                        Month View
-                      </DropdownMenuItem>
-                      <DropdownMenuItem
-                        onClick={() => handleViewChange("timeGridWeek")}
-                      >
-                        Week View
-                      </DropdownMenuItem>
-                      <DropdownMenuItem
-                        onClick={() => handleViewChange("timeGridDay")}
-                      >
-                        Day View
-                      </DropdownMenuItem>
-                    </DropdownMenuContent>
-                  </DropdownMenu>
-                </TooltipTrigger>
-                <TooltipContent>Change View</TooltipContent>
-              </Tooltip>
-              {accessToken && (
-                <Tooltip>
-                  <TooltipTrigger asChild>
-                    <button
-                      onClick={handleSyncWithGoogle}
-                      disabled={
-                        isFetching ||
-                        googleState.isLoading ||
-                        !googleState.isConnected
-                      }
-                      className="rounded-full p-2 hover:bg-blue-100 disabled:opacity-50 transition"
-                    >
-                      {isFetching || googleState.isLoading ? (
-                        <RefreshCw className="w-5 h-5 animate-spin text-blue-600" />
-                      ) : (
-                        <RefreshCw className="w-5 h-5 text-blue-600" />
-                      )}
-                    </button>
-                  </TooltipTrigger>
-                  <TooltipContent>Sync with Google Calendar</TooltipContent>
-                </Tooltip>
-              )}
-            </div>
-          </div>
-        </TooltipProvider>
-      </div>
-      {(fetchError || googleState.error) && (
-        <div className="bg-red-50 border-l-4 border-red-400 p-4 mb-4">
-          <p className="text-sm text-red-700">
-            {fetchError || googleState.error}
-          </p>
-        </div>
-      )}
-      <div className="flex-grow h-0 rounded-2xl overflow-hidden border border-border bg-background">
-        <FullCalendar
-          ref={calendarRef}
-          plugins={[dayGridPlugin, timeGridPlugin, interactionPlugin]}
-          headerToolbar={false}
-          initialView={currentView}
-          firstDay={1}
-          height="100%"
-          contentHeight="100%"
-          aspectRatio={1.35}
-          dayMaxEventRows={6}
-          fixedWeekCount={false}
-          editable={true}
-          selectable={true}
-          selectMirror={true}
-          dayMaxEvents={5}
-          select={handleDateSelectWrapper}
-          eventContent={renderEventContent}
-          eventClick={handleEventClickWrapper}
-          eventsSet={handleEvents}
-          events={events}
-          slotMinTime="00:00:00"
-          slotMaxTime="24:00:00"
-          forceEventDuration={true}
-          defaultTimedEventDuration="01:00:00"
-          displayEventTime={true}
-          displayEventEnd={true}
-          timeZone={Intl.DateTimeFormat().resolvedOptions().timeZone}
-          datesSet={(arg) => setCurrentDate(arg.start)}
-          dayCellClassNames={() =>
-            "!h-32 !min-h-[8rem] !max-h-40 !aspect-square border border-border bg-white"
-          }
-          dayHeaderClassNames={() => "bg-muted text-base font-semibold py-2"}
+        <CalendarHeader
+          currentDate={currentDate}
+          onPrev={handlePrev}
+          onNext={handleNext}
+          onToday={handleToday}
+          onViewChange={handleViewChange}
+          currentView={currentView}
+          handleSyncWithGoogle={handleSyncWithGoogle}
+          isFetching={isFetching}
+          googleState={googleState}
+          accessToken={accessToken}
+          setIsCreateModalOpen={setIsCreateModalOpen}
         />
       </div>
-
-      {selectedDates && (
-        <CalendarCreateEventModal
-          open={isCreateModalOpen}
-          onOpenChange={handleModalOpenChange}
-          onSubmit={handleCreateEventWrapper}
-          startDate={selectedDates.start}
-          endDate={selectedDates.end}
-          isAllDay={selectedDates.allDay}
-          view={selectedDates.view}
-          isEditMode={!!selectedEvent}
-          initialTitle={selectedEvent?.title || ""}
-        />
-      )}
-
-      {selectedEvent && (
-        <CalendarEventActionsModal
-          open={isEventActionsModalOpen && !isDeleteConfirmationModalOpen}
-          onOpenChange={handleEventActionsModalOpenChange}
-          event={selectedEvent}
-          onDelete={() => handleEventActionsDelete(selectedEvent)}
-          onEdit={() =>
-            handleEventEdit(selectedEvent, selectedDates, setSelectedDates)
-          }
-        />
-      )}
-
-      {isEventActionsModalOpen && (
-        <Dialog
-          open={isDeleteConfirmationModalOpen}
-          onOpenChange={setIsDeleteConfirmationModalOpen}
-        >
-          <DialogContent>
-            <DialogTitle>Delete Event</DialogTitle>
-            <DialogDescription>
-              {`Are you sure you want to delete ${selectedEvent?.title}? This
-              action cannot be undone.`}
-            </DialogDescription>
-            <DialogFooter>
-              <Button
-                onClick={() => {
-                  setIsDeleteConfirmationModalOpen(false);
-                }}
-              >
-                Cancel
-              </Button>
-              <Button
-                variant="destructive"
-                onClick={() =>
-                  handleDeleteConfirm(selectedEvent, handleEventDelete)
-                }
-              >
-                Delete
-              </Button>
-            </DialogFooter>
-          </DialogContent>
-        </Dialog>
-      )}
+      <CalendarErrorAlert message={fetchError || googleState.error || ""} />
+      <CalendarGrid
+        calendarRef={calendarRef}
+        currentView={currentView}
+        handleDateSelectWrapper={handleDateSelectWrapper}
+        renderEventContent={renderEventContent}
+        handleEventClickWrapper={handleEventClickWrapper}
+        handleEvents={handleEvents}
+        events={events}
+        setCurrentDate={setCurrentDate}
+      />
+      <CalendarModals
+        selectedDates={selectedDates}
+        isCreateModalOpen={isCreateModalOpen}
+        setIsCreateModalOpen={setIsCreateModalOpen}
+        handleCreateEventWrapper={handleCreateEventWrapper}
+        selectedEvent={selectedEvent}
+        isEventActionsModalOpen={isEventActionsModalOpen}
+        setIsEventActionsModalOpen={setIsEventActionsModalOpen}
+        handleEventActionsDelete={handleEventActionsDelete}
+        handleEventEdit={handleEventEdit}
+        isDeleteConfirmationModalOpen={isDeleteConfirmationModalOpen}
+        setIsDeleteConfirmationModalOpen={setIsDeleteConfirmationModalOpen}
+        handleDeleteConfirm={handleDeleteConfirm}
+        handleEventDelete={handleEventDelete}
+        setSelectedEvent={setSelectedEvent}
+        setSelectedDates={setSelectedDates}
+      />
     </div>
   );
 }
