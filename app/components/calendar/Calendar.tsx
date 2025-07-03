@@ -85,6 +85,7 @@ export default function Calendar({ accessToken }: CalendarProps) {
   };
 
   const handleDateSelectWrapper = (selectInfo: DateSelectArg) => {
+    setSelectedEvent(null);
     handleDateSelect(selectInfo);
     setIsCreateModalOpen(true);
   };
