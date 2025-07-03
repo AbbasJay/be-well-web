@@ -90,3 +90,38 @@
     @apply bg-background text-foreground;
   }
 }
+
+.fc .fc-scrollgrid,
+.fc .fc-scrollgrid-section-header,
+.fc .fc-col-header,
+.fc .fc-col-header-cell {
+  overflow-x: clip !important;
+  width: 100% !important;
+  max-width: 100vw !important;
+  box-sizing: border-box;
+}
+
+.fc .fc-scrollgrid,
+.fc .fc-scrollgrid-section-header,
+.fc .fc-col-header,
+.fc .fc-col-header-cell,
+.fc .fc-daygrid,
+.fc .fc-daygrid-body,
+.fc .fc-daygrid-day {
+  max-width: 100% !important;
+  width: 100% !important;
+  overflow-x: clip !important;
+  box-sizing: border-box !important;
+  margin: 0 !important;
+  padding: 0 !important;
+}
+
+/* Stops scrollbars from appearing on the calendar header where days show */
+.fc .fc-scroller-harness,
+.fc .fc-scroller {
+  overflow-x: clip !important;
+  overflow-y: auto !important;
+  max-width: 100% !important;
+  width: 100% !important;
+  box-sizing: border-box !important;
+}
