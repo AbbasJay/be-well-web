@@ -48,7 +48,7 @@ export default function CalendarHeader({
 }: CalendarHeaderProps) {
   return (
     <TooltipProvider>
-      <div className="flex items-center justify-between gap-4 py-2 px-2 rounded-xl bg-white border border-border shadow-sm">
+      <div className="flex items-center justify-between gap-4 py-2 px-2">
         <div className="flex items-center gap-2">
           <CalendarIcon className="w-7 h-7 text-blue-600" />
           <span className="text-2xl font-bold tracking-tight">My Calendar</span>

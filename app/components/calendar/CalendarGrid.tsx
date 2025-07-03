@@ -26,7 +26,7 @@ export default function CalendarGrid({
   setCurrentDate,
 }: CalendarGridProps) {
   return (
-    <div className="flex-grow h-0 rounded-2xl border border-border bg-background w-full max-w-full overflow-x-clip">
+    <div className="flex-grow">
       <FullCalendar
         ref={calendarRef}
         plugins={[dayGridPlugin, timeGridPlugin, interactionPlugin]}
