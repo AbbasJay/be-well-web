@@ -97,12 +97,11 @@ export default function CalendarHeader({
           >
             <ChevronRight className="w-5 h-5" />
           </button>
-          {/* Today Button - replaced icon+tooltip with labeled button */}
           <Button
             variant="default"
             size="sm"
             onClick={onToday}
-            className="rounded-full px-4 py-2 ml-1 font-medium text-base hover:bg-accent/60 transition shadow-none border-none focus:ring-2 focus:ring-blue-200"
+            className="rounded-full px-4 py-2 ml-1 font-medium text-base"
             aria-label="Today"
           >
             Today
