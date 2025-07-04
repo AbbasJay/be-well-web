@@ -110,3 +110,124 @@ body,
 .fc .fc-scrollgrid-sync-table thead {
   display: none !important;
 }
+
+/* Today's cell */
+.fc .fc-daygrid-day.fc-day-today {
+  background: #eef2ff !important;
+  border: 1.5px solid #a5b4fc !important;
+  border-radius: 0 !important;
+  box-shadow: none !important;
+  transition: background 0.2s, border 0.2s;
+}
+/* General day cell */
+.fc .fc-daygrid-day {
+  border-color: #e5e7eb !important;
+  transition: background 0.2s;
+}
+/* Day cell hover */
+.fc .fc-daygrid-day:hover {
+  background: #e0e7ff !important;
+  cursor: pointer;
+}
+/* Today's cell hover */
+.fc .fc-daygrid-day.fc-day-today:hover {
+  background: #c7d2fe !important;
+}
+/* Calendar grid container */
+.fc .fc-scrollgrid {
+  border-radius: 0.5rem;
+  overflow: hidden;
+}
+/* Event */
+.fc .fc-event {
+  border-radius: 0.375rem !important;
+  box-shadow: 0 2px 8px 0 rgba(99, 102, 241, 0.08);
+  font-family: "Inter", "Segoe UI", Arial, sans-serif;
+  font-size: 0.95rem;
+  transition: box-shadow 0.2s, background 0.2s;
+}
+/* Event hover */
+.fc .fc-event:hover {
+  box-shadow: 0 4px 16px 0 rgba(99, 102, 241, 0.16);
+  background: #6366f1 !important;
+}
+/* Toolbar title */
+.fc .fc-toolbar-title {
+  font-size: 1.25rem;
+  font-weight: 700;
+  font-family: "Inter", "Segoe UI", Arial, sans-serif;
+}
+/* Column header cell */
+.fc .fc-col-header-cell {
+  background: #f9fafb !important;
+  color: #374151 !important;
+  font-weight: 600;
+  font-size: 1rem;
+  border-bottom: 1px solid #e5e7eb !important;
+}
+/* Today's column header cell */
+.fc .fc-col-header-cell.fc-day-today {
+  background: #e0e7ff !important;
+  color: #3730a3 !important;
+}
+/* Accessibility: focus state */
+.fc .fc-daygrid-day:focus {
+  outline: 2px solid #6366f1 !important;
+  outline-offset: 2px;
+}
+/* Dark mode support */
+@media (prefers-color-scheme: dark) {
+  /* Today's cell (dark) */
+  .fc .fc-daygrid-day.fc-day-today {
+    background: #312e81 !important;
+    border-color: #818cf8 !important;
+  }
+  /* General day cell (dark) */
+  .fc .fc-daygrid-day {
+    border-color: #27272a !important;
+  }
+  /* Column header cell (dark) */
+  .fc .fc-col-header-cell {
+    background: #18181b !important;
+    color: #f3f4f6 !important;
+    border-bottom: 1px solid #27272a !important;
+  }
+  /* Today's column header cell (dark) */
+  .fc .fc-col-header-cell.fc-day-today {
+    background: #3730a3 !important;
+    color: #a5b4fc !important;
+  }
+}
+
+/* Popover container */
+.fc-popover {
+  border-radius: 0.75rem !important;
+  box-shadow: 0 8px 32px 0 rgba(30, 41, 59, 0.18) !important;
+  min-width: 400px;
+  max-width: 800px;
+  padding: 0 !important;
+  height: 900px !important;
+}
+/* Popover header */
+.fc-popover-header {
+  background: #6366f1 !important;
+  color: #fff !important;
+  font-weight: 600;
+  font-size: 1rem;
+  padding: 0.75rem 1rem !important;
+  border-bottom: 1px solid #e5e7eb !important;
+}
+/* Popover body: flexible height, scroll if needed */
+.fc-popover-body {
+  padding: 0.5rem 0.75rem !important;
+  background: #a6a6a6 !important;
+  overflow-y: auto !important;
+}
+/* Events in popover */
+.fc-popover .fc-daygrid-event-harness {
+  margin-bottom: 0.5rem;
+}
+.fc-popover .fc-event {
+}
+.fc-popover .fc-event:hover {
+}

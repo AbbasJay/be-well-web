@@ -159,7 +159,7 @@ export default function Calendar({ accessToken }: CalendarProps) {
   }, [currentView]);
 
   const renderEventContent = (eventInfo: EventContentArg) => (
-    <div className="flex items-center gap-2 bg-blue-500/90 text-white px-2 py-1 shadow-sm w-full">
+    <div className="flex items-center gap-2 bg-indigo-500/90 text-white px-2 py-1 shadow rounded-md w-full hover:bg-indigo-600 transition font-sans">
       <CalendarIcon className="w-4 h-4 opacity-80" />
       <span className="truncate font-medium text-sm">
         {eventInfo.event.title}
