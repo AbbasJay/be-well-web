@@ -111,13 +111,14 @@ body,
   display: none !important;
 }
 
-/* Today's cell */
-.fc .fc-daygrid-day.fc-day-today {
-  background: #eef2ff !important;
-  border: 1.5px solid #a5b4fc !important;
+/* Today's cell - high specificity */
+.fc .fc-daygrid-day.fc-day-today,
+.fc .fc-daygrid-day.fc-day-today > div,
+.fc .fc-daygrid-day.fc-day-today .fc-daygrid-day-frame {
+  background: #fbbf24 !important;
+  border: 1.5px solid #f59e42 !important;
   border-radius: 0 !important;
   box-shadow: none !important;
-  transition: background 0.2s, border 0.2s;
 }
 /* General day cell */
 .fc .fc-daygrid-day {
