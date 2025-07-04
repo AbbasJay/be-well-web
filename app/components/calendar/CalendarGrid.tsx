@@ -26,32 +26,39 @@ export default function CalendarGrid({
   events,
   setCurrentDate,
 }: CalendarGridProps) {
-  const dayNames = useMemo(
-    () => ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"],
-    []
-  );
+  const showCustomHeader = currentView === "dayGridMonth";
+  const dayNames = useMemo(() => {
+    const baseDate = new Date(2023, 0, 2);
+    return Array.from({ length: 7 }).map((_, i) => {
+      const date = new Date(baseDate);
+      date.setDate(baseDate.getDate() + i);
+      return date.toLocaleDateString(undefined, { weekday: "short" });
+    });
+  }, []);
 
   return (
     <div className="w-full">
-      <div
-        className="sticky top-[50px] z-30 bg-white w-full"
-        style={{ overflow: "hidden" }}
-      >
-        <table className="w-full table-fixed border-collapse">
-          <thead>
-            <tr>
-              {dayNames.map((day) => (
-                <th
-                  key={day}
-                  className="text-center py-3 font-semibold text-base bg-muted border-b border-border"
-                >
-                  {day}
-                </th>
-              ))}
-            </tr>
-          </thead>
-        </table>
-      </div>
+      {showCustomHeader && (
+        <div
+          className="sticky top-[50px] z-30 bg-white w-full"
+          style={{ overflow: "hidden" }}
+        >
+          <table className="w-full table-fixed border-collapse">
+            <thead>
+              <tr>
+                {dayNames.map((day, idx) => (
+                  <th
+                    key={day + idx}
+                    className="text-center py-3 font-semibold text-base bg-muted border-b border-border"
+                  >
+                    {day}
+                  </th>
+                ))}
+              </tr>
+            </thead>
+          </table>
+        </div>
+      )}
       <FullCalendar
         ref={calendarRef}
         plugins={[dayGridPlugin, timeGridPlugin, interactionPlugin]}
@@ -89,7 +96,8 @@ export default function CalendarGrid({
         dayCellClassNames={() =>
           "!h-32 !min-h-[8rem] !max-h-40 !aspect-square border border-border bg-white"
         }
-        dayHeaderClassNames={() => "hidden"}
+        dayHeaderClassNames={() => (showCustomHeader ? "hidden" : "")}
+        stickyHeaderDates={true}
       />
     </div>
   );
