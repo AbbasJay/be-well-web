@@ -3,6 +3,7 @@ import dayGridPlugin from "@fullcalendar/daygrid";
 import timeGridPlugin from "@fullcalendar/timegrid";
 import interactionPlugin from "@fullcalendar/interaction";
 import { EventContentArg } from "@fullcalendar/core";
+import { useMemo } from "react";
 
 interface CalendarGridProps {
   calendarRef: any;
@@ -25,16 +26,43 @@ export default function CalendarGrid({
   events,
   setCurrentDate,
 }: CalendarGridProps) {
+  // Custom day names, week starts on Monday
+  const dayNames = useMemo(
+    () => ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"],
+    []
+  );
+
   return (
-    <div className="flex-grow">
+    <div className="w-full">
+      {/* Custom sticky day-of-week header */}
+      <div
+        className="sticky top-[50px] z-30 bg-white w-full"
+        style={{ overflow: "hidden" }}
+      >
+        <table className="w-full table-fixed border-collapse">
+          <thead>
+            <tr>
+              {dayNames.map((day) => (
+                <th
+                  key={day}
+                  className="text-center py-3 font-semibold text-base bg-muted border-b border-border"
+                >
+                  {day}
+                </th>
+              ))}
+            </tr>
+          </thead>
+        </table>
+      </div>
+      {/* Hide FullCalendar's day-of-week row with custom CSS */}
       <FullCalendar
         ref={calendarRef}
         plugins={[dayGridPlugin, timeGridPlugin, interactionPlugin]}
         headerToolbar={false}
         initialView={currentView}
         firstDay={1}
-        height="100%"
-        contentHeight="100%"
+        height="auto"
+        contentHeight="auto"
         aspectRatio={1.35}
         dayMaxEventRows={6}
         fixedWeekCount={false}
@@ -64,7 +92,7 @@ export default function CalendarGrid({
         dayCellClassNames={() =>
           "!h-32 !min-h-[8rem] !max-h-40 !aspect-square border border-border bg-white"
         }
-        dayHeaderClassNames={() => "bg-muted text-base font-semibold py-2"}
+        dayHeaderClassNames={() => "hidden"}
       />
     </div>
   );

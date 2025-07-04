@@ -3,6 +3,12 @@
 @tailwind components;
 @tailwind utilities;
 
+html,
+body,
+#__next {
+  height: 100%;
+}
+
 @layer base {
   :root {
     --background: 0 0% 100%;
@@ -91,37 +97,16 @@
   }
 }
 
-.fc .fc-scrollgrid,
-.fc .fc-scrollgrid-section-header,
-.fc .fc-col-header,
-.fc .fc-col-header-cell {
-  overflow-x: clip !important;
-  width: 100% !important;
-  max-width: 100vw !important;
-  box-sizing: border-box;
+/* Make FullCalendar day-of-week row sticky */
+.fc .fc-scrollgrid-sync-table th {
+  position: sticky !important;
+  top: 56px !important;
+  z-index: 20 !important;
+  background: white !important;
+  border-bottom: 1px solid #e5e7eb !important;
 }
 
-.fc .fc-scrollgrid,
-.fc .fc-scrollgrid-section-header,
-.fc .fc-col-header,
-.fc .fc-col-header-cell,
-.fc .fc-daygrid,
-.fc .fc-daygrid-body,
-.fc .fc-daygrid-day {
-  max-width: 100% !important;
-  width: 100% !important;
-  overflow-x: clip !important;
-  box-sizing: border-box !important;
-  margin: 0 !important;
-  padding: 0 !important;
-}
-
-/* Stops scrollbars from appearing on the calendar header where days show */
-.fc .fc-scroller-harness,
-.fc .fc-scroller {
-  overflow-x: clip !important;
-  overflow-y: auto !important;
-  max-width: 100% !important;
-  width: 100% !important;
-  box-sizing: border-box !important;
+/* Hide FullCalendar's built-in day-of-week row */
+.fc .fc-scrollgrid-sync-table thead {
+  display: none !important;
 }

@@ -159,7 +159,7 @@ export default function Calendar({ accessToken }: CalendarProps) {
   }, [currentView]);
 
   const renderEventContent = (eventInfo: EventContentArg) => (
-    <div className="flex items-center gap-2 bg-blue-500/90 text-white px-2 py-1 rounded-md shadow-sm w-full">
+    <div className="flex items-center gap-2 bg-blue-500/90 text-white px-2 py-1 shadow-sm w-full">
       <CalendarIcon className="w-4 h-4 opacity-80" />
       <span className="truncate font-medium text-sm">
         {eventInfo.event.title}
@@ -187,8 +187,8 @@ export default function Calendar({ accessToken }: CalendarProps) {
   };
 
   return (
-    <div className="flex flex-col h-[calc(100vh-120px)]">
-      <div className="flex flex-col gap-2 mb-4">
+    <div className="flex flex-col h-[calc(100vh-120px)] overflow-y-auto w-full">
+      <div className="sticky top-0 z-10 bg-white flex flex-col gap-2">
         <CalendarHeader
           currentDate={currentDate}
           onPrev={handlePrev}

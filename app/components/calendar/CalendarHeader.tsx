@@ -48,7 +48,7 @@ export default function CalendarHeader({
 }: CalendarHeaderProps) {
   return (
     <TooltipProvider>
-      <div className="flex items-center justify-between gap-4 py-2 px-2">
+      <div className="sticky top-0 z-10 bg-white flex items-center justify-between gap-4 py-2 px-2">
         <div className="flex items-center gap-2">
           <span className="text-muted-foreground text-lg font-medium ml-2">
             {currentDate.toLocaleDateString(undefined, {
