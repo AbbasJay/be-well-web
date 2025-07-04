@@ -26,7 +26,6 @@ export default function CalendarGrid({
   events,
   setCurrentDate,
 }: CalendarGridProps) {
-  // Custom day names, week starts on Monday
   const dayNames = useMemo(
     () => ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"],
     []
@@ -34,7 +33,6 @@ export default function CalendarGrid({
 
   return (
     <div className="w-full">
-      {/* Custom sticky day-of-week header */}
       <div
         className="sticky top-[50px] z-30 bg-white w-full"
         style={{ overflow: "hidden" }}
@@ -54,7 +52,6 @@ export default function CalendarGrid({
           </thead>
         </table>
       </div>
-      {/* Hide FullCalendar's day-of-week row with custom CSS */}
       <FullCalendar
         ref={calendarRef}
         plugins={[dayGridPlugin, timeGridPlugin, interactionPlugin]}
