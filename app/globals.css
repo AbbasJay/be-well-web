@@ -3,6 +3,12 @@
 @tailwind components;
 @tailwind utilities;
 
+html,
+body,
+#__next {
+  height: 100%;
+}
+
 @layer base {
   :root {
     --background: 0 0% 100%;
@@ -29,7 +35,7 @@
     --destructive: 0 84.2% 60.2%;
     --destructive-foreground: 0 0% 98%;
 
-    --border: 240 5.9% 90%;
+    --border: 240 5.9% 95%; /* softened from 90% to 95% (lighter gray) */
     --input: 240 5.9% 90%;
     --ring: 240 10% 3.9%;
 
@@ -71,7 +77,7 @@
     --destructive: 0 62.8% 30.6%;
     --destructive-foreground: 0 0% 98%;
 
-    --border: 240 3.7% 15.9%;
+    --border: 240 3.7% 25%; /* softened from 15.9% to 25% (softer dark) */
     --input: 240 3.7% 15.9%;
     --ring: 240 4.9% 83.9%;
     --chart-1: 220 70% 50%;
@@ -89,4 +95,140 @@
   body {
     @apply bg-background text-foreground;
   }
+}
+
+/* Make FullCalendar day-of-week row sticky */
+.fc .fc-scrollgrid-sync-table th {
+  position: sticky !important;
+  top: 56px !important;
+  z-index: 20 !important;
+  background: white !important;
+  border-bottom: 1px solid #e5e7eb !important;
+}
+
+/* Hide FullCalendar's built-in day-of-week row */
+.fc .fc-scrollgrid-sync-table thead {
+  display: none !important;
+}
+
+/* Today's cell - high specificity */
+.fc .fc-daygrid-day.fc-day-today,
+.fc .fc-daygrid-day.fc-day-today > div,
+.fc .fc-daygrid-day.fc-day-today .fc-daygrid-day-frame {
+  background: #e0e7ff !important; /* soft blue */
+  border: none !important;
+  border-radius: 0 !important;
+  box-shadow: none !important;
+}
+/* General day cell */
+.fc .fc-daygrid-day {
+  border-color: hsl(var(--border)) !important;
+  border-width: 1px !important;
+  transition: background 0.2s;
+}
+/* Day cell hover */
+.fc .fc-daygrid-day:hover {
+  background: #e0e7ff !important;
+  cursor: pointer;
+}
+/* Today's cell hover */
+.fc .fc-daygrid-day.fc-day-today:hover {
+  background: #c7d2fe !important;
+}
+/* Calendar grid container */
+.fc .fc-scrollgrid {
+  overflow: hidden;
+}
+/* Event */
+.fc .fc-event {
+  border-radius: 0.375rem !important;
+  box-shadow: 0 2px 8px 0 rgba(99, 102, 241, 0.08);
+  font-family: "Inter", "Segoe UI", Arial, sans-serif;
+  font-size: 0.95rem;
+  transition: box-shadow 0.2s, background 0.2s;
+}
+/* Event hover */
+.fc .fc-event:hover {
+  box-shadow: 0 4px 16px 0 rgba(99, 102, 241, 0.16);
+  background: #6366f1 !important;
+}
+/* Toolbar title */
+.fc .fc-toolbar-title {
+  font-size: 1.25rem;
+  font-weight: 700;
+  font-family: "Inter", "Segoe UI", Arial, sans-serif;
+}
+/* Column header cell */
+.fc .fc-col-header-cell {
+  background: #f9fafb !important;
+  color: #374151 !important;
+  font-weight: 600;
+  font-size: 1rem;
+  border-bottom: 1px solid #e5e7eb !important;
+}
+/* Today's column header cell */
+.fc .fc-col-header-cell.fc-day-today {
+  background: #e0e7ff !important;
+  color: #3730a3 !important;
+}
+/* Accessibility: focus state */
+.fc .fc-daygrid-day:focus {
+  outline: 2px solid #6366f1 !important;
+  outline-offset: 2px;
+}
+/* Dark mode support */
+@media (prefers-color-scheme: dark) {
+  /* Today's cell (dark) */
+  .fc .fc-daygrid-day.fc-day-today {
+    background: #3730a3 !important; /* deep blue */
+    border: none !important;
+  }
+  /* General day cell (dark) */
+  .fc .fc-daygrid-day {
+    border-color: hsl(var(--border)) !important;
+  }
+  /* Column header cell (dark) */
+  .fc .fc-col-header-cell {
+    background: #18181b !important;
+    color: #f3f4f6 !important;
+    border-bottom: 1px solid #27272a !important;
+  }
+  /* Today's column header cell (dark) */
+  .fc .fc-col-header-cell.fc-day-today {
+    background: #3730a3 !important;
+    color: #a5b4fc !important;
+  }
+}
+
+/* Popover container */
+.fc-popover {
+  border-radius: 0.75rem !important;
+  box-shadow: 0 8px 32px 0 rgba(30, 41, 59, 0.18) !important;
+  min-width: 400px;
+  max-width: 800px;
+  padding: 0 !important;
+  height: 900px !important;
+}
+/* Popover header */
+.fc-popover-header {
+  background: #6366f1 !important;
+  color: #fff !important;
+  font-weight: 600;
+  font-size: 1rem;
+  padding: 0.75rem 1rem !important;
+  border-bottom: 1px solid #e5e7eb !important;
+}
+/* Popover body: flexible height, scroll if needed */
+.fc-popover-body {
+  padding: 0.5rem 0.75rem !important;
+  background: #a6a6a6 !important;
+  overflow-y: auto !important;
+}
+/* Events in popover */
+.fc-popover .fc-daygrid-event-harness {
+  margin-bottom: 0.5rem;
+}
+.fc-popover .fc-event {
+}
+.fc-popover .fc-event:hover {
 }

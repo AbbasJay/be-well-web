@@ -39,6 +39,7 @@ export function useCalendarModals() {
       handleEventDelete(selectedEvent);
       setIsDeleteConfirmationModalOpen(false);
       setIsEventActionsModalOpen(false);
+      setIsCreateModalOpen(false);
     }
   };
 
