@@ -48,13 +48,16 @@ export default function CalendarHeader({
 }: CalendarHeaderProps) {
   return (
     <TooltipProvider>
-      <div className="sticky top-0 z-10 bg-white flex items-center justify-between gap-4 py-2 px-2">
-        <div className="flex items-center gap-2">
-          <span className="text-muted-foreground text-lg font-medium ml-2">
+      <div className="sticky top-0 z-10 bg-background/80 backdrop-blur-md flex items-center justify-between gap-6 py-4 px-6 shadow-sm rounded-xl">
+        <div className="flex items-center gap-3">
+          <span className="text-2xl font-semibold text-foreground/90 ml-2 tracking-tight select-none">
             {currentDate.toLocaleDateString(undefined, {
               month: "long",
               year: "numeric",
             })}
+          </span>
+          <span className="text-base text-muted-foreground font-normal ml-3 select-none">
+            {currentDate.toLocaleDateString(undefined, { weekday: "long" })}
           </span>
         </div>
         <div className="flex items-center gap-2">
@@ -62,7 +65,7 @@ export default function CalendarHeader({
             variant="outline"
             size="icon"
             onClick={() => setIsCreateModalOpen(true)}
-            className="rounded-full p-2 hover:bg-blue-100 transition"
+            className="rounded-full p-2 hover:bg-blue-100/60 transition shadow-none border-none focus:ring-2 focus:ring-blue-200"
             aria-label="Create Event"
           >
             <svg
@@ -82,37 +85,34 @@ export default function CalendarHeader({
           </Button>
           <button
             onClick={onPrev}
-            className="rounded-full p-2 hover:bg-accent transition"
+            className="rounded-full p-2 hover:bg-accent/60 transition shadow-none border-none focus:ring-2 focus:ring-blue-200"
             aria-label="Previous"
           >
             <ChevronLeft className="w-5 h-5" />
           </button>
           <button
             onClick={onNext}
-            className="rounded-full p-2 hover:bg-accent transition"
+            className="rounded-full p-2 hover:bg-accent/60 transition shadow-none border-none focus:ring-2 focus:ring-blue-200"
             aria-label="Next"
           >
             <ChevronRight className="w-5 h-5" />
           </button>
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <button
-                onClick={onToday}
-                className="rounded-full p-2 hover:bg-accent transition"
-                aria-label="Today"
-              >
-                <span className="sr-only">Today</span>
-                <CalendarIcon className="w-5 h-5" />
-              </button>
-            </TooltipTrigger>
-            <TooltipContent>Today</TooltipContent>
-          </Tooltip>
+          {/* Today Button - replaced icon+tooltip with labeled button */}
+          <Button
+            variant="default"
+            size="sm"
+            onClick={onToday}
+            className="rounded-full px-4 py-2 ml-1 font-medium text-base hover:bg-accent/60 transition shadow-none border-none focus:ring-2 focus:ring-blue-200"
+            aria-label="Today"
+          >
+            Today
+          </Button>
           <Tooltip>
             <TooltipTrigger asChild>
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
                   <button
-                    className="rounded-full p-2 hover:bg-accent transition"
+                    className="rounded-full p-2 hover:bg-accent/60 transition shadow-none border-none focus:ring-2 focus:ring-blue-200"
                     aria-label="Change View"
                   >
                     <Grid className="w-5 h-5" />
@@ -123,7 +123,7 @@ export default function CalendarHeader({
                     onClick={() => onViewChange("dayGridMonth")}
                     className={
                       currentView === "dayGridMonth"
-                        ? "font-bold bg-accent"
+                        ? "font-bold bg-accent/40"
                         : ""
                     }
                   >
@@ -133,7 +133,7 @@ export default function CalendarHeader({
                     onClick={() => onViewChange("timeGridWeek")}
                     className={
                       currentView === "timeGridWeek"
-                        ? "font-bold bg-accent"
+                        ? "font-bold bg-accent/40"
                         : ""
                     }
                   >
@@ -142,7 +142,9 @@ export default function CalendarHeader({
                   <DropdownMenuItem
                     onClick={() => onViewChange("timeGridDay")}
                     className={
-                      currentView === "timeGridDay" ? "font-bold bg-accent" : ""
+                      currentView === "timeGridDay"
+                        ? "font-bold bg-accent/40"
+                        : ""
                     }
                   >
                     Day View
@@ -162,7 +164,7 @@ export default function CalendarHeader({
                     googleState.isLoading ||
                     !googleState.isConnected
                   }
-                  className="rounded-full p-2 hover:bg-blue-100 disabled:opacity-50 transition"
+                  className="rounded-full p-2 hover:bg-blue-100/60 disabled:opacity-50 transition shadow-none border-none focus:ring-2 focus:ring-blue-200"
                   aria-label="Sync with Google Calendar"
                 >
                   {isFetching || googleState.isLoading ? (
