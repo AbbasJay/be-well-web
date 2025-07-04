@@ -135,7 +135,6 @@ body,
 }
 /* Calendar grid container */
 .fc .fc-scrollgrid {
-  border-radius: 0.5rem;
   overflow: hidden;
 }
 /* Event */
