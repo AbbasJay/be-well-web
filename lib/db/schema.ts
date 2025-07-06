@@ -95,7 +95,7 @@ export const BookingsTable = pgTable(
     classId: integer("class_id").notNull(),
     status: text("status")
       .notNull()
-      .$type<"active" | "cancelled">()
+      .$type<"active" | "cancelled" | "completed" | "no-show">()
       .default("active"),
     createdAt: timestamp("created_at").defaultNow().notNull(),
     cancelledAt: timestamp("cancelled_at"),
