@@ -10,7 +10,7 @@ import {
 import { useCalendarWithGoogle } from "../../hooks/calendar/useCalendarWithGoogle";
 import { useCalendarModals } from "../../hooks/calendar/useCalendarModals";
 import { useCalendar } from "@/app/contexts/CalendarContext";
-import { Calendar as CalendarIcon, Clock } from "lucide-react";
+import { Calendar as CalendarIcon, Clock, MapPin } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import CalendarHeader from "./CalendarHeader";
 import CalendarGrid from "./CalendarGrid";
@@ -158,20 +158,62 @@ export default function Calendar({ accessToken }: CalendarProps) {
     }
   }, [currentView]);
 
-  const renderEventContent = (eventInfo: EventContentArg) => (
-    <div className="flex items-center gap-2 bg-indigo-500/90 text-white px-2 py-1 shadow rounded-md w-full hover:bg-indigo-600 transition font-sans">
-      <CalendarIcon className="w-4 h-4 opacity-80" />
-      <span className="truncate font-medium text-sm">
-        {eventInfo.event.title}
-      </span>
-      {eventInfo.timeText && (
-        <Badge className="ml-auto bg-white/20 text-xs font-semibold px-1.5 py-0.5">
-          <Clock className="w-3 h-3 inline-block mr-1" />
-          {eventInfo.timeText}
-        </Badge>
-      )}
-    </div>
-  );
+  const renderEventContent = (eventInfo: EventContentArg) => {
+    const isAllDay = eventInfo.event.allDay;
+    const isMultiDay =
+      eventInfo.event.start &&
+      eventInfo.event.end &&
+      new Date(eventInfo.event.start).toDateString() !==
+        new Date(eventInfo.event.end).toDateString();
+
+    const isTimeGrid = eventInfo.view.type.includes("timeGrid");
+
+    const start = eventInfo.event.start;
+    const end = eventInfo.event.end;
+    const duration =
+      start && end ? (end.getTime() - start.getTime()) / (1000 * 60) : 0;
+    const isShortEvent = duration < 30;
+
+    if (isTimeGrid) {
+      return (
+        <div
+          className={`
+          bg-emerald-50/80 border-l-2 border-emerald-400
+          rounded-r-sm p-1 text-xs font-medium text-gray-800
+          ${isShortEvent ? "min-h-[20px]" : "min-h-[28px]"}
+        `}
+        >
+          <div className="flex flex-col h-full">
+            <div className="flex items-center gap-1">
+              <div className="w-1 h-1 bg-emerald-500 rounded-full flex-shrink-0"></div>
+              <span className="truncate text-xs font-medium">
+                {eventInfo.event.title}
+              </span>
+            </div>
+            {eventInfo.timeText && (
+              <div className="text-gray-600 text-[9px] mt-0.5 ml-2">
+                {eventInfo.timeText}
+              </div>
+            )}
+          </div>
+        </div>
+      );
+    }
+
+    return (
+      <div className="bg-emerald-100 border-l-4 border-emerald-500 rounded-r-md p-1 text-xs font-medium text-gray-800 truncate">
+        <div className="flex items-center gap-1">
+          <div className="w-1 h-1 bg-emerald-500 rounded-full flex-shrink-0"></div>
+          <span className="truncate">{eventInfo.event.title}</span>
+          {eventInfo.timeText && (
+            <span className="text-gray-600 text-[10px] ml-auto">
+              {eventInfo.timeText}
+            </span>
+          )}
+        </div>
+      </div>
+    );
+  };
 
   const handleDeleteConfirm = (
     event: EventApi | null,
