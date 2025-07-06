@@ -141,6 +141,16 @@ export function useCalendarWithGoogle(
         endDate = localEndDate;
       }
 
+      const formatLocalISOString = (date: Date) => {
+        const year = date.getFullYear();
+        const month = String(date.getMonth() + 1).padStart(2, "0");
+        const day = String(date.getDate()).padStart(2, "0");
+        const hours = String(date.getHours()).padStart(2, "0");
+        const minutes = String(date.getMinutes()).padStart(2, "0");
+        const seconds = String(date.getSeconds()).padStart(2, "0");
+        return `${year}-${month}-${day}T${hours}:${minutes}:${seconds}`;
+      };
+
       const newEvent: CalendarEvent = {
         id: selectedEvent?.id || createEventId(),
         title,
@@ -148,13 +158,13 @@ export function useCalendarWithGoogle(
           ? `${startDate.getFullYear()}-${String(
               startDate.getMonth() + 1
             ).padStart(2, "0")}-${String(startDate.getDate()).padStart(2, "0")}`
-          : startDate.toISOString(),
+          : formatLocalISOString(startDate),
         end: isAllDay
           ? `${endDate.getFullYear()}-${String(endDate.getMonth() + 1).padStart(
               2,
               "0"
             )}-${String(endDate.getDate()).padStart(2, "0")}`
-          : endDate.toISOString(),
+          : formatLocalISOString(endDate),
         allDay: isAllDay,
         googleEventId: selectedEvent?.extendedProps?.googleEventId,
       };

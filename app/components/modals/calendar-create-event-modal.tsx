@@ -81,9 +81,7 @@ export default function CalendarCreateEventModal({
       setTitle(isEditMode ? initialTitle : "");
       setIsAllDayEvent(isAllDay);
       if (view.type !== "dayGridMonth" && !isAllDay) {
-        // Extract local time from the ISO string properly
         const date = new Date(startDate);
-        // Get the local time components
         const localHours = date.getHours();
         const localMinutes = date.getMinutes();
         const timeStr = `${localHours
@@ -91,7 +89,6 @@ export default function CalendarCreateEventModal({
           .padStart(2, "0")}:${localMinutes.toString().padStart(2, "0")}`;
         setSelectedStartTime(timeStr);
 
-        // Also set the end time from the actual event end time
         if (endDate) {
           const endDateObj = new Date(endDate);
           const endHours = endDateObj.getHours();

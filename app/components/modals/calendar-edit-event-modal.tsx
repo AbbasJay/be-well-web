@@ -80,9 +80,7 @@ export default function EditEventModal({
       setTitle(initialTitle);
       setIsAllDayEvent(isAllDay);
       if (view.type !== "dayGridMonth" && !isAllDay) {
-        // Extract local time from the ISO string properly
         const date = new Date(startDate);
-        // Get the local time components
         const localHours = date.getHours();
         const localMinutes = date.getMinutes();
         const timeStr = `${localHours
@@ -90,7 +88,6 @@ export default function EditEventModal({
           .padStart(2, "0")}:${localMinutes.toString().padStart(2, "0")}`;
         setSelectedStartTime(timeStr);
 
-        // Also set the end time from the actual event end time
         if (endDate) {
           const endDateObj = new Date(endDate);
           const endHours = endDateObj.getHours();
@@ -158,13 +155,11 @@ export default function EditEventModal({
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-[480px] rounded-2xl p-0 overflow-hidden">
-        {/* Header with event title */}
         <div className="bg-blue-50 px-6 py-4 border-b border-blue-100">
           <DialogTitle className="text-2xl font-bold text-blue-900 text-center">
             Edit Event
           </DialogTitle>
         </div>
-        {/* Event details section */}
         <form
           onSubmit={handleSubmit}
           className="px-6 py-6 bg-white flex flex-col items-center w-full"
