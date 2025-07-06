@@ -1,6 +1,6 @@
 import { db } from "@/lib/db/db";
-import { ClassesTable } from "@/lib/db/schema";
-import { eq } from "drizzle-orm";
+import { ClassesTable, BookingsTable } from "@/lib/db/schema";
+import { eq, and } from "drizzle-orm";
 import { NextResponse } from "next/server";
 import {
   createEventFromClassServer,
@@ -16,12 +16,62 @@ export async function GET(
   { params }: { params: { id: string } }
 ) {
   try {
-    const query = await db
+    const session = await getServerSession(authOptions);
+    if (!session?.user?.id) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+
+    const businessId = parseInt(params.id);
+    if (isNaN(businessId)) {
+      return NextResponse.json(
+        { error: "Invalid business ID" },
+        { status: 400 }
+      );
+    }
+
+    // Get all classes for the business
+    const classes = await db
       .select()
       .from(ClassesTable)
-      .where(eq(ClassesTable.businessId, Number(params.id)));
+      .where(eq(ClassesTable.businessId, businessId))
+      .execute();
 
-    return NextResponse.json(query);
+    // Get user's bookings for classes in this specific business
+    const userBookings = await db
+      .select({
+        classId: BookingsTable.classId,
+        status: BookingsTable.status,
+        bookingId: BookingsTable.id,
+      })
+      .from(BookingsTable)
+      .innerJoin(ClassesTable, eq(BookingsTable.classId, ClassesTable.id))
+      .where(
+        and(
+          eq(BookingsTable.userId, parseInt(session.user.id)),
+          eq(ClassesTable.businessId, businessId)
+        )
+      )
+      .execute();
+
+    // Create a map of classId to booking info
+    const bookingMap = new Map();
+    userBookings.forEach((booking) => {
+      bookingMap.set(booking.classId, {
+        isBooked: true,
+        bookingStatus: booking.status,
+        bookingId: booking.bookingId,
+      });
+    });
+
+    // Add booking info to each class
+    const classesWithBookingStatus = classes.map((classData) => ({
+      ...classData,
+      isBooked: bookingMap.has(classData.id),
+      bookingStatus: bookingMap.get(classData.id)?.bookingStatus || null,
+      bookingId: bookingMap.get(classData.id)?.bookingId || null,
+    }));
+
+    return NextResponse.json(classesWithBookingStatus);
   } catch (error) {
     console.error("Error fetching classes:", error);
     return NextResponse.json(
