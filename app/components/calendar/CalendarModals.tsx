@@ -9,14 +9,10 @@ import {
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { EventApi, ViewApi } from "@fullcalendar/core";
+import { SelectedDates } from "@/app/types/calendar";
 
 interface CalendarModalsProps {
-  selectedDates: {
-    start: Date;
-    end: Date;
-    allDay: boolean;
-    view: string;
-  };
+  selectedDates: SelectedDates | null;
   isCreateModalOpen: boolean;
   setIsCreateModalOpen: (open: boolean) => void;
   handleCreateEventWrapper: (
@@ -25,19 +21,14 @@ interface CalendarModalsProps {
     selectedEndTime: string,
     isAllDay: boolean
   ) => void;
-  selectedEvent: EventApi;
+  selectedEvent: EventApi | null;
   isEventActionsModalOpen: boolean;
   setIsEventActionsModalOpen: (open: boolean) => void;
   handleEventActionsDelete: (event: EventApi) => void;
   handleEventEdit: (
-    event: EventApi,
-    dates: { start: Date; end: Date; allDay: boolean; view: string },
-    setDates: (dates: {
-      start: Date;
-      end: Date;
-      allDay: boolean;
-      view: string;
-    }) => void
+    event: EventApi | null,
+    dates: SelectedDates | null,
+    setDates: (dates: SelectedDates | null) => void
   ) => void;
   isDeleteConfirmationModalOpen: boolean;
   setIsDeleteConfirmationModalOpen: (open: boolean) => void;
@@ -46,13 +37,8 @@ interface CalendarModalsProps {
     handleEventDelete: (event: EventApi) => void
   ) => void;
   handleEventDelete: (event: EventApi) => void;
-  setSelectedEvent: (event: EventApi) => void;
-  setSelectedDates: (dates: {
-    start: Date;
-    end: Date;
-    allDay: boolean;
-    view: string;
-  }) => void;
+  setSelectedEvent: (event: EventApi | null) => void;
+  setSelectedDates: (dates: SelectedDates | null) => void;
 }
 
 export default function CalendarModals({
@@ -78,8 +64,8 @@ export default function CalendarModals({
           open={isCreateModalOpen}
           onOpenChange={setIsCreateModalOpen}
           onSubmit={handleCreateEventWrapper}
-          startDate={selectedDates.start.toISOString()}
-          endDate={selectedDates.end.toISOString()}
+          startDate={selectedDates.start}
+          endDate={selectedDates.end}
           isAllDay={selectedDates.allDay}
           view={selectedDates.view as unknown as ViewApi}
           isEditMode={!!selectedEvent}
