@@ -1,5 +1,6 @@
 import CalendarCreateEventModal from "../modals/calendar-create-event-modal";
 import CalendarEventActionsModal from "../modals/calendar-event-actions-modal";
+import EditEventModal from "../modals/calendar-edit-event-modal";
 import {
   Dialog,
   DialogContent,
@@ -59,7 +60,7 @@ export default function CalendarModals({
 }: CalendarModalsProps) {
   return (
     <>
-      {selectedDates && (
+      {selectedDates && isCreateModalOpen && !selectedEvent && (
         <CalendarCreateEventModal
           open={isCreateModalOpen}
           onOpenChange={setIsCreateModalOpen}
@@ -68,7 +69,17 @@ export default function CalendarModals({
           endDate={selectedDates.end}
           isAllDay={selectedDates.allDay}
           view={selectedDates.view as unknown as ViewApi}
-          isEditMode={!!selectedEvent}
+        />
+      )}
+      {selectedDates && isCreateModalOpen && selectedEvent && (
+        <EditEventModal
+          open={isCreateModalOpen}
+          onOpenChange={setIsCreateModalOpen}
+          onSubmit={handleCreateEventWrapper}
+          startDate={selectedDates.start}
+          endDate={selectedDates.end}
+          isAllDay={selectedDates.allDay}
+          view={selectedDates.view as unknown as ViewApi}
           initialTitle={selectedEvent?.title || ""}
         />
       )}
@@ -79,9 +90,19 @@ export default function CalendarModals({
           onOpenChange={setIsEventActionsModalOpen}
           event={selectedEvent}
           onDelete={() => handleEventActionsDelete(selectedEvent)}
-          onEdit={() =>
-            handleEventEdit(selectedEvent, selectedDates, setSelectedDates)
-          }
+          onEdit={() => {
+            const view = selectedDates?.view ||
+              (selectedEvent as any)?._context?.viewApi || {
+                type: "dayGridMonth",
+              };
+            const safeDates = selectedDates || {
+              start: selectedEvent.startStr,
+              end: selectedEvent.endStr,
+              allDay: selectedEvent.allDay,
+              view,
+            };
+            handleEventEdit(selectedEvent, safeDates, setSelectedDates);
+          }}
         />
       )}
 

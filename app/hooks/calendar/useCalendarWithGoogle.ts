@@ -82,7 +82,7 @@ export function useCalendarWithGoogle(
           .map(Number);
         const [endHours, endMinutes] = selectedEndTime.split(":").map(Number);
 
-        // Use local Y/M/D, not UTC, to avoid timezone shift bugs
+        // Create dates in local timezone to avoid timezone conversion issues
         const localStartDate = new Date(
           startDate.getFullYear(),
           startDate.getMonth(),
@@ -160,15 +160,24 @@ export function useCalendarWithGoogle(
       };
       if (newEvent.googleEventId) {
         await googleCalendarService.updateEvent(newEvent);
+        // Update the existing event instead of removing and re-adding
+        if (selectedEvent) {
+          selectedEvent.setProp("title", newEvent.title);
+          selectedEvent.setStart(newEvent.start);
+          selectedEvent.setEnd(newEvent.end);
+          selectedEvent.setAllDay(newEvent.allDay);
+        }
       } else {
         const googleEventId = await googleCalendarService.createEvent(newEvent);
         newEvent.googleEventId = googleEventId;
+        // Only add new event if it's not an update
+        api.addEvent(newEvent);
       }
 
-      if (selectedEvent) {
+      // Remove the old event only if we're not updating an existing one
+      if (selectedEvent && !selectedEvent.extendedProps?.googleEventId) {
         selectedEvent.remove();
       }
-      api.addEvent(newEvent);
       api.unselect();
     } catch (error) {
       console.error("Event operation error:", error);
