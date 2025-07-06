@@ -108,7 +108,7 @@ export async function POST() {
   return NextResponse.json({ access_token: existingTokens.access_token });
 }
 
-export async function DELETE(request: Request) {
+export async function DELETE() {
   const session = await getServerSession(authOptions);
   if (!session?.user?.id) {
     return NextResponse.json({ error: "Not authenticated" }, { status: 401 });
