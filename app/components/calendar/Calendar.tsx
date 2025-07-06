@@ -19,9 +19,15 @@ import CalendarModals from "./CalendarModals";
 
 interface CalendarProps {
   accessToken?: string;
+  onSignOutGoogle?: () => void;
+  isSigningOut?: boolean;
 }
 
-export default function Calendar({ accessToken }: CalendarProps) {
+export default function Calendar({
+  accessToken,
+  onSignOutGoogle,
+  isSigningOut = false,
+}: CalendarProps) {
   const calendarRef = useRef<FullCalendar | null>(null);
   const calendarApiRef = useRef<CalendarApi | null>(null);
   const {
@@ -242,7 +248,8 @@ export default function Calendar({ accessToken }: CalendarProps) {
           isFetching={isFetching}
           googleState={googleState}
           accessToken={accessToken}
-          setIsCreateModalOpen={setIsCreateModalOpen}
+          onSignOutGoogle={onSignOutGoogle}
+          isSigningOut={isSigningOut}
         />
       </div>
       <CalendarErrorAlert message={fetchError || googleState.error || ""} />

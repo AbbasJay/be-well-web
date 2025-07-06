@@ -1,4 +1,10 @@
-import { RefreshCw, ChevronLeft, ChevronRight, Grid } from "lucide-react";
+import {
+  RefreshCw,
+  ChevronLeft,
+  ChevronRight,
+  Grid,
+  LogOut,
+} from "lucide-react";
 import {
   Tooltip,
   TooltipContent,
@@ -27,7 +33,8 @@ interface CalendarHeaderProps {
     isConnected: boolean;
   };
   accessToken?: string;
-  setIsCreateModalOpen: (open: boolean) => void;
+  onSignOutGoogle?: () => void;
+  isSigningOut?: boolean;
 }
 
 export default function CalendarHeader({
@@ -41,7 +48,8 @@ export default function CalendarHeader({
   isFetching,
   googleState,
   accessToken,
-  setIsCreateModalOpen,
+  onSignOutGoogle,
+  isSigningOut = false,
 }: CalendarHeaderProps) {
   return (
     <TooltipProvider>
@@ -58,28 +66,6 @@ export default function CalendarHeader({
           </span>
         </div>
         <div className="flex items-center gap-2">
-          <Button
-            variant="outline"
-            size="icon"
-            onClick={() => setIsCreateModalOpen(true)}
-            className="rounded-full p-2 hover:bg-blue-100/60 transition shadow-none border-none focus:ring-2 focus:ring-blue-200"
-            aria-label="Create Event"
-          >
-            <svg
-              width="20"
-              height="20"
-              fill="none"
-              viewBox="0 0 24 24"
-              stroke="currentColor"
-              strokeWidth="2"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                d="M12 4v16m8-8H4"
-              />
-            </svg>
-          </Button>
           <button
             onClick={onPrev}
             className="rounded-full p-2 hover:bg-accent/60 transition shadow-none border-none focus:ring-2 focus:ring-blue-200"
@@ -171,6 +157,25 @@ export default function CalendarHeader({
                 </button>
               </TooltipTrigger>
               <TooltipContent>Sync with Google Calendar</TooltipContent>
+            </Tooltip>
+          )}
+          {accessToken && onSignOutGoogle && (
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <button
+                  onClick={onSignOutGoogle}
+                  disabled={isSigningOut}
+                  className="rounded-full p-2 hover:bg-red-100/60 disabled:opacity-50 transition shadow-none border-none focus:ring-2 focus:ring-red-200"
+                  aria-label="Sign out of Google Calendar"
+                >
+                  {isSigningOut ? (
+                    <RefreshCw className="w-5 h-5 animate-spin text-red-600" />
+                  ) : (
+                    <LogOut className="w-5 h-5 text-red-600" />
+                  )}
+                </button>
+              </TooltipTrigger>
+              <TooltipContent>Sign out of Google Calendar</TooltipContent>
             </Tooltip>
           )}
         </div>
