@@ -1,10 +1,4 @@
-import {
-  Calendar as CalendarIcon,
-  RefreshCw,
-  ChevronLeft,
-  ChevronRight,
-  Grid,
-} from "lucide-react";
+import { RefreshCw, ChevronLeft, ChevronRight, Grid } from "lucide-react";
 import {
   Tooltip,
   TooltipContent,
@@ -28,7 +22,10 @@ interface CalendarHeaderProps {
   currentView: string;
   handleSyncWithGoogle: () => void;
   isFetching: boolean;
-  googleState: any;
+  googleState: {
+    isLoading: boolean;
+    isConnected: boolean;
+  };
   accessToken?: string;
   setIsCreateModalOpen: (open: boolean) => void;
 }

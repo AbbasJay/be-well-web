@@ -26,7 +26,7 @@ const GoogleCalendarPrompt = () => {
   }, []);
 
   const handleConnectGoogle = async () => {
-    let url = new URL(window.location.href);
+    const url = new URL(window.location.href);
     url.searchParams.set("addClass", "1");
     const redirect = encodeURIComponent(url.toString());
     const res = await fetch(`/api/calendar/auth?redirect=${redirect}`);

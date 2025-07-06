@@ -2,17 +2,23 @@ import FullCalendar from "@fullcalendar/react";
 import dayGridPlugin from "@fullcalendar/daygrid";
 import timeGridPlugin from "@fullcalendar/timegrid";
 import interactionPlugin from "@fullcalendar/interaction";
-import { EventContentArg } from "@fullcalendar/core";
+import {
+  DateSelectArg,
+  EventApi,
+  EventClickArg,
+  EventContentArg,
+  EventInput,
+} from "@fullcalendar/core";
 import { useMemo } from "react";
 
 interface CalendarGridProps {
-  calendarRef: any;
+  calendarRef: React.RefObject<FullCalendar>;
   currentView: string;
-  handleDateSelectWrapper: (info: any) => void;
+  handleDateSelectWrapper: (info: DateSelectArg) => void;
   renderEventContent: (eventInfo: EventContentArg) => JSX.Element;
-  handleEventClickWrapper: (info: any) => void;
-  handleEvents: (events: any) => void;
-  events: any;
+  handleEventClickWrapper: (info: EventClickArg) => void;
+  handleEvents: (events: EventApi[]) => void;
+  events: EventInput[];
   setCurrentDate: (date: Date) => void;
 }
 
