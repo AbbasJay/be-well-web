@@ -4,6 +4,7 @@ import { db } from "@/lib/db/db";
 import { UsersTable } from "@/lib/db/schema";
 import { eq } from "drizzle-orm";
 import bcrypt from "bcryptjs";
+import { cookies } from "next/headers";
 
 export const authOptions: AuthOptions = {
   providers: [
@@ -58,6 +59,16 @@ export const authOptions: AuthOptions = {
     async session({ session, token }) {
       if (token.id) {
         session.user.id = token.id as string;
+      }
+      // Check for Google Calendar connection
+      try {
+        const cookieStore = cookies();
+        const googleCookie = cookieStore.get(
+          `google_calendar_tokens_${session.user.id}`
+        );
+        session.user.googleConnected = !!googleCookie;
+      } catch (e) {
+        session.user.googleConnected = false;
       }
       return session;
     },

@@ -87,6 +87,8 @@ export async function POST(request: Request) {
       calendarId: "primary",
       requestBody: {
         summary: event.title,
+        description: event.description || "",
+        location: event.location || "",
         start: {
           dateTime: event.allDay ? undefined : event.start,
           date: event.allDay ? event.start.split("T")[0] : undefined,
@@ -166,6 +168,8 @@ export async function PUT(request: Request) {
       eventId: event.googleEventId,
       requestBody: {
         summary: event.title,
+        description: event.description || "",
+        location: event.location || "",
         start: {
           dateTime: event.allDay ? undefined : event.start,
           date: event.allDay ? event.start.split("T")[0] : undefined,

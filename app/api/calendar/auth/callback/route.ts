@@ -60,6 +60,11 @@ export async function GET(request: Request) {
       }
     );
 
+    // If state param is present, use it as the redirect URL
+    const state = url.searchParams.get("state");
+    if (state) {
+      return NextResponse.redirect(state);
+    }
     const redirectUrl = new URL("/calendar", request.url);
     return NextResponse.redirect(redirectUrl);
   } catch (error) {

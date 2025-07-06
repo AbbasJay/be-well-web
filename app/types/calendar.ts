@@ -7,6 +7,8 @@ export interface CalendarEvent {
   end: string;
   allDay: boolean;
   googleEventId?: string;
+  description?: string;
+  location?: string;
 }
 
 export interface SelectedDates {

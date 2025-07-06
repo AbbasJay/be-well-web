@@ -1,0 +1,1 @@
+ALTER TABLE "classes" ADD COLUMN "google_event_id" text;

@@ -68,6 +68,8 @@ export async function GET(request: Request) {
   }
 
   const origin = new URL(request.url).origin;
+  const urlObj = new URL(request.url);
+  const redirectParam = urlObj.searchParams.get("redirect");
   const redirectUri = `${origin}/api/calendar/auth/callback`;
 
   const oauth2ClientWithRedirect = new OAuth2Client(
@@ -81,6 +83,7 @@ export async function GET(request: Request) {
     scope: ["https://www.googleapis.com/auth/calendar"],
     prompt: "consent",
     redirect_uri: redirectUri,
+    state: redirectParam || undefined,
   });
 
   return NextResponse.json({ url: authUrl });
@@ -103,4 +106,14 @@ export async function POST() {
   }
 
   return NextResponse.json({ access_token: existingTokens.access_token });
+}
+
+export async function DELETE(request: Request) {
+  const session = await getServerSession(authOptions);
+  if (!session?.user?.id) {
+    return NextResponse.json({ error: "Not authenticated" }, { status: 401 });
+  }
+  const cookieStore = cookies();
+  cookieStore.delete(`google_calendar_tokens_${session.user.id}`);
+  return NextResponse.json({ success: true });
 }

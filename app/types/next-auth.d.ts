@@ -7,6 +7,7 @@ declare module "next-auth" {
       id: string;
       email: string;
       name: string;
+      googleConnected?: boolean;
     };
     accessToken?: string;
     error?: string;
