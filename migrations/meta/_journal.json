@@ -50,6 +50,20 @@
       "when": 1751399384239,
       "tag": "0006_married_thena",
       "breakpoints": true
+    },
+    {
+      "idx": 7,
+      "version": "7",
+      "when": 1751815305093,
+      "tag": "0007_watery_darkhawk",
+      "breakpoints": true
+    },
+    {
+      "idx": 8,
+      "version": "7",
+      "when": 1751815348230,
+      "tag": "0008_numerous_edwin_jarvis",
+      "breakpoints": true
     }
   ]
 }

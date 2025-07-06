@@ -1,0 +1,1 @@
+ALTER TABLE "classes" ADD COLUMN "class_type_id" integer;

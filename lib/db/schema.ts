@@ -62,6 +62,7 @@ export const ClassesTable = pgTable(
   "classes",
   {
     id: serial("id").primaryKey().notNull(),
+    classTypeId: integer("class_type_id"),
     businessId: integer("business_id").notNull(),
     name: text("name").notNull(),
     description: text("description").notNull(),
@@ -120,6 +121,7 @@ export const NotificationsTable = pgTable(
     id: serial("id").primaryKey().notNull(),
     userId: integer("user_id").notNull(),
     classId: integer("class_id"),
+    classTypeId: integer("class_type_id"), // New field for referencing class types
     businessId: integer("business_id"),
     title: text("title").notNull(),
     message: text("message").notNull(),
@@ -134,6 +136,10 @@ export const NotificationsTable = pgTable(
     }),
     classIdFk: foreignKey({
       columns: [notifications.classId],
+      foreignColumns: [ClassesTable.id],
+    }).onDelete("set null"),
+    classTypeIdFk: foreignKey({
+      columns: [notifications.classTypeId],
       foreignColumns: [ClassesTable.id],
     }).onDelete("set null"),
     businessIdFk: foreignKey({
