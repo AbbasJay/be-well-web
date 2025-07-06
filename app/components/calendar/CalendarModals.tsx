@@ -12,6 +12,10 @@ import { Button } from "@/components/ui/button";
 import { EventApi, ViewApi } from "@fullcalendar/core";
 import { SelectedDates } from "@/app/types/calendar";
 
+interface MinimalViewApi {
+  type: string;
+}
+
 interface CalendarModalsProps {
   selectedDates: SelectedDates | null;
   isCreateModalOpen: boolean;
@@ -40,6 +44,7 @@ interface CalendarModalsProps {
   handleEventDelete: (event: EventApi) => void;
   setSelectedEvent: (event: EventApi | null) => void;
   setSelectedDates: (dates: SelectedDates | null) => void;
+  currentView: string;
 }
 
 export default function CalendarModals({
@@ -57,6 +62,7 @@ export default function CalendarModals({
   handleDeleteConfirm,
   handleEventDelete,
   setSelectedDates,
+  currentView,
 }: CalendarModalsProps) {
   return (
     <>
@@ -68,7 +74,7 @@ export default function CalendarModals({
           startDate={selectedDates.start}
           endDate={selectedDates.end}
           isAllDay={selectedDates.allDay}
-          view={selectedDates.view as unknown as ViewApi}
+          view={selectedDates.view}
         />
       )}
       {selectedDates && isCreateModalOpen && selectedEvent && (
@@ -79,7 +85,7 @@ export default function CalendarModals({
           startDate={selectedDates.start}
           endDate={selectedDates.end}
           isAllDay={selectedDates.allDay}
-          view={selectedDates.view as unknown as ViewApi}
+          view={selectedDates.view}
           initialTitle={selectedEvent?.title || ""}
         />
       )}
@@ -91,15 +97,16 @@ export default function CalendarModals({
           event={selectedEvent}
           onDelete={() => handleEventActionsDelete(selectedEvent)}
           onEdit={() => {
-            const view = selectedDates?.view ||
-              (selectedEvent as any)?._context?.viewApi || {
-                type: "dayGridMonth",
-              };
+            // Use the current view from selectedDates or create a minimal view object
+            const view: MinimalViewApi = selectedDates?.view || {
+              type: currentView,
+            };
+
             const safeDates = selectedDates || {
               start: selectedEvent.startStr,
               end: selectedEvent.endStr,
               allDay: selectedEvent.allDay,
-              view,
+              view: view as ViewApi,
             };
             handleEventEdit(selectedEvent, safeDates, setSelectedDates);
           }}

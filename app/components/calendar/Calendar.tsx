@@ -230,6 +230,7 @@ export default function Calendar({ accessToken }: CalendarProps) {
         handleEventDelete={handleEventDelete}
         setSelectedEvent={setSelectedEvent}
         setSelectedDates={setSelectedDates}
+        currentView={currentView}
       />
     </div>
   );
