@@ -10,8 +10,6 @@ import {
 import { useCalendarWithGoogle } from "../../hooks/calendar/useCalendarWithGoogle";
 import { useCalendarModals } from "../../hooks/calendar/useCalendarModals";
 import { useCalendar } from "@/app/contexts/CalendarContext";
-import { Calendar as CalendarIcon, Clock, MapPin } from "lucide-react";
-import { Badge } from "@/components/ui/badge";
 import CalendarHeader from "./CalendarHeader";
 import CalendarGrid from "./CalendarGrid";
 import CalendarErrorAlert from "./CalendarErrorAlert";
@@ -165,13 +163,6 @@ export default function Calendar({
   }, [currentView]);
 
   const renderEventContent = (eventInfo: EventContentArg) => {
-    const isAllDay = eventInfo.event.allDay;
-    const isMultiDay =
-      eventInfo.event.start &&
-      eventInfo.event.end &&
-      new Date(eventInfo.event.start).toDateString() !==
-        new Date(eventInfo.event.end).toDateString();
-
     const isTimeGrid = eventInfo.view.type.includes("timeGrid");
 
     const start = eventInfo.event.start;
