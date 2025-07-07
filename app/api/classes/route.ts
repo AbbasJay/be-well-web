@@ -1,6 +1,6 @@
 import { db } from "@/lib/db/db";
 import { ClassesTable } from "@/lib/db/schema";
-import { eq } from "drizzle-orm";
+import { eq, and, ne } from "drizzle-orm";
 import { NextResponse } from "next/server";
 import { createEventFromClassServer } from "@/app/services/google-calendar-server";
 import { getServerSession } from "next-auth";
@@ -12,10 +12,39 @@ export async function POST(req: Request) {
     const newClass = await req.json();
     newClass.slotsLeft = newClass.capacity;
 
-    const insertedClass = await db
+    const [insertedClass] = await db
       .insert(ClassesTable)
       .values(newClass)
       .returning();
+
+    const [existingType] = await db
+      .select()
+      .from(ClassesTable)
+      .where(
+        and(
+          eq(ClassesTable.businessId, insertedClass.businessId),
+          eq(ClassesTable.name, insertedClass.name),
+          eq(ClassesTable.instructor, insertedClass.instructor),
+          eq(ClassesTable.location, insertedClass.location),
+          ne(ClassesTable.id, insertedClass.id)
+        )
+      )
+      .limit(1)
+      .execute();
+
+    let classTypeId;
+    if (existingType) {
+      classTypeId = existingType.classTypeId || existingType.id;
+    } else {
+      classTypeId = insertedClass.id;
+    }
+
+    await db
+      .update(ClassesTable)
+      .set({ classTypeId })
+      .where(eq(ClassesTable.id, insertedClass.id));
+
+    insertedClass.classTypeId = classTypeId;
 
     // Try to create a calendar event for the new class
     try {
@@ -31,7 +60,7 @@ export async function POST(req: Request) {
 
         if (existingTokens?.access_token) {
           const calendarEventId = await createEventFromClassServer(
-            insertedClass[0],
+            insertedClass,
             existingTokens.access_token
           );
           if (calendarEventId) {
@@ -41,11 +70,9 @@ export async function POST(req: Request) {
             await db
               .update(ClassesTable)
               .set({ googleEventId: calendarEventId })
-              .where(eq(ClassesTable.id, insertedClass[0].id));
+              .where(eq(ClassesTable.id, insertedClass.id));
 
-            console.log(
-              `Stored Google Event ID for class ${insertedClass[0].id}`
-            );
+            console.log(`Stored Google Event ID for class ${insertedClass.id}`);
           }
         } else {
           console.log("No Google Calendar access token found for user");
@@ -59,7 +86,7 @@ export async function POST(req: Request) {
       // Don't fail the class creation if calendar event creation fails
     }
 
-    return NextResponse.json(insertedClass, { status: 201 });
+    return NextResponse.json([insertedClass], { status: 201 });
   } catch (error) {
     console.error("Error creating class:", error);
     return NextResponse.json(
