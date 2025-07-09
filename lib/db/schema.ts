@@ -18,8 +18,9 @@ export const UsersTable = pgTable(
     email: text("email").notNull(),
     password: text("password").notNull(),
     createdAt: timestamp("created_at").defaultNow().notNull(),
+    photo: text("photo"), // avatar URL, optional
   },
-  (users) => ({
+  (users: any) => ({
     uniqueIdx: uniqueIndex("unique_idx").on(users.email),
   })
 );
@@ -47,7 +48,7 @@ export const BusinessesTable = pgTable(
     longitude: numeric("longitude", { precision: 10, scale: 7 }),
     createdAt: timestamp("created_at").defaultNow().notNull(),
   },
-  (businesses) => ({
+  (businesses: any) => ({
     uniqueEmailIdx: uniqueIndex("unique_email_idx").on(businesses.email),
     userIdFk: foreignKey({
       columns: [businesses.userId],
@@ -77,7 +78,7 @@ export const ClassesTable = pgTable(
     googleEventId: text("google_event_id"),
     createdAt: timestamp("created_at").defaultNow().notNull(),
   },
-  (classes) => ({
+  (classes: any) => ({
     businessIdFk: foreignKey({
       columns: [classes.businessId],
       foreignColumns: [BusinessesTable.id],
@@ -101,7 +102,7 @@ export const BookingsTable = pgTable(
     cancelledAt: timestamp("cancelled_at"),
     cancellationReason: text("cancellation_reason"),
   },
-  (bookings) => ({
+  (bookings: any) => ({
     userIdFk: foreignKey({
       columns: [bookings.userId],
       foreignColumns: [UsersTable.id],
@@ -129,7 +130,7 @@ export const NotificationsTable = pgTable(
     read: boolean("read").default(false).notNull(),
     createdAt: timestamp("created_at").defaultNow().notNull(),
   },
-  (notifications) => ({
+  (notifications: any) => ({
     userIdFk: foreignKey({
       columns: [notifications.userId],
       foreignColumns: [UsersTable.id],
@@ -160,3 +161,50 @@ export const NotificationType = {
 export type NotificationType =
   (typeof NotificationType)[keyof typeof NotificationType];
 export type Notification = typeof NotificationsTable.$inferInsert;
+
+export const ClassReviewsTable = pgTable(
+  "class_reviews",
+  {
+    id: serial("id").primaryKey().notNull(),
+    classId: integer("class_id").notNull(),
+    userId: integer("user_id").notNull(),
+    rating: integer("rating").notNull(), // 1-5
+    text: text("text").notNull(),
+    createdAt: timestamp("created_at").defaultNow().notNull(),
+  },
+  (reviews: any) => ({
+    classIdFk: foreignKey({
+      columns: [reviews.classId],
+      foreignColumns: [ClassesTable.id],
+    }).onDelete("cascade"),
+    userIdFk: foreignKey({
+      columns: [reviews.userId],
+      foreignColumns: [UsersTable.id],
+    }).onDelete("cascade"),
+  })
+);
+
+export type ClassReview = typeof ClassReviewsTable.$inferInsert;
+
+export const ClassReviewLikesTable = pgTable(
+  "class_review_likes",
+  {
+    id: serial("id").primaryKey().notNull(),
+    reviewId: integer("review_id").notNull(),
+    userId: integer("user_id").notNull(),
+    type: text("type").notNull().$type<"like" | "dislike">(),
+    createdAt: timestamp("created_at").defaultNow().notNull(),
+  },
+  (likes: any) => ({
+    reviewIdFk: foreignKey({
+      columns: [likes.reviewId],
+      foreignColumns: [ClassReviewsTable.id],
+    }).onDelete("cascade"),
+    userIdFk: foreignKey({
+      columns: [likes.userId],
+      foreignColumns: [UsersTable.id],
+    }).onDelete("cascade"),
+  })
+);
+
+export type ClassReviewLike = typeof ClassReviewLikesTable.$inferInsert;
