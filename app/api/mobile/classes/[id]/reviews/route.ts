@@ -4,8 +4,9 @@ import {
   ClassReviewsTable,
   UsersTable,
   ClassReviewLikesTable,
+  ClassReviewLike,
 } from "@/lib/db/schema";
-import { eq, and, inArray } from "drizzle-orm";
+import { eq, inArray } from "drizzle-orm";
 import { withAuth, errorResponse } from "@/lib/utils/api-utils";
 
 /**
@@ -69,7 +70,7 @@ export async function GET(
       .where(eq(ClassReviewsTable.classId, classId));
     // For each review, get like/dislike counts and user status
     const reviewIds = reviews.map((r) => r.id);
-    let likes: any[] = [];
+    let likes: ClassReviewLike[] = [];
     if (reviewIds.length > 0) {
       likes = await db
         .select({

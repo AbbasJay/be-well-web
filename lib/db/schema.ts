@@ -20,7 +20,7 @@ export const UsersTable = pgTable(
     createdAt: timestamp("created_at").defaultNow().notNull(),
     photo: text("photo"), // avatar URL, optional
   },
-  (users: any) => ({
+  (users) => ({
     uniqueIdx: uniqueIndex("unique_idx").on(users.email),
   })
 );
@@ -48,7 +48,7 @@ export const BusinessesTable = pgTable(
     longitude: numeric("longitude", { precision: 10, scale: 7 }),
     createdAt: timestamp("created_at").defaultNow().notNull(),
   },
-  (businesses: any) => ({
+  (businesses) => ({
     uniqueEmailIdx: uniqueIndex("unique_email_idx").on(businesses.email),
     userIdFk: foreignKey({
       columns: [businesses.userId],
@@ -78,7 +78,7 @@ export const ClassesTable = pgTable(
     googleEventId: text("google_event_id"),
     createdAt: timestamp("created_at").defaultNow().notNull(),
   },
-  (classes: any) => ({
+  (classes) => ({
     businessIdFk: foreignKey({
       columns: [classes.businessId],
       foreignColumns: [BusinessesTable.id],
@@ -102,7 +102,7 @@ export const BookingsTable = pgTable(
     cancelledAt: timestamp("cancelled_at"),
     cancellationReason: text("cancellation_reason"),
   },
-  (bookings: any) => ({
+  (bookings) => ({
     userIdFk: foreignKey({
       columns: [bookings.userId],
       foreignColumns: [UsersTable.id],
@@ -130,7 +130,7 @@ export const NotificationsTable = pgTable(
     read: boolean("read").default(false).notNull(),
     createdAt: timestamp("created_at").defaultNow().notNull(),
   },
-  (notifications: any) => ({
+  (notifications) => ({
     userIdFk: foreignKey({
       columns: [notifications.userId],
       foreignColumns: [UsersTable.id],
@@ -172,7 +172,7 @@ export const ClassReviewsTable = pgTable(
     text: text("text").notNull(),
     createdAt: timestamp("created_at").defaultNow().notNull(),
   },
-  (reviews: any) => ({
+  (reviews) => ({
     classIdFk: foreignKey({
       columns: [reviews.classId],
       foreignColumns: [ClassesTable.id],
@@ -195,7 +195,7 @@ export const ClassReviewLikesTable = pgTable(
     type: text("type").notNull().$type<"like" | "dislike">(),
     createdAt: timestamp("created_at").defaultNow().notNull(),
   },
-  (likes: any) => ({
+  (likes) => ({
     reviewIdFk: foreignKey({
       columns: [likes.reviewId],
       foreignColumns: [ClassReviewsTable.id],
