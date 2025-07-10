@@ -122,13 +122,14 @@ export const NotificationsTable = pgTable(
     id: serial("id").primaryKey().notNull(),
     userId: integer("user_id").notNull(),
     classId: integer("class_id"),
-    classTypeId: integer("class_type_id"), // New field for referencing class types
+    classTypeId: integer("class_type_id"),
     businessId: integer("business_id"),
     title: text("title").notNull(),
     message: text("message").notNull(),
     type: text("type").notNull(),
     read: boolean("read").default(false).notNull(),
     createdAt: timestamp("created_at").defaultNow().notNull(),
+    className: text("class_name"),
   },
   (notifications) => ({
     userIdFk: foreignKey({

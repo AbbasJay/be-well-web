@@ -140,6 +140,7 @@ export async function POST(
         type: NotificationType.BOOKING_CONFIRMATION,
         title: "Class Booked Successfully",
         message: `You have successfully booked ${classData.name}. The class is scheduled for ${classData.startDate} at ${classData.time} with instructor ${classData.instructor}. Location: ${classData.location}`,
+        className: classData.name,
         read: false,
       });
 
