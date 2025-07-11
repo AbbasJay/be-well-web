@@ -53,44 +53,147 @@ export function useCalendarWithGoogle(
 
   const handleCreateEvent = async (
     title: string,
-    selectedTime: string,
+    selectedStartTime: string,
+    selectedEndTime: string,
     isAllDay: boolean
   ) => {
     const api = calendarApiRef?.current;
     if (!selectedDates || !api) return;
 
-    const startDate = new Date(selectedDates.start);
-    const endDate = new Date(selectedDates.end);
-
-    if (selectedDates.view.type === "dayGridMonth") {
-      const [hours, minutes] = selectedTime.split(":").map(Number);
-      startDate.setHours(hours, minutes, 0);
-      endDate.setTime(startDate.getTime() + 60 * 60 * 1000);
-    } else if (!isAllDay) {
-      const [hours, minutes] = selectedTime.split(":").map(Number);
-      startDate.setHours(hours, minutes, 0);
-      endDate.setTime(startDate.getTime() + 60 * 60 * 1000);
-    }
-
-    const newEvent: CalendarEvent = {
-      id: createEventId(),
-      title,
-      start: startDate.toISOString(),
-      end: endDate.toISOString(),
-      allDay: isAllDay && selectedDates.view.type !== "dayGridMonth",
-    };
-
     try {
       setGoogleState((prev) => ({ ...prev, isLoading: true }));
-      const googleEventId = await googleCalendarService.createEvent(newEvent);
-      newEvent.googleEventId = googleEventId;
 
-      api.addEvent(newEvent);
+      // Parse the UTC dates from FullCalendar
+      let startDate = new Date(selectedDates.start);
+      let endDate = new Date(selectedDates.end);
+
+      // Ensure valid dates
+      if (isNaN(startDate.getTime()) || isNaN(endDate.getTime())) {
+        console.error("Invalid date values:", {
+          start: selectedDates.start,
+          end: selectedDates.end,
+        });
+        throw new Error("Invalid date values");
+      }
+
+      if (!isAllDay) {
+        const [startHours, startMinutes] = selectedStartTime
+          .split(":")
+          .map(Number);
+        const [endHours, endMinutes] = selectedEndTime.split(":").map(Number);
+
+        // Create dates in local timezone to avoid timezone conversion issues
+        const localStartDate = new Date(
+          startDate.getFullYear(),
+          startDate.getMonth(),
+          startDate.getDate(),
+          startHours,
+          startMinutes,
+          0,
+          0
+        );
+
+        // If end time is before or equal to start time, increment the day for end date
+        let endDay = startDate.getDate();
+        if (
+          endHours < startHours ||
+          (endHours === startHours && endMinutes <= startMinutes)
+        ) {
+          endDay += 1;
+        }
+
+        const localEndDate = new Date(
+          startDate.getFullYear(),
+          startDate.getMonth(),
+          endDay,
+          endHours,
+          endMinutes,
+          0,
+          0
+        );
+
+        startDate = localStartDate;
+        endDate = localEndDate;
+      } else {
+        // For all-day events, use only the start date and create a single-day event
+        const localStartDate = new Date(
+          startDate.getFullYear(),
+          startDate.getMonth(),
+          startDate.getDate(),
+          0,
+          0,
+          0,
+          0
+        );
+
+        // End date should be the same day, just before midnight
+        const localEndDate = new Date(
+          startDate.getFullYear(),
+          startDate.getMonth(),
+          startDate.getDate(),
+          23,
+          59,
+          59,
+          999
+        );
+
+        startDate = localStartDate;
+        endDate = localEndDate;
+      }
+
+      const formatLocalISOString = (date: Date) => {
+        const year = date.getFullYear();
+        const month = String(date.getMonth() + 1).padStart(2, "0");
+        const day = String(date.getDate()).padStart(2, "0");
+        const hours = String(date.getHours()).padStart(2, "0");
+        const minutes = String(date.getMinutes()).padStart(2, "0");
+        const seconds = String(date.getSeconds()).padStart(2, "0");
+        return `${year}-${month}-${day}T${hours}:${minutes}:${seconds}`;
+      };
+
+      const newEvent: CalendarEvent = {
+        id: selectedEvent?.id || createEventId(),
+        title,
+        start: isAllDay
+          ? `${startDate.getFullYear()}-${String(
+              startDate.getMonth() + 1
+            ).padStart(2, "0")}-${String(startDate.getDate()).padStart(2, "0")}`
+          : formatLocalISOString(startDate),
+        end: isAllDay
+          ? `${endDate.getFullYear()}-${String(endDate.getMonth() + 1).padStart(
+              2,
+              "0"
+            )}-${String(endDate.getDate()).padStart(2, "0")}`
+          : formatLocalISOString(endDate),
+        allDay: isAllDay,
+        googleEventId: selectedEvent?.extendedProps?.googleEventId,
+      };
+      if (newEvent.googleEventId) {
+        await googleCalendarService.updateEvent(newEvent);
+        // Update the existing event instead of removing and re-adding
+        if (selectedEvent) {
+          selectedEvent.setProp("title", newEvent.title);
+          selectedEvent.setStart(newEvent.start);
+          selectedEvent.setEnd(newEvent.end);
+          selectedEvent.setAllDay(newEvent.allDay);
+        }
+      } else {
+        const googleEventId = await googleCalendarService.createEvent(newEvent);
+        newEvent.googleEventId = googleEventId;
+        // Only add new event if it's not an update
+        api.addEvent(newEvent);
+      }
+
+      // Remove the old event only if we're not updating an existing one
+      if (selectedEvent && !selectedEvent.extendedProps?.googleEventId) {
+        selectedEvent.remove();
+      }
       api.unselect();
     } catch (error) {
+      console.error("Event operation error:", error);
       setGoogleState((prev) => ({
         ...prev,
-        error: "Failed to create event in Google Calendar",
+        error: "Failed to save event in Google Calendar",
       }));
     } finally {
       setGoogleState((prev) => ({ ...prev, isLoading: false }));

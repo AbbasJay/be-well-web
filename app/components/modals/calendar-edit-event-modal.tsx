@@ -17,7 +17,7 @@ import { useState, useEffect } from "react";
 import { ViewApi } from "@fullcalendar/core";
 import { Calendar as CalendarIcon, Clock, Play } from "lucide-react";
 
-interface CalendarCreateEventModalProps {
+interface EditEventModalProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   onSubmit: (
@@ -30,11 +30,10 @@ interface CalendarCreateEventModalProps {
   endDate: string;
   isAllDay: boolean;
   view: ViewApi;
-  isEditMode?: boolean;
-  initialTitle?: string;
+  initialTitle: string;
 }
 
-export default function CalendarCreateEventModal({
+export default function EditEventModal({
   open,
   onOpenChange,
   onSubmit,
@@ -42,9 +41,8 @@ export default function CalendarCreateEventModal({
   endDate,
   isAllDay,
   view,
-  isEditMode = false,
   initialTitle = "",
-}: CalendarCreateEventModalProps) {
+}: EditEventModalProps) {
   const formatSelectedStartTime = () => {
     const now = new Date();
     let hours = now.getHours();
@@ -59,7 +57,7 @@ export default function CalendarCreateEventModal({
       .toString()
       .padStart(2, "0")}`;
   };
-  const [title, setTitle] = useState("");
+  const [title, setTitle] = useState(initialTitle);
   const [selectedStartTime, setSelectedStartTime] = useState(
     formatSelectedStartTime()
   );
@@ -67,9 +65,10 @@ export default function CalendarCreateEventModal({
   const [timeSlots, setTimeSlots] = useState<string[]>([]);
   const [showTimeSelectors, setShowTimeSelectors] = useState(false);
   const [isAllDayEvent, setIsAllDayEvent] = useState(isAllDay);
+
   useEffect(() => {
     if (!open) {
-      setTitle("");
+      setTitle(initialTitle);
       const initialStartTime = formatSelectedStartTime();
       setSelectedStartTime(initialStartTime);
       const startIndex = timeSlots.indexOf(initialStartTime);
@@ -78,7 +77,7 @@ export default function CalendarCreateEventModal({
       setShowTimeSelectors(false);
       setIsAllDayEvent(isAllDay);
     } else {
-      setTitle(isEditMode ? initialTitle : "");
+      setTitle(initialTitle);
       setIsAllDayEvent(isAllDay);
       if (view.type !== "dayGridMonth" && !isAllDay) {
         const date = new Date(startDate);
@@ -107,16 +106,8 @@ export default function CalendarCreateEventModal({
         setShowTimeSelectors(false);
       }
     }
-  }, [
-    open,
-    isEditMode,
-    initialTitle,
-    startDate,
-    endDate,
-    view.type,
-    timeSlots,
-    isAllDay,
-  ]);
+  }, [open, initialTitle, startDate, endDate, view.type, timeSlots, isAllDay]);
+
   useEffect(() => {
     const slots = [];
     for (let hour = 0; hour < 24; hour++) {
@@ -128,6 +119,7 @@ export default function CalendarCreateEventModal({
     }
     setTimeSlots(slots);
   }, []);
+
   useEffect(() => {
     if (showTimeSelectors && selectedStartTime) {
       const startIndex = timeSlots.indexOf(selectedStartTime);
@@ -135,6 +127,7 @@ export default function CalendarCreateEventModal({
       setSelectedEndTime(nextSlot);
     }
   }, [selectedStartTime, timeSlots, showTimeSelectors]);
+
   const formatEndTimeOptions = () => {
     const startTimeIndex = timeSlots.indexOf(selectedStartTime);
     return timeSlots.slice(startTimeIndex + 1).map((endTime) => ({
@@ -142,6 +135,7 @@ export default function CalendarCreateEventModal({
       label: `${endTime} (${getDurationString(endTime)})`,
     }));
   };
+
   const getDurationString = (endTime: string) => {
     const startIndex = timeSlots.indexOf(selectedStartTime);
     const endIndex = timeSlots.indexOf(endTime);
@@ -152,20 +146,25 @@ export default function CalendarCreateEventModal({
       minutes > 0 ? `${minutes}min` : ""
     }`;
   };
+
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     onSubmit(title, selectedStartTime, selectedEndTime, isAllDayEvent);
   };
+
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-[480px] rounded-2xl p-6 flex flex-col items-center justify-center">
-        <div className="flex items-center gap-2 mb-2 w-full">
-          <DialogTitle className="text-xl font-bold tracking-tight flex-1">
-            {isEditMode ? "Edit Event" : "Create New Event"}
+      <DialogContent className="sm:max-w-[480px] rounded-2xl p-0 overflow-hidden">
+        <div className="bg-blue-50 px-6 py-4 border-b border-blue-100">
+          <DialogTitle className="text-2xl font-bold text-blue-900 text-center">
+            Edit Event
           </DialogTitle>
         </div>
-        <div className="space-y-5 w-full">
-          <div>
+        <form
+          onSubmit={handleSubmit}
+          className="px-6 py-6 bg-white flex flex-col items-center w-full"
+        >
+          <div className="w-full mb-4">
             <label className="text-sm font-semibold">Event Title</label>
             <Input
               value={title}
@@ -174,7 +173,7 @@ export default function CalendarCreateEventModal({
               className="mt-2 text-base px-3 py-2 rounded-lg border border-border focus:ring-2 focus:ring-blue-200"
             />
           </div>
-          <div className="w-full flex flex-col gap-4 items-start">
+          <div className="w-full flex flex-col gap-4 items-start mb-4">
             {isAllDayEvent ? (
               <div className="flex items-center gap-3">
                 <CalendarIcon className="w-5 h-5 text-blue-500" />
@@ -265,7 +264,7 @@ export default function CalendarCreateEventModal({
               </>
             )}
           </div>
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-3 mb-4">
             <input
               type="checkbox"
               id="allDay"
@@ -281,9 +280,10 @@ export default function CalendarCreateEventModal({
             </label>
           </div>
           {!isAllDayEvent && (
-            <div>
+            <div className="w-full mb-4">
               {!showTimeSelectors ? (
                 <Button
+                  type="button"
                   onClick={() => setShowTimeSelectors(true)}
                   className="w-full flex items-center gap-2"
                 >
@@ -331,19 +331,21 @@ export default function CalendarCreateEventModal({
               )}
             </div>
           )}
-        </div>
-        <DialogFooter className="mt-8 flex gap-2 w-full">
-          <Button
-            variant="outline"
-            onClick={() => onOpenChange(false)}
-            className="w-1/2"
-          >
-            Cancel
-          </Button>
-          <Button onClick={handleSubmit} className="w-1/2">
-            {isEditMode ? "Save Changes" : "Create Event"}
-          </Button>
-        </DialogFooter>
+          <div className="border-t border-gray-200 w-full my-4" />
+          <DialogFooter className="flex gap-2 w-full">
+            <Button
+              variant="outline"
+              type="button"
+              onClick={() => onOpenChange(false)}
+              className="w-1/2"
+            >
+              Cancel
+            </Button>
+            <Button type="submit" className="w-1/2">
+              Save Changes
+            </Button>
+          </DialogFooter>
+        </form>
       </DialogContent>
     </Dialog>
   );

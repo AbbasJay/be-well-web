@@ -129,21 +129,11 @@ const CalendarPageContent = () => {
   }
 
   return (
-    <>
-      <div className="flex justify-end mb-4">
-        <Button
-          variant="outline"
-          onClick={handleSignOutGoogle}
-          disabled={isSigningOut}
-        >
-          {isSigningOut ? (
-            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-          ) : null}
-          Sign out of Google Calendar
-        </Button>
-      </div>
-      <Calendar accessToken={googleToken} />
-    </>
+    <Calendar
+      accessToken={googleToken}
+      onSignOutGoogle={handleSignOutGoogle}
+      isSigningOut={isSigningOut}
+    />
   );
 };
 
