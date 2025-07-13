@@ -1,39 +1,36 @@
 import { NextRequest } from "next/server";
 import { db } from "@/lib/db/db";
-import { BookingsTable, ClassesTable } from "@/lib/db/schema";
-import { eq, and } from "drizzle-orm";
+import { BookingsTable, ClassesTable, BusinessesTable } from "@/lib/db/schema";
+import { eq } from "drizzle-orm";
 import { withAuth, errorResponse } from "@/lib/utils/api-utils";
 
 export async function GET(request: NextRequest) {
   return withAuth(request, async (user) => {
     try {
-      // Get all active bookings for the user with class details
       const bookings = await db
         .select({
-          booking: {
-            id: BookingsTable.id,
-            status: BookingsTable.status,
-            createdAt: BookingsTable.createdAt,
-            cancelledAt: BookingsTable.cancelledAt,
-          },
-          class: {
-            id: ClassesTable.id,
-            name: ClassesTable.name,
-            description: ClassesTable.description,
-            startDate: ClassesTable.startDate,
-            time: ClassesTable.time,
-            instructor: ClassesTable.instructor,
-            location: ClassesTable.location,
-          },
+          id: BookingsTable.id,
+          status: BookingsTable.status,
+          createdAt: BookingsTable.createdAt,
+          cancelledAt: BookingsTable.cancelledAt,
+          cancellationReason: BookingsTable.cancellationReason,
+          classId: ClassesTable.id,
+          className: ClassesTable.name,
+          classDescription: ClassesTable.description,
+          classStartDate: ClassesTable.startDate,
+          classTime: ClassesTable.time,
+          classInstructor: ClassesTable.instructor,
+          classLocation: ClassesTable.location,
+          businessId: BusinessesTable.id,
+          businessName: BusinessesTable.name,
         })
         .from(BookingsTable)
         .innerJoin(ClassesTable, eq(BookingsTable.classId, ClassesTable.id))
-        .where(
-          and(
-            eq(BookingsTable.userId, user.id),
-            eq(BookingsTable.status, "active")
-          )
+        .innerJoin(
+          BusinessesTable,
+          eq(ClassesTable.businessId, BusinessesTable.id)
         )
+        .where(eq(BookingsTable.userId, user.id))
         .orderBy(BookingsTable.createdAt);
 
       return Response.json(bookings);
