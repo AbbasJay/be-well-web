@@ -1,17 +1,10 @@
-import { useState } from "react";
+import { useState, useEffect, useRef } from "react";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import {
-  Select,
-  SelectValue,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-} from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
 import { Class } from "@/lib/db/schema";
-import { useEffect } from "react";
 import { CLASS_TYPES } from "@/lib/constants/class-types";
+import { getSortedClassTypes } from "@/app/utils/class";
 
 interface ClassFormProps {
   businessId?: number;
@@ -46,6 +39,23 @@ export const ClassForm: React.FC<ClassFormProps> = ({
     classType: initialData?.classType || "",
   });
 
+  const [classTypeSearch, setClassTypeSearch] = useState(
+    formData.classType || ""
+  );
+  const [showDropdown, setShowDropdown] = useState(false);
+  const inputRef = useRef<HTMLInputElement>(null);
+
+  const filteredClassTypes = getSortedClassTypes(CLASS_TYPES).filter(
+    (classType) =>
+      classType.label.toLowerCase().includes(classTypeSearch.toLowerCase())
+  );
+
+  const handleClassTypeSelect = (value: string, label: string) => {
+    setFormData((prev) => ({ ...prev, classType: value }));
+    setClassTypeSearch(label);
+    setShowDropdown(false);
+  };
+
   const handleChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
   ) => {
@@ -53,13 +63,6 @@ export const ClassForm: React.FC<ClassFormProps> = ({
     setFormData((prevData) => ({
       ...prevData,
       [name]: value,
-    }));
-  };
-
-  const handleSelectChange = (value: string) => {
-    setFormData((prevData) => ({
-      ...prevData,
-      classType: value,
     }));
   };
 
@@ -106,19 +109,38 @@ export const ClassForm: React.FC<ClassFormProps> = ({
         onChange={handleChange}
         required
       />
-
-      <Select value={formData.classType} onValueChange={handleSelectChange}>
-        <SelectTrigger className="w-full">
-          <SelectValue placeholder="Class Type" />
-        </SelectTrigger>
-        <SelectContent>
-          {CLASS_TYPES.map((classType) => (
-            <SelectItem key={classType.value} value={classType.value}>
-              {classType.label}
-            </SelectItem>
-          ))}
-        </SelectContent>
-      </Select>
+      <div className="relative">
+        <Input
+          ref={inputRef}
+          placeholder="Class Type"
+          value={classTypeSearch}
+          onChange={(e) => {
+            setClassTypeSearch(e.target.value);
+            setShowDropdown(true);
+          }}
+          onFocus={() => setShowDropdown(true)}
+          onBlur={() => setTimeout(() => setShowDropdown(false), 100)}
+          autoComplete="off"
+          required
+        />
+        {showDropdown && filteredClassTypes.length > 0 && (
+          <div className="absolute z-10 mt-1 w-full rounded-md border bg-white shadow-lg max-h-60 overflow-auto">
+            {filteredClassTypes.map((classType) => (
+              <div
+                key={classType.value}
+                className={`px-4 py-2 cursor-pointer hover:bg-gray-100 ${
+                  formData.classType === classType.value ? "bg-gray-100" : ""
+                }`}
+                onMouseDown={() =>
+                  handleClassTypeSelect(classType.value, classType.label)
+                }
+              >
+                {classType.label}
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
       <Textarea
         name="description"
         placeholder="Description"
