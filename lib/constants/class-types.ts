@@ -69,4 +69,6 @@ export const CLASS_TYPES = [
   { value: "muscle_gain", label: "Muscle Gain" },
 ] as const;
 
+// Sorting helpers are now in app/utils/class.ts
+
 export type ClassType = (typeof CLASS_TYPES)[number]["value"];
