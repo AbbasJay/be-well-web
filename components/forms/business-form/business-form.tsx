@@ -14,6 +14,7 @@ import { Business } from "@/lib/db/schema";
 import { Button } from "@/components/ui/button";
 import { useLoadScript, Libraries } from "@react-google-maps/api";
 import Image from "next/image";
+import { BUSINESS_TYPES } from "@/lib/constants/business-types";
 
 type BusinessFormProps = {
   initialData?: Partial<Business>;
@@ -293,9 +294,11 @@ export const BusinessForm: React.FC<BusinessFormProps> = ({
           <SelectValue placeholder="Business Type" />
         </SelectTrigger>
         <SelectContent>
-          <SelectItem value="gym">Gym</SelectItem>
-          <SelectItem value="gymAndClasses">Gym and Classes</SelectItem>
-          <SelectItem value="classes">Classes</SelectItem>
+          {BUSINESS_TYPES.map((businessType) => (
+            <SelectItem key={businessType.value} value={businessType.value}>
+              {businessType.label}
+            </SelectItem>
+          ))}
         </SelectContent>
       </Select>
 

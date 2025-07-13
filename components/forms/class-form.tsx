@@ -1,9 +1,17 @@
 import { useState } from "react";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
+import {
+  Select,
+  SelectValue,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+} from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
 import { Class } from "@/lib/db/schema";
 import { useEffect } from "react";
+import { CLASS_TYPES } from "@/lib/constants/class-types";
 
 interface ClassFormProps {
   businessId?: number;
@@ -21,7 +29,9 @@ export const ClassForm: React.FC<ClassFormProps> = ({
   useEffect(() => {
     console.log("initialData:", initialData);
   }, [initialData]);
-  const [formData, setFormData] = useState<Partial<Class>>({
+  const [formData, setFormData] = useState<
+    Partial<Class> & { classType?: string }
+  >({
     businessId: businessId,
     name: initialData?.name || "",
     description: initialData?.description || "",
@@ -33,6 +43,7 @@ export const ClassForm: React.FC<ClassFormProps> = ({
     capacity: initialData?.capacity || undefined,
     startDate: initialData?.startDate || "",
     slotsLeft: initialData?.slotsLeft || undefined,
+    classType: "",
   });
 
   const handleChange = (
@@ -42,6 +53,13 @@ export const ClassForm: React.FC<ClassFormProps> = ({
     setFormData((prevData) => ({
       ...prevData,
       [name]: value,
+    }));
+  };
+
+  const handleSelectChange = (value: string) => {
+    setFormData((prevData) => ({
+      ...prevData,
+      classType: value,
     }));
   };
 
@@ -90,6 +108,19 @@ export const ClassForm: React.FC<ClassFormProps> = ({
         onChange={handleChange}
         required
       />
+
+      <Select value={formData.classType} onValueChange={handleSelectChange}>
+        <SelectTrigger className="w-full">
+          <SelectValue placeholder="Class Type" />
+        </SelectTrigger>
+        <SelectContent>
+          {CLASS_TYPES.map((classType) => (
+            <SelectItem key={classType.value} value={classType.value}>
+              {classType.label}
+            </SelectItem>
+          ))}
+        </SelectContent>
+      </Select>
       <Textarea
         name="description"
         placeholder="Description"
