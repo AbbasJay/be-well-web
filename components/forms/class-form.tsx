@@ -43,6 +43,7 @@ export const ClassForm: React.FC<ClassFormProps> = ({
     formData.classType || ""
   );
   const [showDropdown, setShowDropdown] = useState(false);
+  const [isMouseDownOnDropdown, setIsMouseDownOnDropdown] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
 
   const filteredClassTypes = getSortedClassTypes(CLASS_TYPES).filter(
@@ -54,6 +55,23 @@ export const ClassForm: React.FC<ClassFormProps> = ({
     setFormData((prev) => ({ ...prev, classType: value }));
     setClassTypeSearch(label);
     setShowDropdown(false);
+  };
+
+  const handleInputBlur = () => {
+    setTimeout(() => {
+      if (!isMouseDownOnDropdown) {
+        setShowDropdown(false);
+      }
+    }, 100);
+  };
+
+  const handleDropdownMouseDown = () => {
+    setIsMouseDownOnDropdown(true);
+  };
+
+  const handleDropdownMouseUp = () => {
+    setIsMouseDownOnDropdown(false);
+    inputRef.current?.focus();
   };
 
   const handleChange = (
@@ -119,12 +137,16 @@ export const ClassForm: React.FC<ClassFormProps> = ({
             setShowDropdown(true);
           }}
           onFocus={() => setShowDropdown(true)}
-          onBlur={() => setTimeout(() => setShowDropdown(false), 100)}
+          onBlur={handleInputBlur}
           autoComplete="off"
           required
         />
         {showDropdown && filteredClassTypes.length > 0 && (
-          <div className="absolute z-10 mt-1 w-full rounded-md border bg-white shadow-lg max-h-60 overflow-auto">
+          <div
+            className="absolute z-10 mt-1 w-full rounded-md border bg-white shadow-lg max-h-60 overflow-auto"
+            onMouseDown={handleDropdownMouseDown}
+            onMouseUp={handleDropdownMouseUp}
+          >
             {filteredClassTypes.map((classType) => (
               <div
                 key={classType.value}
