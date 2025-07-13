@@ -92,10 +92,16 @@ export async function POST(request: Request) {
         start: {
           dateTime: event.allDay ? undefined : event.start,
           date: event.allDay ? event.start.split("T")[0] : undefined,
+          timeZone: event.allDay
+            ? undefined
+            : Intl.DateTimeFormat().resolvedOptions().timeZone,
         },
         end: {
           dateTime: event.allDay ? undefined : event.end,
           date: event.allDay ? event.end.split("T")[0] : undefined,
+          timeZone: event.allDay
+            ? undefined
+            : Intl.DateTimeFormat().resolvedOptions().timeZone,
         },
       },
     });
@@ -167,10 +173,16 @@ export async function PUT(request: Request) {
         start: {
           dateTime: event.allDay ? undefined : event.start,
           date: event.allDay ? event.start.split("T")[0] : undefined,
+          timeZone: event.allDay
+            ? undefined
+            : Intl.DateTimeFormat().resolvedOptions().timeZone,
         },
         end: {
           dateTime: event.allDay ? undefined : event.end,
           date: event.allDay ? event.end.split("T")[0] : undefined,
+          timeZone: event.allDay
+            ? undefined
+            : Intl.DateTimeFormat().resolvedOptions().timeZone,
         },
       },
     });

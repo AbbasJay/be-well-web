@@ -1,34 +1,31 @@
 import FullCalendar from "@fullcalendar/react";
-import dayGridPlugin from "@fullcalendar/daygrid";
-import timeGridPlugin from "@fullcalendar/timegrid";
-import interactionPlugin from "@fullcalendar/interaction";
-import { useRef, useEffect } from "react";
+import { useRef, useEffect, useState } from "react";
 import {
   DateSelectArg,
   EventClickArg,
   EventContentArg,
   CalendarApi,
+  EventApi,
 } from "@fullcalendar/core";
-import CalendarCreateEventModal from "../modals/calendar-create-event-modal";
-import CalendarEventActionsModal from "../modals/calendar-event-actions-modal";
 import { useCalendarWithGoogle } from "../../hooks/calendar/useCalendarWithGoogle";
 import { useCalendarModals } from "../../hooks/calendar/useCalendarModals";
 import { useCalendar } from "@/app/contexts/CalendarContext";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogTitle,
-} from "@/components/ui/dialog";
-import { Button } from "@/components/ui/button";
-import { Loader2 } from "lucide-react";
+import CalendarHeader from "./CalendarHeader";
+import CalendarGrid from "./CalendarGrid";
+import CalendarErrorAlert from "./CalendarErrorAlert";
+import CalendarModals from "./CalendarModals";
 
 interface CalendarProps {
   accessToken?: string;
+  onSignOutGoogle?: () => void;
+  isSigningOut?: boolean;
 }
 
-export default function Calendar({ accessToken }: CalendarProps) {
+export default function Calendar({
+  accessToken,
+  onSignOutGoogle,
+  isSigningOut = false,
+}: CalendarProps) {
   const calendarRef = useRef<FullCalendar | null>(null);
   const calendarApiRef = useRef<CalendarApi | null>(null);
   const {
@@ -48,6 +45,7 @@ export default function Calendar({ accessToken }: CalendarProps) {
     handleDateSelect,
     handleCreateEvent,
     handleEventDelete,
+    setSelectedEvent,
   } = useCalendarWithGoogle(accessToken, calendarApiRef);
 
   const {
@@ -59,8 +57,10 @@ export default function Calendar({ accessToken }: CalendarProps) {
     setIsDeleteConfirmationModalOpen,
     handleEventActionsDelete,
     handleEventEdit,
-    handleDeleteConfirm,
   } = useCalendarModals();
+
+  const [currentView, setCurrentView] = useState("dayGridMonth");
+  const [currentDate, setCurrentDate] = useState(new Date());
 
   useEffect(() => {
     const checkGoogleConnection = async () => {
@@ -87,17 +87,20 @@ export default function Calendar({ accessToken }: CalendarProps) {
   };
 
   const handleDateSelectWrapper = (selectInfo: DateSelectArg) => {
+    setSelectedEvent(null);
     handleDateSelect(selectInfo);
     setIsCreateModalOpen(true);
   };
 
   const handleCreateEventWrapper = (
     title: string,
-    selectedTime: string,
+    selectedStartTime: string,
+    selectedEndTime: string,
     isAllDay: boolean
   ) => {
-    handleCreateEvent(title, selectedTime, isAllDay);
+    handleCreateEvent(title, selectedStartTime, selectedEndTime, isAllDay);
     setIsCreateModalOpen(false);
+    setSelectedEvent(null);
   };
 
   const handleSyncWithGoogle = async () => {
@@ -125,127 +128,150 @@ export default function Calendar({ accessToken }: CalendarProps) {
     }
   }, []);
 
-  const renderEventContent = (eventInfo: EventContentArg) => (
-    <div className="bg-blue-500 text-white p-1 rounded inline-block w-full">
-      <i>{eventInfo.event.title}</i>
-    </div>
-  );
+  const handleViewChange = (view: string) => {
+    setCurrentView(view);
+    if (calendarApiRef.current) {
+      calendarApiRef.current.changeView(view);
+    }
+  };
+
+  const handleToday = () => {
+    if (calendarApiRef.current) {
+      calendarApiRef.current.today();
+      setCurrentDate(new Date(calendarApiRef.current.getDate()));
+    }
+  };
+
+  const handlePrev = () => {
+    if (calendarApiRef.current) {
+      calendarApiRef.current.prev();
+      setCurrentDate(new Date(calendarApiRef.current.getDate()));
+    }
+  };
+
+  const handleNext = () => {
+    if (calendarApiRef.current) {
+      calendarApiRef.current.next();
+      setCurrentDate(new Date(calendarApiRef.current.getDate()));
+    }
+  };
+
+  useEffect(() => {
+    if (calendarApiRef.current) {
+      setCurrentDate(new Date(calendarApiRef.current.getDate()));
+    }
+  }, [currentView]);
+
+  const renderEventContent = (eventInfo: EventContentArg) => {
+    const isTimeGrid = eventInfo.view.type.includes("timeGrid");
+
+    const start = eventInfo.event.start;
+    const end = eventInfo.event.end;
+    const duration =
+      start && end ? (end.getTime() - start.getTime()) / (1000 * 60) : 0;
+    const isShortEvent = duration < 30;
+
+    if (isTimeGrid) {
+      return (
+        <div
+          className={`
+          bg-emerald-50/80 border-l-2 border-emerald-400
+          rounded-r-sm p-1 text-xs font-medium text-gray-800
+          ${isShortEvent ? "min-h-[20px]" : "min-h-[28px]"}
+        `}
+        >
+          <div className="flex flex-col h-full">
+            <div className="flex items-center gap-1">
+              <div className="w-1 h-1 bg-emerald-500 rounded-full flex-shrink-0"></div>
+              <span className="truncate text-xs font-medium">
+                {eventInfo.event.title}
+              </span>
+            </div>
+            {eventInfo.timeText && (
+              <div className="text-gray-600 text-[9px] mt-0.5 ml-2">
+                {eventInfo.timeText}
+              </div>
+            )}
+          </div>
+        </div>
+      );
+    }
+
+    return (
+      <div className="bg-emerald-100 border-l-4 border-emerald-500 rounded-r-md p-1 text-xs font-medium text-gray-800 truncate">
+        <div className="flex items-center gap-1">
+          <div className="w-1 h-1 bg-emerald-500 rounded-full flex-shrink-0"></div>
+          <span className="truncate">{eventInfo.event.title}</span>
+          {eventInfo.timeText && (
+            <span className="text-gray-600 text-[10px] ml-auto">
+              {eventInfo.timeText}
+            </span>
+          )}
+        </div>
+      </div>
+    );
+  };
+
+  const handleDeleteConfirm = (
+    event: EventApi | null,
+    handleEventDelete: (event: EventApi) => void
+  ) => {
+    if (event) {
+      handleEventDelete(event);
+      setIsDeleteConfirmationModalOpen(false);
+      setIsEventActionsModalOpen(false);
+      setSelectedEvent(null);
+      setSelectedDates(null);
+    }
+  };
 
   return (
-    <div className="space-y-4">
-      {(fetchError || googleState.error) && (
-        <div className="bg-red-50 border-l-4 border-red-400 p-4 mb-4">
-          <p className="text-sm text-red-700">
-            {fetchError || googleState.error}
-          </p>
-        </div>
-      )}
-      <div className="flex justify-end gap-2">
-        {accessToken && (
-          <Button
-            onClick={handleSyncWithGoogle}
-            disabled={
-              isFetching || googleState.isLoading || !googleState.isConnected
-            }
-          >
-            {(isFetching || googleState.isLoading) && (
-              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-            )}
-            Sync with Google Calendar
-          </Button>
-        )}
-      </div>
-      <div
-        className="[&_.fc-button-primary]:bg-blue-500 [&_.fc-button-primary]:border-blue-500 [&_.fc-button-primary]:text-white
-                    [&_.fc-button-primary:hover]:bg-blue-600 [&_.fc-button-primary:hover]:border-blue-600
-                    [&_.fc-button-primary:active]:bg-blue-700 [&_.fc-button-primary:active]:border-blue-700 h-[calc(100vh-200px)]"
-      >
-        <FullCalendar
-          ref={calendarRef}
-          plugins={[dayGridPlugin, timeGridPlugin, interactionPlugin]}
-          headerToolbar={{
-            left: "prev,next today",
-            center: "title",
-            right: "dayGridMonth,timeGridWeek,timeGridDay",
-          }}
-          initialView="dayGridMonth"
-          firstDay={1}
-          height="100%"
-          editable={true}
-          selectable={true}
-          selectMirror={true}
-          dayMaxEvents={true}
-          select={handleDateSelectWrapper}
-          eventContent={renderEventContent}
-          eventClick={handleEventClickWrapper}
-          eventsSet={handleEvents}
-          events={events}
-          slotMinTime="00:00:00"
-          slotMaxTime="24:00:00"
-          forceEventDuration={true}
-          defaultTimedEventDuration="01:00:00"
-          displayEventTime={true}
-          displayEventEnd={true}
+    <div className="flex flex-col h-[calc(100vh-120px)] overflow-y-auto w-full">
+      <div className="sticky top-0 z-10 bg-white flex flex-col gap-2">
+        <CalendarHeader
+          currentDate={currentDate}
+          onPrev={handlePrev}
+          onNext={handleNext}
+          onToday={handleToday}
+          onViewChange={handleViewChange}
+          currentView={currentView}
+          handleSyncWithGoogle={handleSyncWithGoogle}
+          isFetching={isFetching}
+          googleState={googleState}
+          accessToken={accessToken}
+          onSignOutGoogle={onSignOutGoogle}
+          isSigningOut={isSigningOut}
         />
       </div>
-
-      {selectedDates && (
-        <CalendarCreateEventModal
-          open={isCreateModalOpen}
-          onOpenChange={setIsCreateModalOpen}
-          onSubmit={handleCreateEventWrapper}
-          startDate={selectedDates.start}
-          endDate={selectedDates.end}
-          isAllDay={selectedDates.allDay}
-          view={selectedDates.view}
-          isEditMode={!!selectedEvent}
-          initialTitle={selectedEvent?.title || ""}
-        />
-      )}
-
-      {selectedEvent && (
-        <CalendarEventActionsModal
-          open={isEventActionsModalOpen && !isDeleteConfirmationModalOpen}
-          onOpenChange={setIsEventActionsModalOpen}
-          event={selectedEvent}
-          onDelete={() => handleEventActionsDelete(selectedEvent)}
-          onEdit={() =>
-            handleEventEdit(selectedEvent, selectedDates, setSelectedDates)
-          }
-        />
-      )}
-
-      {isEventActionsModalOpen && (
-        <Dialog
-          open={isDeleteConfirmationModalOpen}
-          onOpenChange={setIsDeleteConfirmationModalOpen}
-        >
-          <DialogContent>
-            <DialogTitle>Delete Event</DialogTitle>
-            <DialogDescription>
-              {`Are you sure you want to delete ${selectedEvent?.title}? This
-              action cannot be undone.`}
-            </DialogDescription>
-            <DialogFooter>
-              <Button
-                onClick={() => {
-                  setIsDeleteConfirmationModalOpen(false);
-                }}
-              >
-                Cancel
-              </Button>
-              <Button
-                variant="destructive"
-                onClick={() =>
-                  handleDeleteConfirm(selectedEvent, handleEventDelete)
-                }
-              >
-                Delete
-              </Button>
-            </DialogFooter>
-          </DialogContent>
-        </Dialog>
-      )}
+      <CalendarErrorAlert message={fetchError || googleState.error || ""} />
+      <CalendarGrid
+        calendarRef={calendarRef}
+        currentView={currentView}
+        handleDateSelectWrapper={handleDateSelectWrapper}
+        renderEventContent={renderEventContent}
+        handleEventClickWrapper={handleEventClickWrapper}
+        handleEvents={handleEvents}
+        events={events}
+        setCurrentDate={setCurrentDate}
+      />
+      <CalendarModals
+        selectedDates={selectedDates}
+        isCreateModalOpen={isCreateModalOpen}
+        setIsCreateModalOpen={setIsCreateModalOpen}
+        handleCreateEventWrapper={handleCreateEventWrapper}
+        selectedEvent={selectedEvent}
+        isEventActionsModalOpen={isEventActionsModalOpen}
+        setIsEventActionsModalOpen={setIsEventActionsModalOpen}
+        handleEventActionsDelete={handleEventActionsDelete}
+        handleEventEdit={handleEventEdit}
+        isDeleteConfirmationModalOpen={isDeleteConfirmationModalOpen}
+        setIsDeleteConfirmationModalOpen={setIsDeleteConfirmationModalOpen}
+        handleDeleteConfirm={handleDeleteConfirm}
+        handleEventDelete={handleEventDelete}
+        setSelectedEvent={setSelectedEvent}
+        setSelectedDates={setSelectedDates}
+        currentView={currentView}
+      />
     </div>
   );
 }
