@@ -43,7 +43,7 @@ export const ClassForm: React.FC<ClassFormProps> = ({
     capacity: initialData?.capacity || undefined,
     startDate: initialData?.startDate || "",
     slotsLeft: initialData?.slotsLeft || undefined,
-    classType: "",
+    classType: initialData?.classType || "",
   });
 
   const handleChange = (
@@ -66,11 +66,9 @@ export const ClassForm: React.FC<ClassFormProps> = ({
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
 
-    // Call the parent's onSubmit handler instead of making the API call directly
     if (onSubmit) {
       onSubmit(formData);
     } else {
-      // Fallback to direct API call if no onSubmit handler is provided
       try {
         const method = initialData?.id ? "PUT" : "POST";
         const url = initialData?.id
