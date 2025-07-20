@@ -8,50 +8,21 @@ import { withAuth, errorResponse } from "@/lib/utils/api-utils";
 export async function POST(req: NextRequest) {
   return withAuth(req, async (user) => {
     try {
-      const contentType = req.headers.get("content-type") || "";
-      let buffer: Buffer;
-      let fileType: string;
-      let fileName: string;
+      const formData = await req.formData();
+      const file = formData.get("photo");
 
-      if (contentType.includes("application/json")) {
-        // Handle JSON base64
-        const body = await req.json();
-        const { photo, contentType: imageType } = body;
-
-        if (!photo || typeof photo !== "string") {
-          return errorResponse("No photo provided in JSON", 400);
-        }
-
-        // Decode base64
-        buffer = Buffer.from(photo, "base64");
-        fileType = imageType || "image/jpeg";
-        fileName = `profile-${Date.now()}-${Math.random()
-          .toString(36)
-          .substring(7)}.${fileType.split("/")[1]}`;
-      } else if (contentType.includes("multipart/form-data")) {
-        // Handle FormData (original method)
-        const formData = await req.formData();
-        const file = formData.get("photo");
-
-        if (!file || !(file instanceof Blob)) {
-          return errorResponse("No photo provided in FormData", 400);
-        }
-
-        const bytes = await file.arrayBuffer();
-        buffer = Buffer.from(bytes);
-        fileType = file.type;
-        fileName = `profile-${Date.now()}-${Math.random()
-          .toString(36)
-          .substring(7)}.${file.type.split("/")[1]}`;
-      } else {
-        return errorResponse(
-          "Content-Type must be application/json or multipart/form-data",
-          400
-        );
+      if (!file || !(file instanceof Blob)) {
+        return errorResponse("No photo provided", 400);
       }
 
       try {
-        const photoUrl = await uploadFileToS3(buffer, fileName, fileType);
+        const bytes = await file.arrayBuffer();
+        const buffer = Buffer.from(bytes);
+        const fileName = `profile-${Date.now()}-${Math.random()
+          .toString(36)
+          .substring(7)}.${file.type.split("/")[1]}`;
+
+        const photoUrl = await uploadFileToS3(buffer, fileName, file.type);
 
         await db
           .update(UsersTable)
