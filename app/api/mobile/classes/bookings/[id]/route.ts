@@ -73,6 +73,7 @@ export async function DELETE(
       await db.insert(NotificationsTable).values({
         userId: user.id,
         classId: booking.classId,
+        businessId: classData.businessId,
         type: NotificationType.CLASS_CANCELLED,
         title: "Booking Cancelled",
         message: `Your booking for ${classData.name} has been cancelled.`,
