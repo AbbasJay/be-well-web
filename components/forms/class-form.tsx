@@ -10,14 +10,15 @@ import {
 } from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
 import { Class } from "@/lib/db/schema";
-import { useEffect } from "react";
 import { CLASS_TYPES } from "@/lib/constants/class-types";
+import Image from "next/image";
+import { Loader2 } from "lucide-react";
 
 interface ClassFormProps {
   businessId?: number;
   initialData?: Partial<Class>;
   onSuccess?: () => void;
-  onSubmit?: (data: Partial<Class>) => void;
+  onSubmit?: (data: FormData) => Promise<void>;
 }
 
 export const ClassForm: React.FC<ClassFormProps> = ({
@@ -26,9 +27,6 @@ export const ClassForm: React.FC<ClassFormProps> = ({
   onSuccess,
   onSubmit,
 }) => {
-  useEffect(() => {
-    console.log("initialData:", initialData);
-  }, [initialData]);
   const [formData, setFormData] = useState<
     Partial<Class> & { classType?: string }
   >({
@@ -43,8 +41,13 @@ export const ClassForm: React.FC<ClassFormProps> = ({
     capacity: initialData?.capacity || undefined,
     startDate: initialData?.startDate || "",
     slotsLeft: initialData?.slotsLeft || undefined,
+    photo: initialData?.photo || "",
     classType: initialData?.classType || "",
   });
+
+  const [selectedFile, setSelectedFile] = useState<File | null>(null);
+  const [previewUrl, setPreviewUrl] = useState<string | null>(null);
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const handleChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
@@ -56,6 +59,15 @@ export const ClassForm: React.FC<ClassFormProps> = ({
     }));
   };
 
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files && e.target.files[0]) {
+      const file = e.target.files[0];
+      setSelectedFile(file);
+      const url = URL.createObjectURL(file);
+      setPreviewUrl(url);
+    }
+  };
+
   const handleSelectChange = (value: string) => {
     setFormData((prevData) => ({
       ...prevData,
@@ -65,9 +77,33 @@ export const ClassForm: React.FC<ClassFormProps> = ({
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
+    setIsSubmitting(true);
 
     if (onSubmit) {
-      onSubmit(formData);
+      const submitFormData = new FormData();
+
+      Object.entries(formData).forEach(([key, value]) => {
+        if (
+          value !== null &&
+          value !== undefined &&
+          key !== "photo" &&
+          value !== ""
+        ) {
+          submitFormData.append(key, value.toString());
+        }
+      });
+
+      if (selectedFile) {
+        submitFormData.append("photo", selectedFile);
+      }
+
+      try {
+        await onSubmit(submitFormData);
+      } catch (error) {
+        console.error("Error submitting form:", error);
+      } finally {
+        setIsSubmitting(false);
+      }
     } else {
       try {
         const method = initialData?.id ? "PUT" : "POST";
@@ -92,6 +128,8 @@ export const ClassForm: React.FC<ClassFormProps> = ({
         onSuccess?.();
       } catch (error) {
         console.error("Error submitting class form:", error);
+      } finally {
+        setIsSubmitting(false);
       }
     }
   };
@@ -181,7 +219,39 @@ export const ClassForm: React.FC<ClassFormProps> = ({
         onChange={handleChange}
         required
       />
-      <Button type="submit">Submit</Button>
+
+      <div>
+        <label className="block text-sm font-medium mb-2">Class Photo</label>
+        <Input
+          name="photo"
+          type="file"
+          accept="image/*"
+          onChange={handleFileChange}
+          className="cursor-pointer"
+        />
+        {(previewUrl || formData.photo) && (
+          <div className="mt-2">
+            <Image
+              src={previewUrl ?? formData.photo ?? ""}
+              alt="Class photo preview"
+              width={128}
+              height={128}
+              className="w-32 h-32 object-cover rounded-lg"
+            />
+          </div>
+        )}
+      </div>
+
+      <Button type="submit" disabled={isSubmitting}>
+        {isSubmitting ? (
+          <>
+            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+            Uploading...
+          </>
+        ) : (
+          "Submit"
+        )}
+      </Button>
     </form>
   );
 };

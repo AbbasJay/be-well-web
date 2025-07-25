@@ -15,6 +15,7 @@ import { Button } from "@/components/ui/button";
 import { useLoadScript, Libraries } from "@react-google-maps/api";
 import Image from "next/image";
 import { BUSINESS_TYPES } from "@/lib/constants/business-types";
+import { Loader2 } from "lucide-react";
 
 type BusinessFormProps = {
   initialData?: Partial<Business>;
@@ -51,6 +52,7 @@ export const BusinessForm: React.FC<BusinessFormProps> = ({
 
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
 
   const handleChange = (
@@ -81,6 +83,7 @@ export const BusinessForm: React.FC<BusinessFormProps> = ({
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
+    setIsSubmitting(true);
 
     const submitFormData = new FormData();
 
@@ -103,6 +106,8 @@ export const BusinessForm: React.FC<BusinessFormProps> = ({
       await onSubmit(submitFormData);
     } catch (error) {
       console.error("Error submitting form:", error);
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -110,7 +115,6 @@ export const BusinessForm: React.FC<BusinessFormProps> = ({
     if (!isLoaded) return;
 
     if (loadError) {
-      console.log("Load Error: ", loadError);
       return;
     }
 
@@ -141,16 +145,6 @@ export const BusinessForm: React.FC<BusinessFormProps> = ({
         `${componentMap.subPremise} ${componentMap.premise} ${componentMap.street_number} ${componentMap.route}`.trim();
       const latitude = place.geometry?.location?.lat()?.toString() || null;
       const longitude = place.geometry?.location?.lng()?.toString() || null;
-
-      console.log("autocompleted address", {
-        address: formattedAddress,
-        country: componentMap.country,
-        zipCode: componentMap.postal_code,
-        city: componentMap.administrative_area_level_2,
-        state: componentMap.administrative_area_level_1,
-        latitude: latitude,
-        longitude: longitude,
-      });
 
       setFormData((prevData) => ({
         ...prevData,
@@ -302,7 +296,16 @@ export const BusinessForm: React.FC<BusinessFormProps> = ({
         </SelectContent>
       </Select>
 
-      <Button type="submit">Submit Business</Button>
+      <Button type="submit" disabled={isSubmitting}>
+        {isSubmitting ? (
+          <>
+            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+            Uploading...
+          </>
+        ) : (
+          "Submit Business"
+        )}
+      </Button>
     </form>
   );
 };

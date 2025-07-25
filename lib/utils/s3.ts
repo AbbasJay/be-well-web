@@ -11,9 +11,13 @@ const s3Client = new S3Client({
 export const uploadFileToS3 = async (
   file: Buffer,
   fileName: string,
-  contentType: string
+  contentType: string,
+  folder:
+    | "business-photos"
+    | "class-photos"
+    | "profile-photos" = "business-photos"
 ) => {
-  const key = `business-photos/${Date.now()}-${fileName}`;
+  const key = `${folder}/${Date.now()}-${fileName}`;
 
   const command = new PutObjectCommand({
     Bucket: process.env.AWS_S3_BUCKET!,

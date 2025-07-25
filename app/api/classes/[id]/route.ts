@@ -10,6 +10,7 @@ import {
 import { getServerSession } from "next-auth";
 import { authOptions } from "../../auth/[...nextauth]/auth";
 import { cookies } from "next/headers";
+import { uploadFileToS3 } from "@/lib/utils/s3";
 
 export async function GET(
   req: Request,
@@ -153,22 +154,72 @@ export async function PUT(
 ) {
   try {
     const classId = Number(params.id);
-    const updatedData = await req.json();
+    const formData = await req.formData();
+    const file = formData.get("photo");
+    let photoUrl: string | undefined;
+
+    // Get the current class data to preserve existing photo if no new one is uploaded
+    const [currentClass] = await db
+      .select()
+      .from(ClassesTable)
+      .where(eq(ClassesTable.id, classId));
+
+    if (!currentClass) {
+      return NextResponse.json({ error: "Class not found" }, { status: 404 });
+    }
+
+    photoUrl = currentClass.photo || undefined; // Keep existing photo by default
+
+    if (file instanceof Blob) {
+      try {
+        const bytes = await file.arrayBuffer();
+        const buffer = Buffer.from(bytes);
+        const fileName = `${Date.now()}-${Math.random()
+          .toString(36)
+          .substring(7)}.${file.type.split("/")[1]}`;
+
+        photoUrl = await uploadFileToS3(
+          buffer,
+          fileName,
+          file.type,
+          "class-photos"
+        );
+        console.log("Successfully uploaded photo to S3:", photoUrl);
+      } catch (uploadError) {
+        console.error("Error uploading to S3:", uploadError);
+        return NextResponse.json(
+          {
+            error: "Failed to upload photo",
+            details:
+              uploadError instanceof Error
+                ? uploadError.message
+                : "Unknown error",
+          },
+          { status: 500 }
+        );
+      }
+    }
+
+    const updatedData: Partial<typeof ClassesTable.$inferInsert> = {
+      classTypeId: formData.get("classTypeId")
+        ? parseInt(formData.get("classTypeId") as string)
+        : undefined,
+      classType: formData.get("classType") as string,
+      name: formData.get("name") as string,
+      description: formData.get("description") as string,
+      duration: parseInt(formData.get("duration") as string),
+      price: parseInt(formData.get("price") as string),
+      instructor: formData.get("instructor") as string,
+      location: formData.get("location") as string,
+      startDate: formData.get("startDate") as string,
+      time: formData.get("time") as string,
+      capacity: parseInt(formData.get("capacity") as string),
+      photo: photoUrl,
+    };
 
     // If capacity is being updated, we need to adjust slotsLeft
     if (updatedData.capacity !== undefined) {
-      // Get the current class data
-      const [currentClass] = await db
-        .select()
-        .from(ClassesTable)
-        .where(eq(ClassesTable.id, classId));
-
-      if (!currentClass) {
-        return NextResponse.json({ error: "Class not found" }, { status: 404 });
-      }
-
       const bookedSlots = currentClass.capacity - currentClass.slotsLeft;
-
       updatedData.slotsLeft = Math.max(0, updatedData.capacity - bookedSlots);
     }
 

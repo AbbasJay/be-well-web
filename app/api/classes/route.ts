@@ -6,11 +6,67 @@ import { createEventFromClassServer } from "@/app/services/google-calendar-serve
 import { getServerSession } from "next-auth";
 import { authOptions } from "../auth/[...nextauth]/auth";
 import { cookies } from "next/headers";
+import { uploadFileToS3 } from "@/lib/utils/s3";
 
 export async function POST(req: Request) {
   try {
-    const newClass = await req.json();
-    newClass.slotsLeft = newClass.capacity;
+    const formData = await req.formData();
+    const file = formData.get("photo");
+    let photoUrl: string | undefined;
+
+    if (file instanceof Blob) {
+      console.log("Processing photo:", {
+        type: file.type,
+        size: file.size,
+      });
+
+      try {
+        const bytes = await file.arrayBuffer();
+        const buffer = Buffer.from(bytes);
+        const fileName = `${Date.now()}-${Math.random()
+          .toString(36)
+          .substring(7)}.${file.type.split("/")[1]}`;
+
+        photoUrl = await uploadFileToS3(
+          buffer,
+          fileName,
+          file.type,
+          "class-photos"
+        );
+        console.log("Successfully uploaded photo to S3:", photoUrl);
+      } catch (uploadError) {
+        console.error("Error uploading to S3:", uploadError);
+        return NextResponse.json(
+          {
+            error: "Failed to upload photo",
+            details:
+              uploadError instanceof Error
+                ? uploadError.message
+                : "Unknown error",
+          },
+          { status: 500 }
+        );
+      }
+    }
+
+    const newClass = {
+      classTypeId: formData.get("classTypeId")
+        ? parseInt(formData.get("classTypeId") as string)
+        : undefined,
+      classType: formData.get("classType") as string,
+      businessId: parseInt(formData.get("businessId") as string),
+      name: formData.get("name") as string,
+      description: formData.get("description") as string,
+      duration: parseInt(formData.get("duration") as string),
+      price: parseInt(formData.get("price") as string),
+      instructor: formData.get("instructor") as string,
+      location: formData.get("location") as string,
+      startDate: formData.get("startDate") as string,
+      time: formData.get("time") as string,
+      capacity: parseInt(formData.get("capacity") as string),
+      slotsLeft: parseInt(formData.get("capacity") as string),
+      photo: photoUrl,
+    };
 
     const [insertedClass] = await db
       .insert(ClassesTable)
