@@ -21,6 +21,8 @@ export async function GET(request: NextRequest) {
           classTime: ClassesTable.time,
           classInstructor: ClassesTable.instructor,
           classLocation: ClassesTable.location,
+          classType: ClassesTable.classType,
+          classTypeLabel: ClassesTable.classTypeLabel,
           businessId: BusinessesTable.id,
           businessName: BusinessesTable.name,
         })

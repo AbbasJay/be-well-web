@@ -54,6 +54,7 @@ export async function POST(req: Request) {
         ? parseInt(formData.get("classTypeId") as string)
         : undefined,
       classType: formData.get("classType") as string,
+      classTypeLabel: formData.get("classTypeLabel") as string,
       businessId: parseInt(formData.get("businessId") as string),
       name: formData.get("name") as string,
       description: formData.get("description") as string,

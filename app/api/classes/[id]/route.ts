@@ -205,6 +205,7 @@ export async function PUT(
         ? parseInt(formData.get("classTypeId") as string)
         : undefined,
       classType: formData.get("classType") as string,
+      classTypeLabel: formData.get("classTypeLabel") as string,
       name: formData.get("name") as string,
       description: formData.get("description") as string,
       duration: parseInt(formData.get("duration") as string),

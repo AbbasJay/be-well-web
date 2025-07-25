@@ -29,7 +29,7 @@ export const ClassForm: React.FC<ClassFormProps> = ({
   onSubmit,
 }) => {
   const [formData, setFormData] = useState<
-    Partial<Class> & { classType?: string }
+    Partial<Class> & { classType?: string; classTypeLabel?: string }
   >({
     businessId: businessId,
     name: initialData?.name || "",
@@ -44,6 +44,7 @@ export const ClassForm: React.FC<ClassFormProps> = ({
     slotsLeft: initialData?.slotsLeft || undefined,
     photo: initialData?.photo || "",
     classType: initialData?.classType || "",
+    classTypeLabel: initialData?.classTypeLabel || "",
   });
 
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
@@ -63,7 +64,12 @@ export const ClassForm: React.FC<ClassFormProps> = ({
   };
 
   const handleClassTypeChange = (value: string) => {
-    setFormData((prev) => ({ ...prev, classType: value }));
+    const selectedClassType = sortedClassTypes.find((ct) => ct.value === value);
+    setFormData((prev) => ({
+      ...prev,
+      classType: value,
+      classTypeLabel: selectedClassType?.label || value,
+    }));
   };
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {

@@ -65,6 +65,7 @@ export const ClassesTable = pgTable(
     id: serial("id").primaryKey().notNull(),
     classTypeId: integer("class_type_id"),
     classType: text("class_type"),
+    classTypeLabel: text("class_type_label"),
     businessId: integer("business_id").notNull(),
     name: text("name").notNull(),
     description: text("description").notNull(),
