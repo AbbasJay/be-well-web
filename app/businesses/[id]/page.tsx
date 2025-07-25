@@ -11,7 +11,7 @@ import { useEffect, useState, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import { Business, Class } from "@/lib/db/schema";
 import { useSession } from "next-auth/react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
 import {
@@ -213,6 +213,23 @@ export default function BusinessDetailsPage({
                   setDialogOpen(false);
                   fetchClasses();
                 }}
+                onSubmit={async (formData: FormData) => {
+                  try {
+                    const response = await fetch("/api/classes", {
+                      method: "POST",
+                      body: formData,
+                    });
+
+                    if (!response.ok) {
+                      throw new Error("Failed to create class");
+                    }
+
+                    setDialogOpen(false);
+                    fetchClasses();
+                  } catch (error) {
+                    console.error("Error creating class:", error);
+                  }
+                }}
               />
             </DialogContent>
           </Dialog>
@@ -257,22 +274,33 @@ export default function BusinessDetailsPage({
                 key={classItem.id}
                 className="w-full shadow-sm flex flex-col h-full"
               >
-                <CardHeader className="pb-6">
-                  <div className="flex items-center justify-between">
-                    <CardTitle className="truncate text-lg">
-                      {classItem.name}
-                    </CardTitle>
-                    <span className="text-xs text-muted-foreground">
-                      {formatClassDateTime(classItem.startDate, classItem.time)}
-                    </span>
+                <CardContent className="p-6">
+                  {classItem.photo && (
+                    <div className="mb-4">
+                      <Image
+                        src={classItem.photo}
+                        alt={classItem.name}
+                        width={400}
+                        height={192}
+                        className="w-full h-48 object-cover rounded-lg"
+                      />
+                    </div>
+                  )}
+                  <div className="mb-4">
+                    <div className="flex items-center justify-between">
+                      <h3 className="text-lg font-semibold truncate">
+                        {classItem.name}
+                      </h3>
+                      <span className="text-xs text-muted-foreground">
+                        {formatClassDateTime(
+                          classItem.startDate,
+                          classItem.time
+                        )}
+                      </span>
+                    </div>
                   </div>
-                </CardHeader>
-                <CardContent className="flex flex-col flex-1">
-                  <p className="truncate-2-lines text-sm mb-2">
-                    {classItem.description}
-                  </p>
-                  <div className="flex-1" />
-                  <div className="flex items-center gap-3 text-xs mb-2 mt-auto">
+                  <p className="text-sm mb-4">{classItem.description}</p>
+                  <div className="flex items-center gap-3 text-xs mb-4">
                     <span className="flex items-center gap-1">
                       <UsersIcon className="w-4 h-4" /> {classItem.slotsLeft}/
                       {classItem.capacity} slots
@@ -285,7 +313,7 @@ export default function BusinessDetailsPage({
                       {classItem.instructor}
                     </span>
                   </div>
-                  <div className="flex gap-2 min-h-[40px]">
+                  <div className="flex gap-2">
                     <Button asChild size="sm" variant="outline">
                       <Link href={`/classes/${classItem.id}/bookings`}>
                         <BookOpenIcon className="w-4 h-4 mr-1" /> Bookings
@@ -349,6 +377,24 @@ export default function BusinessDetailsPage({
                 setEditDialogOpen(false);
                 setEditClass(null);
                 fetchClasses();
+              }}
+              onSubmit={async (formData: FormData) => {
+                try {
+                  const response = await fetch(`/api/classes/${editClass.id}`, {
+                    method: "PUT",
+                    body: formData,
+                  });
+
+                  if (!response.ok) {
+                    throw new Error("Failed to update class");
+                  }
+
+                  setEditDialogOpen(false);
+                  setEditClass(null);
+                  fetchClasses();
+                } catch (error) {
+                  console.error("Error updating class:", error);
+                }
               }}
             />
           )}

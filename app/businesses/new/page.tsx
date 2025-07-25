@@ -18,7 +18,6 @@ export default function NewBusinessPage() {
       });
 
       if (response.ok) {
-        console.log("Business added successfully");
         router.push("/businesses");
       } else {
         const errorData = await response.json();

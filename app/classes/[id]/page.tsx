@@ -2,13 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { Class } from "@/lib/db/schema";
-import {
-  Card,
-  CardContent,
-  CardHeader,
-  CardTitle,
-  CardDescription,
-} from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -22,6 +16,7 @@ import { ClassForm } from "@/components/forms/class-form";
 import { DeleteDialog } from "@/components/dialogs/delete-dialog";
 import { useSession } from "next-auth/react";
 import Link from "next/link";
+import Image from "next/image";
 
 export default function ClassesPage({ params }: { params: { id: string } }) {
   const [classes, setClasses] = useState<Class[]>([]);
@@ -46,33 +41,6 @@ export default function ClassesPage({ params }: { params: { id: string } }) {
       setClasses((prevClasses) =>
         prevClasses.filter((classItem) => classItem.id !== classToDelete.id)
       );
-    }
-  };
-
-  const handleEditSubmit = async (updatedClass: Partial<Class>) => {
-    try {
-      const response = await fetch(`/api/classes/${selectedClass?.id}`, {
-        method: "PUT",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(updatedClass),
-      });
-
-      if (response.ok) {
-        const { class: updatedClassData } = await response.json();
-        setClasses((prevClasses) =>
-          prevClasses.map((classItem) =>
-            classItem.id === selectedClass?.id ? updatedClassData : classItem
-          )
-        );
-        setSelectedClass(null);
-        setDialogOpen(false);
-      } else {
-        console.error("Failed to update class");
-      }
-    } catch (error) {
-      console.error("Error updating class:", error);
     }
   };
 
@@ -116,37 +84,51 @@ export default function ClassesPage({ params }: { params: { id: string } }) {
       ) : classes.length > 0 ? (
         classes.map((item) => (
           <Card key={item.id} className="mb-4">
-            <CardHeader>
-              <CardTitle className="text-2xl">{item.name}</CardTitle>
-              <CardDescription>{item.description}</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <p>
-                <strong>Duration:</strong> {item.duration} mins
-              </p>
-              <p>
-                <strong>Price:</strong> ${item.price}
-              </p>
-              <p>
-                <strong>Instructor:</strong> {item.instructor}
-              </p>
-              <p>
-                <strong>Location:</strong> {item.location}
-              </p>
-              <p>
-                <strong>Start Date:</strong> {item.startDate}
-              </p>
-              <p>
-                <strong>Time:</strong> {item.time}
-              </p>
-              <p>
-                <strong>Capacity:</strong> {item.capacity}
-              </p>
-              <p>
-                <strong>Slots Left:</strong> {item.slotsLeft}
-              </p>
+            <CardContent className="p-6">
+              {item.photo && (
+                <div className="mb-4">
+                  <Image
+                    src={item.photo}
+                    alt={item.name}
+                    width={400}
+                    height={192}
+                    className="w-full h-48 object-cover rounded-lg"
+                  />
+                </div>
+              )}
+              <div className="mb-4">
+                <h2 className="text-2xl font-semibold mb-2">{item.name}</h2>
+                <p className="text-muted-foreground mb-4">{item.description}</p>
+              </div>
 
-              <div className="flex gap-2 mt-4">
+              <div className="space-y-2 mb-4">
+                <p>
+                  <strong>Duration:</strong> {item.duration} mins
+                </p>
+                <p>
+                  <strong>Price:</strong> ${item.price}
+                </p>
+                <p>
+                  <strong>Instructor:</strong> {item.instructor}
+                </p>
+                <p>
+                  <strong>Location:</strong> {item.location}
+                </p>
+                <p>
+                  <strong>Start Date:</strong> {item.startDate}
+                </p>
+                <p>
+                  <strong>Time:</strong> {item.time}
+                </p>
+                <p>
+                  <strong>Capacity:</strong> {item.capacity}
+                </p>
+                <p>
+                  <strong>Slots Left:</strong> {item.slotsLeft}
+                </p>
+              </div>
+
+              <div className="flex gap-2">
                 {item.slotsLeft > 0 && (
                   <Button
                     onClick={() => handleBookClass(item)}
@@ -185,8 +167,32 @@ export default function ClassesPage({ params }: { params: { id: string } }) {
                       <ClassForm
                         businessId={item.businessId}
                         initialData={selectedClass}
-                        onSubmit={handleEditSubmit}
                         onSuccess={() => setDialogOpen(false)}
+                        onSubmit={async (formData: FormData) => {
+                          try {
+                            const response = await fetch(
+                              `/api/classes/${selectedClass.id}`,
+                              {
+                                method: "PUT",
+                                body: formData,
+                              }
+                            );
+
+                            if (!response.ok) {
+                              throw new Error("Failed to update class");
+                            }
+
+                            setDialogOpen(false);
+                            // Refresh the classes list
+                            const response2 = await fetch(
+                              `/api/classes/${params.id}`
+                            );
+                            const data = await response2.json();
+                            setClasses(data);
+                          } catch (error) {
+                            console.error("Error updating class:", error);
+                          }
+                        }}
                       />
                     )}
                   </DialogContent>

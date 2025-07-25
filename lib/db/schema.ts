@@ -76,6 +76,7 @@ export const ClassesTable = pgTable(
     time: text("time").notNull(),
     capacity: integer("capacity").notNull(),
     slotsLeft: integer("slots_left").notNull(),
+    photo: text("photo"),
     googleEventId: text("google_event_id"),
     createdAt: timestamp("created_at").defaultNow().notNull(),
   },

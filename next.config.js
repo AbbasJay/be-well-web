@@ -5,7 +5,10 @@
 
 module.exports = {
   images: {
-    domains: ["be-well-business-photos.s3.eu-north-1.amazonaws.com"],
+    domains: [
+      "be-well-business-photos.s3.eu-north-1.amazonaws.com",
+      "be-well-class-photos.s3.eu-north-1.amazonaws.com",
+    ],
   },
   async headers() {
     return [
@@ -13,7 +16,7 @@ module.exports = {
         source: "/api/:path*",
         headers: [
           { key: "Access-Control-Allow-Credentials", value: "true" },
-          { key: "Access-Control-Allow-Origin", value: "" },
+          { key: "Access-Control-Allow-Origin", value: "*" },
           {
             key: "Access-Control-Allow-Methods",
             value: "GET,DELETE,PATCH,POST,PUT",
