@@ -13,6 +13,12 @@ interface ClassFormProps {
   onSubmit?: (data: Partial<Class>) => void;
 }
 
+const getLabelFromValue = (value: string | undefined) => {
+  if (!value) return "";
+  const found = CLASS_TYPES.find((ct) => ct.value === value);
+  return found ? found.label : value;
+};
+
 export const ClassForm: React.FC<ClassFormProps> = ({
   businessId,
   initialData,
@@ -37,8 +43,9 @@ export const ClassForm: React.FC<ClassFormProps> = ({
     classType: initialData?.classType || "",
   });
 
+  // Use the label for the initial classTypeSearch
   const [classTypeSearch, setClassTypeSearch] = useState(
-    formData.classType || ""
+    getLabelFromValue(initialData?.classType || undefined)
   );
   const [showDropdown, setShowDropdown] = useState(false);
   const [isMouseDownOnDropdown, setIsMouseDownOnDropdown] = useState(false);
