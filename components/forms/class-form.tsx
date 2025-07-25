@@ -1,7 +1,14 @@
-import { useState, useEffect, useRef } from "react";
+import { useState } from "react";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { Class } from "@/lib/db/schema";
 import { CLASS_TYPES } from "@/lib/constants/class-types";
 import { getSortedClassTypes } from "@/app/utils/class";
@@ -15,19 +22,12 @@ interface ClassFormProps {
   onSubmit?: (data: FormData) => Promise<void>;
 }
 
-const getLabelFromValue = (value: string | undefined) => {
-  if (!value) return "";
-  const found = CLASS_TYPES.find((ct) => ct.value === value);
-  return found ? found.label : value;
-};
-
 export const ClassForm: React.FC<ClassFormProps> = ({
   businessId,
   initialData,
   onSuccess,
   onSubmit,
 }) => {
-  useEffect(() => {}, [initialData]);
   const [formData, setFormData] = useState<
     Partial<Class> & { classType?: string }
   >({
@@ -46,44 +46,11 @@ export const ClassForm: React.FC<ClassFormProps> = ({
     classType: initialData?.classType || "",
   });
 
-  // Use the label for the initial classTypeSearch
-  const [classTypeSearch, setClassTypeSearch] = useState(
-    getLabelFromValue(initialData?.classType || undefined)
-  );
-  const [showDropdown, setShowDropdown] = useState(false);
-  const [isMouseDownOnDropdown, setIsMouseDownOnDropdown] = useState(false);
-  const inputRef = useRef<HTMLInputElement>(null);
-
-  const filteredClassTypes = getSortedClassTypes(CLASS_TYPES).filter(
-    (classType) =>
-      classType.label.toLowerCase().includes(classTypeSearch.toLowerCase())
-  );
-
-  const handleClassTypeSelect = (value: string, label: string) => {
-    setFormData((prev) => ({ ...prev, classType: value }));
-    setClassTypeSearch(label);
-    setShowDropdown(false);
-  };
-
-  const handleInputBlur = () => {
-    setTimeout(() => {
-      if (!isMouseDownOnDropdown) {
-        setShowDropdown(false);
-      }
-    }, 100);
-  };
-
-  const handleDropdownMouseDown = () => {
-    setIsMouseDownOnDropdown(true);
-  };
-
-  const handleDropdownMouseUp = () => {
-    setIsMouseDownOnDropdown(false);
-    inputRef.current?.focus();
-  };
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
+
+  const sortedClassTypes = getSortedClassTypes(CLASS_TYPES);
 
   const handleChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
@@ -93,6 +60,10 @@ export const ClassForm: React.FC<ClassFormProps> = ({
       ...prevData,
       [name]: value,
     }));
+  };
+
+  const handleClassTypeChange = (value: string) => {
+    setFormData((prev) => ({ ...prev, classType: value }));
   };
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -107,26 +78,6 @@ export const ClassForm: React.FC<ClassFormProps> = ({
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setIsSubmitting(true);
-
-    const matchedClassType =
-      classTypeSearch.trim() === ""
-        ? null
-        : CLASS_TYPES.find(
-            (ct) =>
-              ct.label.toLowerCase() === classTypeSearch.trim().toLowerCase()
-          );
-
-    if (classTypeSearch.trim() !== "" && !matchedClassType) {
-      setClassTypeSearch("");
-      setFormData((prev) => ({ ...prev, classType: "" }));
-      setIsSubmitting(false);
-      return;
-    }
-
-    const capitalizedFormData = {
-      ...formData,
-      classType: matchedClassType ? matchedClassType.value : "",
-    };
 
     if (onSubmit) {
       const submitFormData = new FormData();
@@ -165,7 +116,7 @@ export const ClassForm: React.FC<ClassFormProps> = ({
           headers: {
             "Content-Type": "application/json",
           },
-          body: JSON.stringify(capitalizedFormData),
+          body: JSON.stringify(formData),
         });
 
         if (!response.ok) {
@@ -193,42 +144,20 @@ export const ClassForm: React.FC<ClassFormProps> = ({
         onChange={handleChange}
         required
       />
-      <div className="relative">
-        <Input
-          ref={inputRef}
-          placeholder="Class Type"
-          value={classTypeSearch}
-          onChange={(e) => {
-            setClassTypeSearch(e.target.value);
-            setShowDropdown(true);
-          }}
-          onFocus={() => setShowDropdown(true)}
-          onBlur={handleInputBlur}
-          autoComplete="off"
-          required
-        />
-        {showDropdown && filteredClassTypes.length > 0 && (
-          <div
-            className="absolute z-10 mt-1 w-full rounded-md border bg-white shadow-lg max-h-60 overflow-auto"
-            onMouseDown={handleDropdownMouseDown}
-            onMouseUp={handleDropdownMouseUp}
-          >
-            {filteredClassTypes.map((classType) => (
-              <div
-                key={classType.value}
-                className={`px-4 py-2 cursor-pointer hover:bg-gray-100 ${
-                  formData.classType === classType.value ? "bg-gray-100" : ""
-                }`}
-                onMouseDown={() =>
-                  handleClassTypeSelect(classType.value, classType.label)
-                }
-              >
-                {classType.label}
-              </div>
-            ))}
-          </div>
-        )}
-      </div>
+
+      <Select value={formData.classType} onValueChange={handleClassTypeChange}>
+        <SelectTrigger>
+          <SelectValue placeholder="Select a class type" />
+        </SelectTrigger>
+        <SelectContent>
+          {sortedClassTypes.map((classType) => (
+            <SelectItem key={classType.value} value={classType.value}>
+              {classType.label}
+            </SelectItem>
+          ))}
+        </SelectContent>
+      </Select>
+
       <Textarea
         name="description"
         placeholder="Description"

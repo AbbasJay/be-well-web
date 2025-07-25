@@ -3,10 +3,10 @@ export const CLASS_TYPES = [
   { value: "strength_training", label: "Strength Training" },
   { value: "cardio", label: "Cardio" },
   { value: "circuit_training", label: "Circuit Training" },
-  { value: "bodybuilding", label: "Bodybuilding" },
-  { value: "powerlifting", label: "Powerlifting" },
-  { value: "crossfit", label: "CrossFit" },
-  { value: "bootcamp", label: "Bootcamp" },
+  { value: "body_building", label: "Body Building" },
+  { value: "power_lifting", label: "Power Lifting" },
+  { value: "cross_fit", label: "Cross Fit" },
+  { value: "boot_camp", label: "Boot Camp" },
 
   // Yoga & Mind-Body
   { value: "yoga", label: "Yoga" },
