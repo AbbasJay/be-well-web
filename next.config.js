@@ -5,7 +5,10 @@
 
 module.exports = {
   images: {
-    domains: ["be-well-business-photos.s3.eu-north-1.amazonaws.com"],
+    domains: [
+      "be-well-business-photos.s3.eu-north-1.amazonaws.com",
+      "be-well-class-photos.s3.eu-north-1.amazonaws.com",
+    ],
   },
   async headers() {
     return [
