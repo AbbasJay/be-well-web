@@ -13,15 +13,17 @@ interface ClassFormProps {
   onSubmit?: (data: Partial<Class>) => void;
 }
 
+function capitalizeWords(str: string) {
+  return str.replace(/\b\w/g, (char) => char.toUpperCase());
+}
+
 export const ClassForm: React.FC<ClassFormProps> = ({
   businessId,
   initialData,
   onSuccess,
   onSubmit,
 }) => {
-  useEffect(() => {
-    console.log("initialData:", initialData);
-  }, [initialData]);
+  useEffect(() => {}, [initialData]);
   const [formData, setFormData] = useState<
     Partial<Class> & { classType?: string }
   >({
@@ -86,9 +88,13 @@ export const ClassForm: React.FC<ClassFormProps> = ({
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
+    const capitalizedFormData = {
+      ...formData,
+      classType: capitalizeWords(formData.classType || ""),
+    };
 
     if (onSubmit) {
-      onSubmit(formData);
+      onSubmit(capitalizedFormData);
     } else {
       try {
         const method = initialData?.id ? "PUT" : "POST";
@@ -101,7 +107,7 @@ export const ClassForm: React.FC<ClassFormProps> = ({
           headers: {
             "Content-Type": "application/json",
           },
-          body: JSON.stringify(formData),
+          body: JSON.stringify(capitalizedFormData),
         });
 
         if (!response.ok) {
