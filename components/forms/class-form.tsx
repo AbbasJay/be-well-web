@@ -1,16 +1,17 @@
 import { useState } from "react";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
+import { Button } from "@/components/ui/button";
 import {
   Select,
-  SelectValue,
   SelectContent,
   SelectItem,
   SelectTrigger,
+  SelectValue,
 } from "@/components/ui/select";
-import { Button } from "@/components/ui/button";
 import { Class } from "@/lib/db/schema";
 import { CLASS_TYPES } from "@/lib/constants/class-types";
+import { getSortedClassTypes } from "@/app/utils/class";
 import Image from "next/image";
 import { Loader2 } from "lucide-react";
 
@@ -49,6 +50,8 @@ export const ClassForm: React.FC<ClassFormProps> = ({
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
+  const sortedClassTypes = getSortedClassTypes(CLASS_TYPES);
+
   const handleChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
   ) => {
@@ -59,6 +62,10 @@ export const ClassForm: React.FC<ClassFormProps> = ({
     }));
   };
 
+  const handleClassTypeChange = (value: string) => {
+    setFormData((prev) => ({ ...prev, classType: value }));
+  };
+
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files[0]) {
       const file = e.target.files[0];
@@ -66,13 +73,6 @@ export const ClassForm: React.FC<ClassFormProps> = ({
       const url = URL.createObjectURL(file);
       setPreviewUrl(url);
     }
-  };
-
-  const handleSelectChange = (value: string) => {
-    setFormData((prevData) => ({
-      ...prevData,
-      classType: value,
-    }));
   };
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
@@ -145,18 +145,19 @@ export const ClassForm: React.FC<ClassFormProps> = ({
         required
       />
 
-      <Select value={formData.classType} onValueChange={handleSelectChange}>
-        <SelectTrigger className="w-full">
-          <SelectValue placeholder="Class Type" />
+      <Select value={formData.classType} onValueChange={handleClassTypeChange}>
+        <SelectTrigger>
+          <SelectValue placeholder="Select a class type" />
         </SelectTrigger>
         <SelectContent>
-          {CLASS_TYPES.map((classType) => (
+          {sortedClassTypes.map((classType) => (
             <SelectItem key={classType.value} value={classType.value}>
               {classType.label}
             </SelectItem>
           ))}
         </SelectContent>
       </Select>
+
       <Textarea
         name="description"
         placeholder="Description"
