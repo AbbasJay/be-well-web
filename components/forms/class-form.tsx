@@ -13,10 +13,6 @@ interface ClassFormProps {
   onSubmit?: (data: Partial<Class>) => void;
 }
 
-function capitalizeWords(str: string) {
-  return str.replace(/\b\w/g, (char) => char.toUpperCase());
-}
-
 export const ClassForm: React.FC<ClassFormProps> = ({
   businessId,
   initialData,
@@ -88,9 +84,21 @@ export const ClassForm: React.FC<ClassFormProps> = ({
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
+    const matchedClassType =
+      classTypeSearch.trim() === ""
+        ? null
+        : CLASS_TYPES.find(
+            (ct) =>
+              ct.label.toLowerCase() === classTypeSearch.trim().toLowerCase()
+          );
+    if (classTypeSearch.trim() !== "" && !matchedClassType) {
+      setClassTypeSearch("");
+      setFormData((prev) => ({ ...prev, classType: "" }));
+      return;
+    }
     const capitalizedFormData = {
       ...formData,
-      classType: capitalizeWords(formData.classType || ""),
+      classType: matchedClassType ? matchedClassType.value : "",
     };
 
     if (onSubmit) {
